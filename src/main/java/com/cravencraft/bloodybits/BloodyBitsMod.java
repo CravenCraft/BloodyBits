@@ -1,4 +1,4 @@
-package com.example.examplemod;
+package com.cravencraft.bloodybits;
 
 import com.mojang.logging.LogUtils;
 import net.minecraft.client.Minecraft;
@@ -30,8 +30,8 @@ import net.minecraftforge.registries.RegistryObject;
 import org.slf4j.Logger;
 
 // The value here should match an entry in the META-INF/mods.toml file
-@Mod(ExampleMod.MODID)
-public class ExampleMod
+@Mod(BloodyBitsMod.MODID)
+public class BloodyBitsMod
 {
     // Define mod id in a common place for everything to reference
     public static final String MODID = "bloodybits";
@@ -61,7 +61,7 @@ public class ExampleMod
                 output.accept(EXAMPLE_ITEM.get()); // Add the example item to the tab. For your own tabs, this method is preferred over the event
             }).build());
 
-    public ExampleMod()
+    public BloodyBitsMod()
     {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
