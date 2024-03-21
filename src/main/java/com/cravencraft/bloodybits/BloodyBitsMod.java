@@ -1,8 +1,10 @@
 package com.cravencraft.bloodybits;
 
-import com.mojang.logging.LogUtils;
+import com.cravencraft.bloodybits.particles.BloodyBitsParticles;
+import com.cravencraft.bloodybits.registries.EntityRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
@@ -27,7 +29,9 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
-import org.slf4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.NotNull;
 
 // The value here should match an entry in the META-INF/mods.toml file
 @Mod(BloodyBitsMod.MODID)
@@ -36,7 +40,7 @@ public class BloodyBitsMod
     // Define mod id in a common place for everything to reference
     public static final String MODID = "bloodybits";
     // Directly reference a slf4j logger
-    private static final Logger LOGGER = LogUtils.getLogger();
+    public static final Logger LOGGER = LogManager.getLogger("BloodyBitsMod");
     // Create a Deferred Register to hold Blocks which will all be registered under the "examplemod" namespace
     public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, MODID);
     // Create a Deferred Register to hold Items which will all be registered under the "examplemod" namespace
@@ -78,6 +82,10 @@ public class BloodyBitsMod
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
 
+        BloodyBitsParticles.register(modEventBus);//TODO: To remove if projectile entities works fine.
+        EntityRegistry.ENTITY_TYPES.register(modEventBus);
+
+
         // Register the item to a creative tab
         modEventBus.addListener(this::addCreative);
 
@@ -103,6 +111,10 @@ public class BloodyBitsMod
     {
         if (event.getTabKey() == CreativeModeTabs.BUILDING_BLOCKS)
             event.accept(EXAMPLE_BLOCK_ITEM);
+    }
+
+    public static ResourceLocation id(@NotNull String path) {
+        return new ResourceLocation(BloodyBitsMod.MODID, path);
     }
 
     // You can use SubscribeEvent and let the Event Bus discover methods to call
