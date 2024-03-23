@@ -16,16 +16,27 @@ public class BloodyBitsEvents {
     @SubscribeEvent
     public static void particleOnEntityDamage(LivingAttackEvent event) {
         if (event.getSource().isCreativePlayer()) {
+            //TODO: Probably do want this.
             if (!event.getEntity().level().isClientSide()) {
-                BloodSprayEntity bloodSprayEntity = new BloodSprayEntity(EntityRegistry.BLOOD_SPRAY.get(), event.getEntity(), event.getEntity().level());
-//                bloodSprayEntity.setDeltaMovement(0, 3, 0);
-                bloodSprayEntity.setDeltaMovement(event.getSource().getDirectEntity().getLookAngle());
-                event.getEntity().level().addFreshEntity(bloodSprayEntity);
-
-                if (event.getEntity() instanceof Pillager pillager) {
-                    pillager.getBoundingBox();
+                for (int i = 0; i < 10; i++) {
+                    BloodSprayEntity bloodSprayEntity = new BloodSprayEntity(EntityRegistry.BLOOD_SPRAY.get(), event.getEntity(), event.getEntity().level(), event.getAmount());
+                    BloodyBitsMod.LOGGER.info("LOOK ANGLE: {}\nDAMAGE AMOUNT: {}", event.getSource().getDirectEntity().getLookAngle().normalize(), event.getAmount());
+//                bloodSprayEntity.stretchLimit = (int) event.getAmount();
+//                bloodSprayEntity.xMinVal = (int) -event.getAmount();
+//                bloodSprayEntity.setDeltaMovement(1, 1, 1);
+//                bloodSprayEntity.set
+                    bloodSprayEntity.setDeltaMovement(
+                            event.getSource().getDirectEntity().getLookAngle().x * (event.getAmount() * 0.1) * Math.random(),
+                            event.getSource().getDirectEntity().getLookAngle().y * (event.getAmount() * 0.1) * Math.random(),
+                            event.getSource().getDirectEntity().getLookAngle().z * (event.getAmount() * 0.1) * Math.random());
+                    BloodyBitsMod.LOGGER.info(" ENTITY DELTA MOVEMENT{}", bloodSprayEntity.getDeltaMovement());
+                    event.getEntity().level().addFreshEntity(bloodSprayEntity);
                 }
-                event.getSource().getDirectEntity().getDirection();
+
+//                if (event.getEntity() instanceof Pillager pillager) {
+//                    pillager.getBoundingBox();
+//                }
+//                event.getSource().getDirectEntity().getDirection();
             }
         }
     }

@@ -7,7 +7,6 @@ import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -18,20 +17,34 @@ import net.minecraftforge.network.NetworkHooks;
 
 public class BloodSprayEntity extends AbstractArrow {
 
-    public int xVal = -4;
+    public int stretchLimit;
+    public int xMinVal;
+    public int xMaxVal;
     public Direction entityDirection;
 
     public BloodSprayEntity(EntityType<BloodSprayEntity> entityType, Level level) {
         super(entityType, level);
     }
 
-    protected BloodSprayEntity(EntityType<BloodSprayEntity> entityType, double x, double y, double z, Level level) {
-        super(entityType, x, y, z, level);
+//    protected BloodSprayEntity(EntityType<BloodSprayEntity> entityType, double x, double y, double z, Level level) {
+//        super(entityType, x, y, z, level);
+//    }
+
+    public BloodSprayEntity(EntityType<BloodSprayEntity> entityType, LivingEntity shooter, Level level, float damageAmount) {
+        super(entityType, shooter, level);
+        this.stretchLimit = (int) damageAmount;
+        BloodyBitsMod.LOGGER.info("HURT DIR: {}", shooter.getHurtDir());
+        BloodyBitsMod.LOGGER.info("STRETCH LIMIT SOURCE: {}", this.stretchLimit);
+//        shooter.getLastDamageSource().
     }
 
-    public BloodSprayEntity(EntityType<BloodSprayEntity> entityType, LivingEntity shooter, Level level) {
-        super(entityType, shooter, level);
-    }
+//    @Override
+//    public void shoot(double pX, double pY, double pZ, float pVelocity, float pInaccuracy) {
+//        super.shoot(pX, pY, pZ, pVelocity, pInaccuracy);
+//        this.
+//        BloodyBitsMod.LOGGER.info("VELOCITY: {}", pVelocity);
+////        this.life = 0;
+//    }
 
     @Override
     protected ItemStack getPickupItem() {
@@ -41,8 +54,21 @@ public class BloodSprayEntity extends AbstractArrow {
     @Override
     public void tick() {
         super.tick();
-        if (this.inGround && this.xVal < 4) {
-            this.xVal += 1;
+        if (this.inGround) {
+            if (this.xMinVal < this.xMaxVal) {
+                this.xMinVal += 1;
+            }
+        }
+        else {
+            if (this.xMinVal > -this.stretchLimit) {
+                BloodyBitsMod.LOGGER.info("MIN VAL SUB {} - {}", xMinVal, -stretchLimit);
+                this.xMinVal -= 1;
+            }
+
+            if (this.xMaxVal < this.stretchLimit) {
+                BloodyBitsMod.LOGGER.info("MAX VAL ADD {} - {}", xMaxVal, stretchLimit);
+                this.xMaxVal += 1;
+            }
         }
     }
 

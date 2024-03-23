@@ -27,8 +27,11 @@ public class BloodSprayRenderer extends EntityRenderer<BloodSprayEntity> {
 //        BloodyBitsMod.LOGGER.info("X ROT AND X ROT0: {} - {}", entity.xRotO, entity.getXRot());
 //        BloodyBitsMod.LOGGER.info("ENTITY POSITION: {}", entity.position());
         pPoseStack.pushPose();
-
+//        pPoseStack.mulPose(Axis.YP.rotationDegrees(Mth.lerp(pPartialTicks, entity.yRotO, entity.getYRot()) - 90.0F));
+//        pPoseStack.mulPose(Axis.ZP.rotationDegrees(Mth.lerp(pPartialTicks, entity.xRotO, entity.getXRot())));
         // todo: I know this is dumb. I'll reverse it after testing.
+        //TODO: For now this is the most accurate one. Maybe can play around with other methods later that
+        //      Don't cause that small clipping through a block that only I will really notice.
         if (entity.entityDirection == null) {
             pPoseStack.mulPose(Axis.YP.rotationDegrees(Mth.lerp(pPartialTicks, entity.yRotO, entity.getYRot()) - 90.0F));
             pPoseStack.mulPose(Axis.ZP.rotationDegrees(Mth.lerp(pPartialTicks, entity.xRotO, entity.getXRot())));
@@ -62,47 +65,56 @@ public class BloodSprayRenderer extends EntityRenderer<BloodSprayEntity> {
             YP & YP = Goes through the Z-axis
             ZP & ZN = Goes through the X-axis
          */
+//        BloodyBitsMod.LOGGER.info("RENDERER ENTITY STRETCH LIMIT {} X MIN {} X MAX", entity.stretchLimit, entity.xMinVal, entity.xMaxVal);
 
         // TODO: Can delete the sides once they're attached to the wall. Will actually work well and show them when it falls again.
         // TODO: Ok, this is the base vertices to create a closed rectangle. Now, we might be able to manipulate it.
-        if (entity.xVal < 3) {
+        if (entity.xMinVal < entity.xMaxVal) {
             // Right side
-            this.vertex(matrix4f, matrix3f, vertexconsumer, entity.xVal, -1, 1, 0.0F, 0.15625F, 0, 1, 0, pPackedLight);
-            this.vertex(matrix4f, matrix3f, vertexconsumer, 4, -1, 1, 0.5F, 0.15625F, 0, 1, 0, pPackedLight);
-            this.vertex(matrix4f, matrix3f, vertexconsumer, 4, 1, 1, 0.5F, 0.15625F, 0, 1, 0, pPackedLight);
-            this.vertex(matrix4f, matrix3f, vertexconsumer, entity.xVal, 1, 1, 0.0F, 0.15625F, 0, 1, 0, pPackedLight);
+            this.vertex(matrix4f, matrix3f, vertexconsumer, entity.xMinVal, -1, 1, 0.0F, 0.15625F, 0, 1, 0, pPackedLight);
+            this.vertex(matrix4f, matrix3f, vertexconsumer, entity.xMaxVal, -1, 1, 0.5F, 0.15625F, 0, 1, 0, pPackedLight);
+            this.vertex(matrix4f, matrix3f, vertexconsumer, entity.xMaxVal, 1, 1, 0.5F, 0.15625F, 0, 1, 0, pPackedLight);
+            this.vertex(matrix4f, matrix3f, vertexconsumer, entity.xMinVal, 1, 1, 0.0F, 0.15625F, 0, 1, 0, pPackedLight);
 
             // Left side
-            this.vertex(matrix4f, matrix3f, vertexconsumer, entity.xVal, 1, -1, 0.0F, 0.15625F, 0, 1, 0, pPackedLight);
-            this.vertex(matrix4f, matrix3f, vertexconsumer, 4, 1, -1, 0.5F, 0.15625F, 0, 1, 0, pPackedLight);
-            this.vertex(matrix4f, matrix3f, vertexconsumer, 4, -1, -1, 0.5F, 0.15625F, 0, 1, 0, pPackedLight);
-            this.vertex(matrix4f, matrix3f, vertexconsumer, entity.xVal, -1, -1, 0.0F, 0.15625F, 0, 1, 0, pPackedLight);
+            this.vertex(matrix4f, matrix3f, vertexconsumer, entity.xMinVal, 1, -1, 0.0F, 0.15625F, 0, 1, 0, pPackedLight);
+            this.vertex(matrix4f, matrix3f, vertexconsumer, entity.xMaxVal, 1, -1, 0.5F, 0.15625F, 0, 1, 0, pPackedLight);
+            this.vertex(matrix4f, matrix3f, vertexconsumer, entity.xMaxVal, -1, -1, 0.5F, 0.15625F, 0, 1, 0, pPackedLight);
+            this.vertex(matrix4f, matrix3f, vertexconsumer, entity.xMinVal, -1, -1, 0.0F, 0.15625F, 0, 1, 0, pPackedLight);
 
             // Top Side
-            this.vertex(matrix4f, matrix3f, vertexconsumer, entity.xVal, 1, -1, 0.5F, 0.15625F, 0, 1, 0, pPackedLight);
-            this.vertex(matrix4f, matrix3f, vertexconsumer, entity.xVal, 1, 1, 0.0F, 0.15625F, 0, 1, 0, pPackedLight);
-            this.vertex(matrix4f, matrix3f, vertexconsumer, 4, 1, 1, 0.5F, 0.15625F, 0, 1, 0, pPackedLight);
-            this.vertex(matrix4f, matrix3f, vertexconsumer, 4, 1, -1, 0.0F, 0.15625F, 0, 1, 0, pPackedLight);
+            this.vertex(matrix4f, matrix3f, vertexconsumer, entity.xMinVal, 1, -1, 0.5F, 0.15625F, 0, 1, 0, pPackedLight);
+            this.vertex(matrix4f, matrix3f, vertexconsumer, entity.xMinVal, 1, 1, 0.0F, 0.15625F, 0, 1, 0, pPackedLight);
+            this.vertex(matrix4f, matrix3f, vertexconsumer, entity.xMaxVal, 1, 1, 0.5F, 0.15625F, 0, 1, 0, pPackedLight);
+            this.vertex(matrix4f, matrix3f, vertexconsumer, entity.xMaxVal, 1, -1, 0.0F, 0.15625F, 0, 1, 0, pPackedLight);
 
 
             // Bottom Side
-            this.vertex(matrix4f, matrix3f, vertexconsumer, entity.xVal, -1, -1, 0.5F, 0.15625F, 0, 1, 0, pPackedLight);
-            this.vertex(matrix4f, matrix3f, vertexconsumer, 4, -1, -1, 0.0F, 0.15625F, 0, 1, 0, pPackedLight);
-            this.vertex(matrix4f, matrix3f, vertexconsumer, 4, -1, 1, 0.5F, 0.15625F, 0, 1, 0, pPackedLight);
-            this.vertex(matrix4f, matrix3f, vertexconsumer, entity.xVal, -1, 1, 0.0F, 0.15625F, 0, 1, 0, pPackedLight);
+            this.vertex(matrix4f, matrix3f, vertexconsumer, entity.xMinVal, -1, -1, 0.5F, 0.15625F, 0, 1, 0, pPackedLight);
+            this.vertex(matrix4f, matrix3f, vertexconsumer, entity.xMaxVal, -1, -1, 0.0F, 0.15625F, 0, 1, 0, pPackedLight);
+            this.vertex(matrix4f, matrix3f, vertexconsumer, entity.xMaxVal, -1, 1, 0.5F, 0.15625F, 0, 1, 0, pPackedLight);
+            this.vertex(matrix4f, matrix3f, vertexconsumer, entity.xMinVal, -1, 1, 0.0F, 0.15625F, 0, 1, 0, pPackedLight);
+        }
+        else {
+//            if (entity.entityDirection.equals(Direction.NORTH) || entity.entityDirection.equals(Direction.SOUTH)) {
+//                pPoseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+//            }
+//            else if (entity.entityDirection.equals(Direction.UP) || entity.entityDirection.equals(Direction.DOWN)) {
+//                pPoseStack.mulPose(Axis.ZP.rotationDegrees(90.0F));
+//            }
         }
 
         // Front side
-        this.vertex(matrix4f, matrix3f, vertexconsumer, entity.xVal, 1, -1, 0.5F, 0.15625F, 0, 1, 0, pPackedLight);
-        this.vertex(matrix4f, matrix3f, vertexconsumer, entity.xVal, -1, -1, 0.0F, 0.15625F, 0, 1, 0, pPackedLight);
-        this.vertex(matrix4f, matrix3f, vertexconsumer, entity.xVal, -1, 1, 0.5F, 0.15625F, 0, 1, 0, pPackedLight);
-        this.vertex(matrix4f, matrix3f, vertexconsumer, entity.xVal, 1, 1, 0.0F, 0.15625F, 0, 1, 0, pPackedLight);
+        this.vertex(matrix4f, matrix3f, vertexconsumer, entity.xMinVal, 1, -1, 0.5F, 0.15625F, 0, 1, 0, pPackedLight);
+        this.vertex(matrix4f, matrix3f, vertexconsumer, entity.xMinVal, -1, -1, 0.0F, 0.15625F, 0, 1, 0, pPackedLight);
+        this.vertex(matrix4f, matrix3f, vertexconsumer, entity.xMinVal, -1, 1, 0.5F, 0.15625F, 0, 1, 0, pPackedLight);
+        this.vertex(matrix4f, matrix3f, vertexconsumer, entity.xMinVal, 1, 1, 0.0F, 0.15625F, 0, 1, 0, pPackedLight);
 
         // Back side
-        this.vertex(matrix4f, matrix3f, vertexconsumer, 4, 1, -1, 0.5F, 0.15625F, 0, 1, 0, pPackedLight);
-        this.vertex(matrix4f, matrix3f, vertexconsumer, 4, 1, 1, 0.0F, 0.15625F, 0, 1, 0, pPackedLight);
-        this.vertex(matrix4f, matrix3f, vertexconsumer, 4, -1, 1, 0.5F, 0.15625F, 0, 1, 0, pPackedLight);
-        this.vertex(matrix4f, matrix3f, vertexconsumer, 4, -1, -1, 0.0F, 0.15625F, 0, 1, 0, pPackedLight);
+        this.vertex(matrix4f, matrix3f, vertexconsumer, entity.xMaxVal, 1, -1, 0.5F, 0.15625F, 0, 1, 0, pPackedLight);
+        this.vertex(matrix4f, matrix3f, vertexconsumer, entity.xMaxVal, 1, 1, 0.0F, 0.15625F, 0, 1, 0, pPackedLight);
+        this.vertex(matrix4f, matrix3f, vertexconsumer, entity.xMaxVal, -1, 1, 0.5F, 0.15625F, 0, 1, 0, pPackedLight);
+        this.vertex(matrix4f, matrix3f, vertexconsumer, entity.xMaxVal, -1, -1, 0.0F, 0.15625F, 0, 1, 0, pPackedLight);
 
 
         //        this.vertex(matrix4f, matrix3f, vertexconsumer, -4, -1, 1, 0.0F, 0.15625F, 0, 1, 0, pPackedLight);
