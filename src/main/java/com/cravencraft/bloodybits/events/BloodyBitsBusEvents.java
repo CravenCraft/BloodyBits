@@ -11,6 +11,8 @@ import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
+// TODO: Can probably delete if I don't want to use particles now.
+//       Will keep until I know for a fact I won't use any.
 @Mod.EventBusSubscriber(modid = BloodyBitsMod.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class BloodyBitsBusEvents {
 

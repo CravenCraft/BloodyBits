@@ -41,7 +41,7 @@ public class BloodSprayEntity extends AbstractArrow {
     @Override
     public void tick() {
         super.tick();
-        if (this.inGround && this.xVal < 3) {
+        if (this.inGround && this.xVal < 4) {
             this.xVal += 1;
         }
     }

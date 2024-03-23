@@ -63,30 +63,34 @@ public class BloodSprayRenderer extends EntityRenderer<BloodSprayEntity> {
             ZP & ZN = Goes through the X-axis
          */
 
+        // TODO: Can delete the sides once they're attached to the wall. Will actually work well and show them when it falls again.
         // TODO: Ok, this is the base vertices to create a closed rectangle. Now, we might be able to manipulate it.
-        // Right side
-        this.vertex(matrix4f, matrix3f, vertexconsumer, entity.xVal, -1, 1, 0.0F, 0.15625F, 0, 1, 0, pPackedLight);
-        this.vertex(matrix4f, matrix3f, vertexconsumer, 4, -1, 1, 0.5F, 0.15625F, 0, 1, 0, pPackedLight);
-        this.vertex(matrix4f, matrix3f, vertexconsumer, 4, 1, 1, 0.5F, 0.15625F, 0, 1, 0, pPackedLight);
-        this.vertex(matrix4f, matrix3f, vertexconsumer, entity.xVal, 1, 1, 0.0F, 0.15625F, 0, 1, 0, pPackedLight);
+        if (entity.xVal < 3) {
+            // Right side
+            this.vertex(matrix4f, matrix3f, vertexconsumer, entity.xVal, -1, 1, 0.0F, 0.15625F, 0, 1, 0, pPackedLight);
+            this.vertex(matrix4f, matrix3f, vertexconsumer, 4, -1, 1, 0.5F, 0.15625F, 0, 1, 0, pPackedLight);
+            this.vertex(matrix4f, matrix3f, vertexconsumer, 4, 1, 1, 0.5F, 0.15625F, 0, 1, 0, pPackedLight);
+            this.vertex(matrix4f, matrix3f, vertexconsumer, entity.xVal, 1, 1, 0.0F, 0.15625F, 0, 1, 0, pPackedLight);
 
-        // Top Side
-        this.vertex(matrix4f, matrix3f, vertexconsumer, entity.xVal, 1, -1, 0.5F, 0.15625F, 0, 1, 0, pPackedLight);
-        this.vertex(matrix4f, matrix3f, vertexconsumer, entity.xVal, 1, 1, 0.0F, 0.15625F, 0, 1, 0, pPackedLight);
-        this.vertex(matrix4f, matrix3f, vertexconsumer, 4, 1, 1, 0.5F, 0.15625F, 0, 1, 0, pPackedLight);
-        this.vertex(matrix4f, matrix3f, vertexconsumer, 4, 1, -1, 0.0F, 0.15625F, 0, 1, 0, pPackedLight);
+            // Left side
+            this.vertex(matrix4f, matrix3f, vertexconsumer, entity.xVal, 1, -1, 0.0F, 0.15625F, 0, 1, 0, pPackedLight);
+            this.vertex(matrix4f, matrix3f, vertexconsumer, 4, 1, -1, 0.5F, 0.15625F, 0, 1, 0, pPackedLight);
+            this.vertex(matrix4f, matrix3f, vertexconsumer, 4, -1, -1, 0.5F, 0.15625F, 0, 1, 0, pPackedLight);
+            this.vertex(matrix4f, matrix3f, vertexconsumer, entity.xVal, -1, -1, 0.0F, 0.15625F, 0, 1, 0, pPackedLight);
 
-        // Left side
-        this.vertex(matrix4f, matrix3f, vertexconsumer, entity.xVal, 1, -1, 0.0F, 0.15625F, 0, 1, 0, pPackedLight);
-        this.vertex(matrix4f, matrix3f, vertexconsumer, 4, 1, -1, 0.5F, 0.15625F, 0, 1, 0, pPackedLight);
-        this.vertex(matrix4f, matrix3f, vertexconsumer, 4, -1, -1, 0.5F, 0.15625F, 0, 1, 0, pPackedLight);
-        this.vertex(matrix4f, matrix3f, vertexconsumer, entity.xVal, -1, -1, 0.0F, 0.15625F, 0, 1, 0, pPackedLight);
+            // Top Side
+            this.vertex(matrix4f, matrix3f, vertexconsumer, entity.xVal, 1, -1, 0.5F, 0.15625F, 0, 1, 0, pPackedLight);
+            this.vertex(matrix4f, matrix3f, vertexconsumer, entity.xVal, 1, 1, 0.0F, 0.15625F, 0, 1, 0, pPackedLight);
+            this.vertex(matrix4f, matrix3f, vertexconsumer, 4, 1, 1, 0.5F, 0.15625F, 0, 1, 0, pPackedLight);
+            this.vertex(matrix4f, matrix3f, vertexconsumer, 4, 1, -1, 0.0F, 0.15625F, 0, 1, 0, pPackedLight);
 
-        // Bottom Side
-        this.vertex(matrix4f, matrix3f, vertexconsumer, entity.xVal, -1, -1, 0.5F, 0.15625F, 0, 1, 0, pPackedLight);
-        this.vertex(matrix4f, matrix3f, vertexconsumer, 4, -1, -1, 0.0F, 0.15625F, 0, 1, 0, pPackedLight);
-        this.vertex(matrix4f, matrix3f, vertexconsumer, 4, -1, 1, 0.5F, 0.15625F, 0, 1, 0, pPackedLight);
-        this.vertex(matrix4f, matrix3f, vertexconsumer, entity.xVal, -1, 1, 0.0F, 0.15625F, 0, 1, 0, pPackedLight);
+
+            // Bottom Side
+            this.vertex(matrix4f, matrix3f, vertexconsumer, entity.xVal, -1, -1, 0.5F, 0.15625F, 0, 1, 0, pPackedLight);
+            this.vertex(matrix4f, matrix3f, vertexconsumer, 4, -1, -1, 0.0F, 0.15625F, 0, 1, 0, pPackedLight);
+            this.vertex(matrix4f, matrix3f, vertexconsumer, 4, -1, 1, 0.5F, 0.15625F, 0, 1, 0, pPackedLight);
+            this.vertex(matrix4f, matrix3f, vertexconsumer, entity.xVal, -1, 1, 0.0F, 0.15625F, 0, 1, 0, pPackedLight);
+        }
 
         // Front side
         this.vertex(matrix4f, matrix3f, vertexconsumer, entity.xVal, 1, -1, 0.5F, 0.15625F, 0, 1, 0, pPackedLight);
