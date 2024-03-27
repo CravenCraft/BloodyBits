@@ -57,18 +57,19 @@ public class BloodSprayEntity extends AbstractArrow {
     //      do this mainly when the blood is spawned and not when it actually hits an entity.
     @Override
     public void tick() {
+//        this.getEntityData()
         super.tick();
 
 //        BloodyBitsMod.LOGGER.info("BOUNDING BOX: {}", this.getBoundingBox());
         if (this.inGround) {
-//            if (this.xMin < this.xMax) {
-//                this.xMin = this.xMax;
-//            }
+            if (this.xMin < this.xMax) {
+                this.xMin = this.xMax;
+            }
             // TODO: Uncomment when I figure out texturing.
-//            if (this.yMin > -4) this.yMin -= 0.1F;
-//            if (this.yMax < 4) this.yMax += 0.1F;
-//            if (this.zMin > -4) this.zMin -= 0.1F;
-//            if (this.zMax < 4) this.zMax += 0.1F;
+            if (this.yMin > -4) this.yMin -= 0.1F;
+            if (this.yMax < 4) this.yMax += 0.1F;
+            if (this.zMin > -4) this.zMin -= 0.1F;
+            if (this.zMax < 4) this.zMax += 0.1F;
         }
         else {
 //            BloodyBitsMod.LOGGER.info("MOVEMENT INFO: " + this.getDeltaMovement());

@@ -1,6 +1,5 @@
 package com.cravencraft.bloodybits;
 
-import com.cravencraft.bloodybits.particles.BloodyBitsParticles;
 import com.cravencraft.bloodybits.registries.EntityRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.Registries;
@@ -82,7 +81,6 @@ public class BloodyBitsMod
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
 
-        BloodyBitsParticles.register(modEventBus);//TODO: To remove if projectile entities works fine.
         EntityRegistry.ENTITY_TYPES.register(modEventBus);
 
 
