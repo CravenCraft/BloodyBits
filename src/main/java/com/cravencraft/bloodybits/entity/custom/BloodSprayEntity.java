@@ -1,6 +1,7 @@
 package com.cravencraft.bloodybits.entity.custom;
 
 import com.cravencraft.bloodybits.BloodyBitsMod;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
@@ -16,16 +17,23 @@ import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.network.NetworkHooks;
 
-public class BloodSprayEntity extends AbstractArrow {
+import java.util.ArrayList;
 
-//    public int stretchLimit;
+public class BloodSprayEntity extends AbstractArrow {
+    public static final int BLOOD_SPATTER_AMOUNT = 20;
     public float xMin;
     public float xMax = 0; // TODO: I bet this needs to be at least 0.001 to not clip into blocks.
     public float yMin;
     public float yMax;
     public float zMin;
     public float zMax;
+    public float yDrip;
+
+    public double xHitAngle;
+    public double yHitAngle;
+    public double zHitAngle;
     public Direction entityDirection;
+    public BlockPos hitBlockPos;
 
     public BloodSprayEntity(EntityType<BloodSprayEntity> entityType, Level level) {
         super(entityType, level);
@@ -57,19 +65,37 @@ public class BloodSprayEntity extends AbstractArrow {
     //      do this mainly when the blood is spawned and not when it actually hits an entity.
     @Override
     public void tick() {
-//        this.getEntityData()
         super.tick();
+//        if (this.getOnPos().east())
+//        BloodyBitsMod.LOGGER.info("EAST BLOCK POS: {}", this.getOnPos().east());
+//        BloodyBitsMod.LOGGER.info("BLOCK AT ENTITY POS: {}", this.level().getBlockState(this.getOnPos()));
 
-//        BloodyBitsMod.LOGGER.info("BOUNDING BOX: {}", this.getBoundingBox());
         if (this.inGround) {
             if (this.xMin < this.xMax) {
                 this.xMin = this.xMax;
             }
-            // TODO: Uncomment when I figure out texturing.
-            if (this.yMin > -4) this.yMin -= 0.1F;
-            if (this.yMax < 4) this.yMax += 0.1F;
-            if (this.zMin > -4) this.zMin -= 0.1F;
-            if (this.zMax < 4) this.zMax += 0.1F;
+
+            if (this.entityDirection != null) {
+//                BloodyBitsMod.LOGGER.info("HIT BLOCK POS: {} ENTITY POS: {} HIT DIRECTION: {}", this.hitBlockPos, this.position(), this.entityDirection);
+                setYMin();
+                setYMax();
+                setZMin();
+                setZMax();
+                setYDrip();
+            }
+
+            // Expands the blood spatter.
+            // TODO: Make this part of the else statement actually. So it shrinks & drips down after the initial expansion
+//            if (this.entityDirection != null && this.yMin > -16 && !this.entityDirection.equals(Direction.UP) && !this.entityDirection.equals(Direction.DOWN)) {
+//                this.yMin -= 0.35F;
+//            }
+
+//            if (this.yMin > -4 && (this.position() < this.blockPosition())) {
+//                this.yMin -= 0.25F;
+//            }
+//            if (this.yMax < 4) this.yMax += 0.25F;
+//            if (this.zMin > -4) this.zMin -= 0.25F;
+//            if (this.zMax < 4) this.zMax += 0.25F;
         }
         else {
 //            BloodyBitsMod.LOGGER.info("MOVEMENT INFO: " + this.getDeltaMovement());
@@ -112,11 +138,28 @@ public class BloodSprayEntity extends AbstractArrow {
      */
     @Override
     protected void onHitBlock(BlockHitResult result) {
+
+        this.hitBlockPos = result.getBlockPos();
+        this.entityDirection = result.getDirection();
         BlockState blockState = this.level().getBlockState(result.getBlockPos());
+//        blockstate.
+        BlockPos blockPos = result.getBlockPos();
+        BloodyBitsMod.LOGGER.info("BLOCK HIT: {}", blockState);
+        BloodyBitsMod.LOGGER.info("BLOCK EAST {} WEST {} NORTH {} SOUTH {} ABOVE {} BELOW {}",
+                this.level().getBlockState(blockPos.east()),
+                this.level().getBlockState(blockPos.west()),
+                this.level().getBlockState(blockPos.north()),
+                this.level().getBlockState(blockPos.south()),
+                this.level().getBlockState(blockPos.above()),
+                this.level().getBlockState(blockPos.below()));
         BloodyBitsMod.LOGGER.info("BLOCK STATE COLLISION SHAPE: {}", blockState.getCollisionShape(this.level(), result.getBlockPos()));
         this.lastState = this.level().getBlockState(result.getBlockPos());
-        this.entityDirection = result.getDirection();
-//        BloodyBitsMod.LOGGER.info("\nBLOCK HIT POS: {}\nLOCATION: {}", result.getBlockPos(), result.getLocation());
+        BloodyBitsMod.LOGGER.info("BLOOD ANGLE ON HIT: {}", this.getLookAngle());
+        this.xHitAngle = this.getLookAngle().x;
+        this.yHitAngle = -this.getLookAngle().y;
+        this.zHitAngle = this.getLookAngle().z;
+
+        BloodyBitsMod.LOGGER.info("\nBLOCK HIT POS: {}\nLOCATION: {}", result.getBlockPos(), result.getLocation());
         BloodyBitsMod.LOGGER.info("DIRECTION: {}", result.getDirection());
         super.onHitBlock(result);
         Vec3 vec3 = result.getLocation().subtract(this.getX(), this.getY(), this.getZ());
@@ -141,6 +184,112 @@ public class BloodSprayEntity extends AbstractArrow {
     @Override
     public Packet<ClientGamePacketListener> getAddEntityPacket() {
         return NetworkHooks.getEntitySpawningPacket(this);
+    }
+
+    private boolean nonExpandableBlocks(String blockName) {
+        return blockName.contains("air") || blockName.contains("water") || blockName.contains("lava");
+    }
+
+    public void setYDrip() {
+        boolean nonExpandableBlockAdjacent;
+        boolean isSizeInBounds;
+
+        if (this.yDrip > -BLOOD_SPATTER_AMOUNT) {
+            if (!this.entityDirection.equals(Direction.UP) && !this.entityDirection.equals(Direction.DOWN)) {
+                nonExpandableBlockAdjacent = nonExpandableBlocks(this.level().getBlockState(this.hitBlockPos.below()).getBlock().toString());
+                isSizeInBounds = this.position().y - Math.abs(this.yDrip * 0.1) > this.hitBlockPos.getY();
+
+                if (!nonExpandableBlockAdjacent || isSizeInBounds) {
+                    this.yDrip -= 0.1F;
+                }
+            }
+        }
+    }
+
+    public void setYMin() {
+        boolean nonExpandableBlockAdjacent;
+        boolean isSizeInBounds;
+        double expansionAmount;
+
+        if (this.entityDirection.equals(Direction.UP) || this.entityDirection.equals(Direction.DOWN)) {
+            nonExpandableBlockAdjacent = nonExpandableBlocks(this.level().getBlockState(this.hitBlockPos.east()).getBlock().toString());
+            isSizeInBounds = this.position().x + Math.abs(this.yMin * 0.1) < this.hitBlockPos.getX() + 1;
+            expansionAmount = (this.xHitAngle < 0) ? BLOOD_SPATTER_AMOUNT * this.xHitAngle : 0;
+
+        }
+        else {
+            nonExpandableBlockAdjacent = nonExpandableBlocks(this.level().getBlockState(this.hitBlockPos.below()).getBlock().toString());
+            isSizeInBounds = this.position().y - Math.abs(this.yMin * 0.1) > this.hitBlockPos.getY();
+            expansionAmount = (this.yHitAngle < 0) ? BLOOD_SPATTER_AMOUNT * this.yHitAngle : 0;
+
+        }
+
+        if (this.yMin > expansionAmount && (!nonExpandableBlockAdjacent || isSizeInBounds)) {
+            this.yMin -= 1.0F;
+        }
+    }
+
+    public void setYMax() {
+        boolean nonExpandableBlockAdjacent;
+        boolean isSizeInBounds;
+        double expansionAmount;
+
+        if (this.entityDirection.equals(Direction.UP) || this.entityDirection.equals(Direction.DOWN)) {
+            nonExpandableBlockAdjacent = nonExpandableBlocks(this.level().getBlockState(this.hitBlockPos.west()).getBlock().toString());
+            isSizeInBounds = this.position().x - Math.abs(this.yMax * 0.1) > this.hitBlockPos.getX();
+            expansionAmount = (this.xHitAngle > 0) ? BLOOD_SPATTER_AMOUNT * this.xHitAngle : 0;
+        }
+        else {
+            nonExpandableBlockAdjacent = nonExpandableBlocks(this.level().getBlockState(this.hitBlockPos.above()).getBlock().toString());
+            isSizeInBounds = this.position().y + Math.abs(this.yMax * 0.1) < this.hitBlockPos.getY() + 1;
+            expansionAmount = (this.yHitAngle > 0) ? BLOOD_SPATTER_AMOUNT * this.yHitAngle : 0;
+        }
+
+        if (this.yMax < expansionAmount && (!nonExpandableBlockAdjacent || isSizeInBounds)) {
+            this.yMax += 1.0F;
+        }
+    }
+
+    public void setZMin() {
+        boolean nonExpandableBlockAdjacent;
+        boolean isSizeInBounds;
+        double expansionAmount;
+
+        if (this.entityDirection.equals(Direction.UP) || this.entityDirection.equals(Direction.DOWN) || this.entityDirection.equals(Direction.EAST) || this.entityDirection.equals(Direction.WEST)) {
+            nonExpandableBlockAdjacent = nonExpandableBlocks(this.level().getBlockState(this.hitBlockPos.north()).getBlock().toString());
+            isSizeInBounds = this.position().z - Math.abs(this.zMin * 0.1) > this.hitBlockPos.getZ();
+            expansionAmount = (this.zHitAngle < 0) ? BLOOD_SPATTER_AMOUNT * this.zHitAngle : 0;
+        }
+        else {
+            nonExpandableBlockAdjacent = nonExpandableBlocks(this.level().getBlockState(this.hitBlockPos.west()).getBlock().toString());
+            isSizeInBounds = this.position().x - Math.abs(this.zMin * 0.1) > this.hitBlockPos.getX();
+            expansionAmount = (this.xHitAngle < 0) ? BLOOD_SPATTER_AMOUNT * this.xHitAngle : 0;
+        }
+
+        if (this.zMin > expansionAmount && (!nonExpandableBlockAdjacent || isSizeInBounds)) {
+            this.zMin -= 1.0F;
+        }
+    }
+
+    public void setZMax() {
+        boolean nonExpandableBlockAdjacent;
+        boolean isSizeInBounds;
+        double expansionAmount;
+
+        if (this.entityDirection.equals(Direction.UP) || this.entityDirection.equals(Direction.DOWN) || this.entityDirection.equals(Direction.EAST) || this.entityDirection.equals(Direction.WEST)) {
+            nonExpandableBlockAdjacent = nonExpandableBlocks(this.level().getBlockState(this.hitBlockPos.south()).getBlock().toString());
+            isSizeInBounds = this.position().z + Math.abs(this.zMax * 0.1) < this.hitBlockPos.getZ() + 1;
+            expansionAmount = (this.zHitAngle > 0) ? BLOOD_SPATTER_AMOUNT * this.zHitAngle : 0;
+        }
+        else {
+            nonExpandableBlockAdjacent = nonExpandableBlocks(this.level().getBlockState(this.hitBlockPos.east()).getBlock().toString());
+            isSizeInBounds = this.position().x + Math.abs(this.zMax * 0.1) < this.hitBlockPos.getX() + 1;
+            expansionAmount = (this.xHitAngle > 0) ? BLOOD_SPATTER_AMOUNT * this.xHitAngle : 0;
+        }
+
+        if (this.zMax < expansionAmount && (!nonExpandableBlockAdjacent || isSizeInBounds)) {
+            this.zMax += 1.0F;
+        }
     }
 
     public boolean isInGround() {

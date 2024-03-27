@@ -7,7 +7,6 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -20,7 +19,7 @@ import org.joml.Matrix4f;
 
 public class BloodSprayRenderer extends EntityRenderer<BloodSprayEntity> {
     public static final ResourceLocation BLOOD_SPRAY = new ResourceLocation(BloodyBitsMod.MODID, "textures/entity/projectiles/blood_spray.png");
-    public static final ResourceLocation BLOOD_SPLATTER_1 = new ResourceLocation(BloodyBitsMod.MODID, "textures/entity/blood_splatter_1.png");
+    public static final ResourceLocation BLOOD_SPLATTER_1 = new ResourceLocation(BloodyBitsMod.MODID, "textures/entity/blood_spatter.png");
 
     public BloodSprayRenderer(EntityRendererProvider.Context context) {
         super(context);
@@ -29,7 +28,8 @@ public class BloodSprayRenderer extends EntityRenderer<BloodSprayEntity> {
 
     @Override
     public void render(BloodSprayEntity entity, float pEntityYaw, float pPartialTicks, PoseStack pPoseStack, @NotNull MultiBufferSource pBuffer, int pPackedLight) {
-
+//        BloodyBitsMod.LOGGER.info("BLOOD POS: {} ON BLOCK POS: {}", entity.position(), entity.getOnPos());
+//        BloodyBitsMod.LOGGER.info("BLOCK POS: {}", entity.blockPosition());
         pPoseStack.pushPose();
 //        pPoseStack.mulPose(Axis.YP.rotationDegrees(Mth.lerp(pPartialTicks, entity.yRotO, entity.getYRot()) - 90.0F));
 //        pPoseStack.mulPose(Axis.ZP.rotationDegrees(Mth.lerp(pPartialTicks, entity.xRotO, entity.getXRot())));
@@ -122,17 +122,22 @@ public class BloodSprayRenderer extends EntityRenderer<BloodSprayEntity> {
 //                pPoseStack.mulPose(Axis.ZP.rotationDegrees(90.0F));
 //            }
 
-        // Front side
-        this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMax, entity.zMin, 0.0F, 0.0F, 0, 1, 0, pPackedLight);
-        this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMin, entity.zMin, 0.0F, 1.0F, 0, 1, 0, pPackedLight);
-        this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMin, entity.zMax, 1.0F, 1.0F, 0, 1, 0, pPackedLight);
-        this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMax, entity.zMax, 1.0F, 0.0F, 0, 1, 0, pPackedLight);
+            // Front side
+            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMax, entity.zMin, 0.0F, 0.0F, 0, 1, 0, pPackedLight);
+            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMin, entity.zMin, 0.0F, 1.0F, 0, 1, 0, pPackedLight);
+            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMin, entity.zMax, 1.0F, 1.0F, 0, 1, 0, pPackedLight);
+            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMax, entity.zMax, 1.0F, 0.0F, 0, 1, 0, pPackedLight);
 
-        // Back side
-        this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMax, entity.yMax, entity.zMin, 0.0F, 0.0F, 0, 1, 0, pPackedLight);
-        this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMax, entity.yMax, entity.zMax, 0.0F, 1.0F, 0, 1, 0, pPackedLight);
-        this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMax, entity.yMin, entity.zMax, 1.0F, 1.0F, 0, 1, 0, pPackedLight);
-        this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMax, entity.yMin, entity.zMin, 1.0F, 0.0F, 0, 1, 0, pPackedLight);
+            if (entity.entityDirection != null && !entity.entityDirection.equals(Direction.UP) && !entity.entityDirection.equals(Direction.DOWN)) {
+                float zPos = (Math.abs(entity.zMax - entity.zMin) / 2) + entity.zMin;
+                float yPos = (Math.abs(entity.yMax - entity.yMin) / 2) + entity.zMin;
+                // Blood drip
+                this.vertex(matrix4f, matrix3f, vertexConsumer, -0.5F, yPos, zPos - 0.25F, 0.53125F, 0.53125F, 0, 1, 0, pPackedLight);
+                this.vertex(matrix4f, matrix3f, vertexConsumer, -0.5F, entity.yDrip, zPos - 0.25F, 0.53125F, 0.53125F, 0, 1, 0, pPackedLight);
+                this.vertex(matrix4f, matrix3f, vertexConsumer, -0.5F, entity.yDrip, zPos + 0.25F, 0.53125F, 0.53125F, 0, 1, 0, pPackedLight);
+                this.vertex(matrix4f, matrix3f, vertexConsumer, -0.5F, yPos, zPos + 0.25F, 0.53125F, 0.53125F, 0, 1, 0, pPackedLight);
+            }
+
         }
 
         pPoseStack.popPose();
