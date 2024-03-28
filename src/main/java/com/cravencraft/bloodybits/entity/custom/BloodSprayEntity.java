@@ -23,6 +23,7 @@ import java.util.ArrayList;
 
 public class BloodSprayEntity extends AbstractArrow {
     public static final int BLOOD_SPATTER_AMOUNT = 20;
+    public static final int BLOOD_SPATTER_TEXTURES = 3;
 
     public int randomTextureNumber;
     public float xMin;
@@ -42,8 +43,7 @@ public class BloodSprayEntity extends AbstractArrow {
 
     public BloodSprayEntity(EntityType<BloodSprayEntity> entityType, Level level) {
         super(entityType, level);
-        this.randomTextureNumber = new Random().nextInt(2) + 1;
-        BloodyBitsMod.LOGGER.info("RANDOM INT CHOSEN: {}", randomTextureNumber);
+        this.randomTextureNumber = new Random().nextInt(BLOOD_SPATTER_TEXTURES);
     }
 
     protected BloodSprayEntity(EntityType<BloodSprayEntity> entityType, double x, double y, double z, Level level) {
@@ -52,16 +52,6 @@ public class BloodSprayEntity extends AbstractArrow {
 
     public BloodSprayEntity(EntityType<BloodSprayEntity> entityType, LivingEntity shooter, Level level, float damageAmount) {
         super(entityType, shooter, level);
-//        this.randomTextureNumber = new Random().nextInt(2) + 1;
-//
-//        BloodyBitsMod.LOGGER.info("RANDOM INT CHOSEN: {}", randomTextureNumber);
-//        entityType.
-//        BloodyBitsMod.LOGGER.info("BOUNDING BOX: {}", this.getBoundingBox());
-
-//        this.setBoundingBox();
-//        this.stretchLimit = (int) damageAmount;
-//        BloodyBitsMod.LOGGER.info("HURT DIR: {}", shooter.getHurtDir());
-//        BloodyBitsMod.LOGGER.info("STRETCH LIMIT SOURCE: {}", this.stretchLimit);
     }
 
     @Override

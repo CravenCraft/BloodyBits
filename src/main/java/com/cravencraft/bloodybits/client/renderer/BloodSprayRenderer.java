@@ -20,8 +20,8 @@ import org.joml.Random;
 
 public class BloodSprayRenderer extends EntityRenderer<BloodSprayEntity> {
     public static final ResourceLocation SPRAY = new ResourceLocation(BloodyBitsMod.MODID, "textures/entity/spray.png");
-    public static final ResourceLocation SPATTER_1 = new ResourceLocation(BloodyBitsMod.MODID, "textures/entity/spatter_1.png");
-    public static final ResourceLocation SPATTER_2 = new ResourceLocation(BloodyBitsMod.MODID, "textures/entity/spatter_2.png");
+//    public static final ResourceLocation SPATTER_1 = new ResourceLocation(BloodyBitsMod.MODID, "textures/entity/spatter_0.png");
+//    public static final ResourceLocation SPATTER_2 = new ResourceLocation(BloodyBitsMod.MODID, "textures/entity/spatter_1.png");
 
 //    public ResourceLocation spatter;
 
@@ -173,14 +173,14 @@ public class BloodSprayRenderer extends EntityRenderer<BloodSprayEntity> {
 
     private ResourceLocation getRandomSpatterTexture(int randomInt) {
         switch (randomInt) {
+            case 1 -> {
+                return new ResourceLocation(BloodyBitsMod.MODID, "textures/entity/spatter_1.png");
+            }
             case 2 -> {
                 return new ResourceLocation(BloodyBitsMod.MODID, "textures/entity/spatter_2.png");
             }
-            case 3 -> {
-                return new ResourceLocation(BloodyBitsMod.MODID, "textures/entity/spatter_3.png");
-            }
             default -> {
-                return new ResourceLocation(BloodyBitsMod.MODID, "textures/entity/spatter_1.png");
+                return new ResourceLocation(BloodyBitsMod.MODID, "textures/entity/spatter_0.png");
             }
         }
     }
