@@ -16,18 +16,22 @@ import net.minecraft.util.Mth;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
+import org.joml.Random;
 
 public class BloodSprayRenderer extends EntityRenderer<BloodSprayEntity> {
-    public static final ResourceLocation BLOOD_SPRAY = new ResourceLocation(BloodyBitsMod.MODID, "textures/entity/projectiles/blood_spray.png");
-    public static final ResourceLocation BLOOD_SPLATTER_1 = new ResourceLocation(BloodyBitsMod.MODID, "textures/entity/blood_spatter.png");
+    public static final ResourceLocation SPRAY = new ResourceLocation(BloodyBitsMod.MODID, "textures/entity/spray.png");
+    public static final ResourceLocation SPATTER_1 = new ResourceLocation(BloodyBitsMod.MODID, "textures/entity/spatter_1.png");
+    public static final ResourceLocation SPATTER_2 = new ResourceLocation(BloodyBitsMod.MODID, "textures/entity/spatter_2.png");
+
+//    public ResourceLocation spatter;
 
     public BloodSprayRenderer(EntityRendererProvider.Context context) {
         super(context);
-
     }
 
     @Override
     public void render(BloodSprayEntity entity, float pEntityYaw, float pPartialTicks, PoseStack pPoseStack, @NotNull MultiBufferSource pBuffer, int pPackedLight) {
+//        this.spatter = getRandomSpatterTexture();
 //        BloodyBitsMod.LOGGER.info("BLOOD POS: {} ON BLOCK POS: {}", entity.position(), entity.getOnPos());
 //        BloodyBitsMod.LOGGER.info("BLOCK POS: {}", entity.blockPosition());
         pPoseStack.pushPose();
@@ -45,12 +49,6 @@ public class BloodSprayRenderer extends EntityRenderer<BloodSprayEntity> {
         }
         else if (entity.entityDirection.equals(Direction.UP) || entity.entityDirection.equals(Direction.DOWN)) {
             pPoseStack.mulPose(Axis.ZP.rotationDegrees(90.0F));
-        }
-
-        float f9 = (float)entity.shakeTime - pPartialTicks;
-        if (f9 > 0.0F) {
-            float f10 = -Mth.sin(f9 * 3.0F) * f9;
-            pPoseStack.mulPose(Axis.ZP.rotationDegrees(f10));
         }
 
 //        pPoseStack.mulPose(Axis.XP.rotationDegrees(45.0F));
@@ -76,6 +74,9 @@ public class BloodSprayRenderer extends EntityRenderer<BloodSprayEntity> {
 
         // TODO: Can delete the sides once they're attached to the wall. Will actually work well and show them when it falls again.
         // TODO: Ok, this is the base vertices to create a closed rectangle. Now, we might be able to manipulate it.
+
+        //TODO: POTENTIAL BUG: When hitting the WEST side from a SOUTHERN angle it appears that the spatter does not want to expand NORTH as it should
+        //      based on the angle it hits.
         if (entity.xMin < entity.xMax) {
 
             // Right side
@@ -115,6 +116,9 @@ public class BloodSprayRenderer extends EntityRenderer<BloodSprayEntity> {
             this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMax, entity.yMin, entity.zMin, 0.0F, 0.125F, 0, 1, 0, pPackedLight);
         }
         else {
+//            if (this.spatter == null) {
+
+//            }
 //            if (entity.entityDirection.equals(Direction.NORTH) || entity.entityDirection.equals(Direction.SOUTH)) {
 //                pPoseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
 //            }
@@ -160,10 +164,24 @@ public class BloodSprayRenderer extends EntityRenderer<BloodSprayEntity> {
     @Override
     public ResourceLocation getTextureLocation(BloodSprayEntity bloodSprayEntity) {
         if (bloodSprayEntity.isInGround()) {
-            return BLOOD_SPLATTER_1;
+            return this.getRandomSpatterTexture(bloodSprayEntity.randomTextureNumber);
         }
         else {
-            return BLOOD_SPRAY;
+            return SPRAY;
+        }
+    }
+
+    private ResourceLocation getRandomSpatterTexture(int randomInt) {
+        switch (randomInt) {
+            case 2 -> {
+                return new ResourceLocation(BloodyBitsMod.MODID, "textures/entity/spatter_2.png");
+            }
+            case 3 -> {
+                return new ResourceLocation(BloodyBitsMod.MODID, "textures/entity/spatter_3.png");
+            }
+            default -> {
+                return new ResourceLocation(BloodyBitsMod.MODID, "textures/entity/spatter_1.png");
+            }
         }
     }
 }

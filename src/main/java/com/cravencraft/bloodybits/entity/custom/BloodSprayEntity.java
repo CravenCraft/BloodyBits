@@ -17,11 +17,14 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.network.NetworkHooks;
+import org.joml.Random;
 
 import java.util.ArrayList;
 
 public class BloodSprayEntity extends AbstractArrow {
     public static final int BLOOD_SPATTER_AMOUNT = 20;
+
+    public int randomTextureNumber;
     public float xMin;
     public float xMax = 0; // TODO: I bet this needs to be at least 0.001 to not clip into blocks.
     public float yMin;
@@ -39,6 +42,8 @@ public class BloodSprayEntity extends AbstractArrow {
 
     public BloodSprayEntity(EntityType<BloodSprayEntity> entityType, Level level) {
         super(entityType, level);
+        this.randomTextureNumber = new Random().nextInt(2) + 1;
+        BloodyBitsMod.LOGGER.info("RANDOM INT CHOSEN: {}", randomTextureNumber);
     }
 
     protected BloodSprayEntity(EntityType<BloodSprayEntity> entityType, double x, double y, double z, Level level) {
@@ -47,6 +52,9 @@ public class BloodSprayEntity extends AbstractArrow {
 
     public BloodSprayEntity(EntityType<BloodSprayEntity> entityType, LivingEntity shooter, Level level, float damageAmount) {
         super(entityType, shooter, level);
+//        this.randomTextureNumber = new Random().nextInt(2) + 1;
+//
+//        BloodyBitsMod.LOGGER.info("RANDOM INT CHOSEN: {}", randomTextureNumber);
 //        entityType.
 //        BloodyBitsMod.LOGGER.info("BOUNDING BOX: {}", this.getBoundingBox());
 
