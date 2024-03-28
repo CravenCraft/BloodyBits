@@ -19,7 +19,7 @@ public class BloodyBitsEvents {
                     BloodyBitsMod.LOGGER.info("LOOK ANGLE: {}\nDAMAGE AMOUNT: {}", event.getSource().getDirectEntity().getLookAngle().normalize(), event.getAmount());
 //                bloodSprayEntity.stretchLimit = (int) event.getAmount();
 //                bloodSprayEntity.xMinVal = (int) -event.getAmount();
-//                bloodSprayEntity.setDeltaMovement(0, 1, 0);
+//                bloodSprayEntity.setDeltaMovement(event.getSource().getDirectEntity().getLookAngle());
 //                bloodSprayEntity.set
                     double xAngle = -event.getSource().getDirectEntity().getLookAngle().x;
                     double yAngle = -event.getSource().getDirectEntity().getLookAngle().y + Math.random();

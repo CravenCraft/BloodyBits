@@ -128,15 +128,16 @@ public class BloodSprayRenderer extends EntityRenderer<BloodSprayEntity> {
             this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMin, entity.zMax, 1.0F, 1.0F, 0, 1, 0, pPackedLight);
             this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMax, entity.zMax, 1.0F, 0.0F, 0, 1, 0, pPackedLight);
 
-            if (entity.entityDirection != null && !entity.entityDirection.equals(Direction.UP) && !entity.entityDirection.equals(Direction.DOWN)) {
-                float zPos = (Math.abs(entity.zMax - entity.zMin) / 2) + entity.zMin;
-                float yPos = (Math.abs(entity.yMax - entity.yMin) / 2) + entity.zMin;
-                // Blood drip
-                this.vertex(matrix4f, matrix3f, vertexConsumer, -0.5F, yPos, zPos - 0.25F, 0.53125F, 0.53125F, 0, 1, 0, pPackedLight);
-                this.vertex(matrix4f, matrix3f, vertexConsumer, -0.5F, entity.yDrip, zPos - 0.25F, 0.53125F, 0.53125F, 0, 1, 0, pPackedLight);
-                this.vertex(matrix4f, matrix3f, vertexConsumer, -0.5F, entity.yDrip, zPos + 0.25F, 0.53125F, 0.53125F, 0, 1, 0, pPackedLight);
-                this.vertex(matrix4f, matrix3f, vertexConsumer, -0.5F, yPos, zPos + 0.25F, 0.53125F, 0.53125F, 0, 1, 0, pPackedLight);
-            }
+            // TODO: Uncomment when I want to revisit dripping & drip textures.
+//            if (entity.entityDirection != null && !entity.entityDirection.equals(Direction.UP) && !entity.entityDirection.equals(Direction.DOWN)) {
+//                float zPos = (Math.abs(entity.zMax - entity.zMin) / 2) + entity.zMin;
+//                float yPos = (Math.abs(entity.yMax - entity.yMin) / 2) + entity.zMin;
+//                // Blood drip
+//                this.vertex(matrix4f, matrix3f, vertexConsumer, -0.5F, yPos, zPos - 0.25F, 0.53125F, 0.53125F, 0, 1, 0, pPackedLight);
+//                this.vertex(matrix4f, matrix3f, vertexConsumer, -0.5F, entity.yDrip, zPos - 0.25F, 0.53125F, 0.53125F, 0, 1, 0, pPackedLight);
+//                this.vertex(matrix4f, matrix3f, vertexConsumer, -0.5F, entity.yDrip, zPos + 0.25F, 0.53125F, 0.53125F, 0, 1, 0, pPackedLight);
+//                this.vertex(matrix4f, matrix3f, vertexConsumer, -0.5F, yPos, zPos + 0.25F, 0.53125F, 0.53125F, 0, 1, 0, pPackedLight);
+//            }
 
         }
 

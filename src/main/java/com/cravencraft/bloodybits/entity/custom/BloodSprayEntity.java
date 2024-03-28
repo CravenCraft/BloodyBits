@@ -12,6 +12,7 @@ import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
@@ -34,6 +35,7 @@ public class BloodSprayEntity extends AbstractArrow {
     public double zHitAngle;
     public Direction entityDirection;
     public BlockPos hitBlockPos;
+    public Vec3 hitPosition;
 
     public BloodSprayEntity(EntityType<BloodSprayEntity> entityType, Level level) {
         super(entityType, level);
@@ -138,9 +140,9 @@ public class BloodSprayEntity extends AbstractArrow {
      */
     @Override
     protected void onHitBlock(BlockHitResult result) {
-
         this.hitBlockPos = result.getBlockPos();
         this.entityDirection = result.getDirection();
+        this.hitPosition = this.position();
         BlockState blockState = this.level().getBlockState(result.getBlockPos());
 //        blockstate.
         BlockPos blockPos = result.getBlockPos();
@@ -208,86 +210,98 @@ public class BloodSprayEntity extends AbstractArrow {
 
     public void setYMin() {
         boolean nonExpandableBlockAdjacent;
-        boolean isSizeInBounds;
         double expansionAmount;
+        BlockState blockExpandingTo;
 
         if (this.entityDirection.equals(Direction.UP) || this.entityDirection.equals(Direction.DOWN)) {
-            nonExpandableBlockAdjacent = nonExpandableBlocks(this.level().getBlockState(this.hitBlockPos.east()).getBlock().toString());
-            isSizeInBounds = this.position().x + Math.abs(this.yMin * 0.1) < this.hitBlockPos.getX() + 1;
+            blockExpandingTo = this.level().getBlockState(BlockPos.containing(this.position().x - (this.yMin - 1.0F) * 0.1F, this.hitBlockPos.getY(), this.position().z + this.zMin * 0.1F));
             expansionAmount = (this.xHitAngle < 0) ? BLOOD_SPATTER_AMOUNT * this.xHitAngle : 0;
-
+        }
+        else if (this.entityDirection.equals(Direction.NORTH) || this.entityDirection.equals(Direction.SOUTH)) {
+            blockExpandingTo = this.level().getBlockState(BlockPos.containing(this.position().x + this.zMin * 0.1F, this.position().y + (this.yMin - 1.0F) * 0.1F, this.hitBlockPos.getZ()));
+            expansionAmount = (this.yHitAngle < 0) ? BLOOD_SPATTER_AMOUNT * this.yHitAngle : 0;
         }
         else {
-            nonExpandableBlockAdjacent = nonExpandableBlocks(this.level().getBlockState(this.hitBlockPos.below()).getBlock().toString());
-            isSizeInBounds = this.position().y - Math.abs(this.yMin * 0.1) > this.hitBlockPos.getY();
+            blockExpandingTo = this.level().getBlockState(BlockPos.containing(this.hitBlockPos.getX(), this.position().y + (this.yMin - 1.0F) * 0.1F, this.position().z + this.zMin * 0.1F));
             expansionAmount = (this.yHitAngle < 0) ? BLOOD_SPATTER_AMOUNT * this.yHitAngle : 0;
 
         }
+        nonExpandableBlockAdjacent = nonExpandableBlocks(blockExpandingTo.getBlock().toString());
 
-        if (this.yMin > expansionAmount && (!nonExpandableBlockAdjacent || isSizeInBounds)) {
+        if (this.yMin > expansionAmount && !nonExpandableBlockAdjacent) {
             this.yMin -= 1.0F;
         }
     }
 
     public void setYMax() {
         boolean nonExpandableBlockAdjacent;
-        boolean isSizeInBounds;
         double expansionAmount;
+        BlockState blockExpandingTo;
 
         if (this.entityDirection.equals(Direction.UP) || this.entityDirection.equals(Direction.DOWN)) {
-            nonExpandableBlockAdjacent = nonExpandableBlocks(this.level().getBlockState(this.hitBlockPos.west()).getBlock().toString());
-            isSizeInBounds = this.position().x - Math.abs(this.yMax * 0.1) > this.hitBlockPos.getX();
+            blockExpandingTo = this.level().getBlockState(BlockPos.containing(this.position().x - (this.yMax + 1.0F) * 0.1F, this.hitBlockPos.getY(), this.position().z + this.zMax * 0.1F));
             expansionAmount = (this.xHitAngle > 0) ? BLOOD_SPATTER_AMOUNT * this.xHitAngle : 0;
         }
-        else {
-            nonExpandableBlockAdjacent = nonExpandableBlocks(this.level().getBlockState(this.hitBlockPos.above()).getBlock().toString());
-            isSizeInBounds = this.position().y + Math.abs(this.yMax * 0.1) < this.hitBlockPos.getY() + 1;
+        else if (this.entityDirection.equals(Direction.NORTH) || this.entityDirection.equals(Direction.SOUTH)) {
+            blockExpandingTo = this.level().getBlockState(BlockPos.containing(this.position().x + this.zMax * 0.1F, this.position().y + (this.yMax + 1.0F) * 0.1F, this.hitBlockPos.getZ()));
             expansionAmount = (this.yHitAngle > 0) ? BLOOD_SPATTER_AMOUNT * this.yHitAngle : 0;
         }
+        else {
+            blockExpandingTo = this.level().getBlockState(BlockPos.containing(this.hitBlockPos.getX(), this.position().y + (this.yMax + 1.0F) * 0.1F, this.position().z + this.zMax * 0.1F));
+            expansionAmount = (this.yHitAngle > 0) ? BLOOD_SPATTER_AMOUNT * this.yHitAngle : 0;
+        }
+        nonExpandableBlockAdjacent = nonExpandableBlocks(blockExpandingTo.getBlock().toString());
 
-        if (this.yMax < expansionAmount && (!nonExpandableBlockAdjacent || isSizeInBounds)) {
+        if (this.yMax < expansionAmount && !nonExpandableBlockAdjacent) {
             this.yMax += 1.0F;
         }
     }
 
     public void setZMin() {
         boolean nonExpandableBlockAdjacent;
-        boolean isSizeInBounds;
         double expansionAmount;
+        BlockState blockExpandingTo;
 
-        if (this.entityDirection.equals(Direction.UP) || this.entityDirection.equals(Direction.DOWN) || this.entityDirection.equals(Direction.EAST) || this.entityDirection.equals(Direction.WEST)) {
-            nonExpandableBlockAdjacent = nonExpandableBlocks(this.level().getBlockState(this.hitBlockPos.north()).getBlock().toString());
-            isSizeInBounds = this.position().z - Math.abs(this.zMin * 0.1) > this.hitBlockPos.getZ();
+        if (this.entityDirection.equals(Direction.UP) || this.entityDirection.equals(Direction.DOWN)) {
+            blockExpandingTo = this.level().getBlockState(BlockPos.containing(this.position().x + this.yMin * 0.1F, this.hitBlockPos.getY(), this.position().z + (this.zMin - 1.0F) * 0.1F));
             expansionAmount = (this.zHitAngle < 0) ? BLOOD_SPATTER_AMOUNT * this.zHitAngle : 0;
         }
-        else {
-            nonExpandableBlockAdjacent = nonExpandableBlocks(this.level().getBlockState(this.hitBlockPos.west()).getBlock().toString());
-            isSizeInBounds = this.position().x - Math.abs(this.zMin * 0.1) > this.hitBlockPos.getX();
+        else if (this.entityDirection.equals(Direction.NORTH) || this.entityDirection.equals(Direction.SOUTH)) {
+            // TODO: May have to account for going left and DOWN and UP. Just one more check.
+            blockExpandingTo = this.level().getBlockState(BlockPos.containing(this.position().x + (this.zMin - 1.0F) * 0.1F, this.position().y + this.yMin * 0.1, this.hitBlockPos.getZ()));
             expansionAmount = (this.xHitAngle < 0) ? BLOOD_SPATTER_AMOUNT * this.xHitAngle : 0;
         }
+        else {
+            blockExpandingTo = this.level().getBlockState(BlockPos.containing(this.hitBlockPos.getX(), this.position().y + this.yMin * 0.1F, this.position().z + (this.zMin - 1.0F) * 0.1F));
+            expansionAmount = (this.zHitAngle < 0) ? BLOOD_SPATTER_AMOUNT * this.xHitAngle : 0;
+        }
+        nonExpandableBlockAdjacent = nonExpandableBlocks(blockExpandingTo.getBlock().toString());
 
-        if (this.zMin > expansionAmount && (!nonExpandableBlockAdjacent || isSizeInBounds)) {
+        if (this.zMin > expansionAmount && !nonExpandableBlockAdjacent) {
             this.zMin -= 1.0F;
         }
     }
 
     public void setZMax() {
         boolean nonExpandableBlockAdjacent;
-        boolean isSizeInBounds;
         double expansionAmount;
+        BlockState blockExpandingTo;
 
-        if (this.entityDirection.equals(Direction.UP) || this.entityDirection.equals(Direction.DOWN) || this.entityDirection.equals(Direction.EAST) || this.entityDirection.equals(Direction.WEST)) {
-            nonExpandableBlockAdjacent = nonExpandableBlocks(this.level().getBlockState(this.hitBlockPos.south()).getBlock().toString());
-            isSizeInBounds = this.position().z + Math.abs(this.zMax * 0.1) < this.hitBlockPos.getZ() + 1;
+        if (this.entityDirection.equals(Direction.UP) || this.entityDirection.equals(Direction.DOWN)) {
+            blockExpandingTo = this.level().getBlockState(BlockPos.containing(this.position().x + this.yMax * 0.1F, this.hitBlockPos.getY(), this.position().z + (this.zMax + 1.0F) * 0.1F));
             expansionAmount = (this.zHitAngle > 0) ? BLOOD_SPATTER_AMOUNT * this.zHitAngle : 0;
         }
-        else {
-            nonExpandableBlockAdjacent = nonExpandableBlocks(this.level().getBlockState(this.hitBlockPos.east()).getBlock().toString());
-            isSizeInBounds = this.position().x + Math.abs(this.zMax * 0.1) < this.hitBlockPos.getX() + 1;
-            expansionAmount = (this.xHitAngle > 0) ? BLOOD_SPATTER_AMOUNT * this.xHitAngle : 0;
+        else if (this.entityDirection.equals(Direction.NORTH) || this.entityDirection.equals(Direction.SOUTH)) {
+            blockExpandingTo = this.level().getBlockState(BlockPos.containing(this.position().x + (this.zMax + 1.0F) * 0.1F, this.position().y + this.yMax * 0.1F, this.hitBlockPos.getZ()));
+            expansionAmount = (this.xHitAngle < 0) ? BLOOD_SPATTER_AMOUNT * this.xHitAngle : 0;
         }
+        else {
+            blockExpandingTo = this.level().getBlockState(BlockPos.containing(this.hitBlockPos.getX(), this.position().y + this.yMax * 0.1F, this.position().z + (this.zMax + 1.0F) * 0.1F));
+            expansionAmount = (this.zHitAngle > 0) ? BLOOD_SPATTER_AMOUNT * this.zHitAngle : 0;
+        }
+        nonExpandableBlockAdjacent = nonExpandableBlocks(blockExpandingTo.getBlock().toString());
 
-        if (this.zMax < expansionAmount && (!nonExpandableBlockAdjacent || isSizeInBounds)) {
+        if (this.zMax < expansionAmount && !nonExpandableBlockAdjacent) {
             this.zMax += 1.0F;
         }
     }
