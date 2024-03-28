@@ -148,7 +148,7 @@ public class BloodSprayRenderer extends EntityRenderer<BloodSprayEntity> {
         //       Now that I'm using entityTranslucentCull the alpha is able to change.
         pConsumer
                 .vertex(pMatrix, pX, pY, pZ)
-                .color(255, 255, 255, 255)
+                .color(255, 50, 50, 255)
                 .uv(pU, pV)
                 .overlayCoords(OverlayTexture.NO_OVERLAY)
                 .uv2(pPackedLight)
