@@ -16,12 +16,9 @@ import net.minecraft.util.Mth;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
-import org.joml.Random;
 
 public class BloodSprayRenderer extends EntityRenderer<BloodSprayEntity> {
     public static final ResourceLocation SPRAY = new ResourceLocation(BloodyBitsMod.MODID, "textures/entity/spray.png");
-//    public static final ResourceLocation SPATTER_1 = new ResourceLocation(BloodyBitsMod.MODID, "textures/entity/spatter_0.png");
-//    public static final ResourceLocation SPATTER_2 = new ResourceLocation(BloodyBitsMod.MODID, "textures/entity/spatter_1.png");
 
 //    public ResourceLocation spatter;
 
@@ -31,6 +28,7 @@ public class BloodSprayRenderer extends EntityRenderer<BloodSprayEntity> {
 
     @Override
     public void render(BloodSprayEntity entity, float pEntityYaw, float pPartialTicks, PoseStack pPoseStack, @NotNull MultiBufferSource pBuffer, int pPackedLight) {
+//        BloodyBitsMod.LOGGER.info("ENTITY RENDERER TICK DESPAWN: {}", entity.clientCurrentLifeTime);
 //        this.spatter = getRandomSpatterTexture();
 //        BloodyBitsMod.LOGGER.info("BLOOD POS: {} ON BLOCK POS: {}", entity.position(), entity.getOnPos());
 //        BloodyBitsMod.LOGGER.info("BLOCK POS: {}", entity.blockPosition());
@@ -80,40 +78,40 @@ public class BloodSprayRenderer extends EntityRenderer<BloodSprayEntity> {
         if (entity.xMin < entity.xMax) {
 
             // Right side
-            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMin, entity.zMax, 0.5F, 0.0F, 0, 1, 0, pPackedLight);
-            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMax, entity.yMin, entity.zMax, 0.0F, 0.0F, 0, 1, 0, pPackedLight);
-            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMax, entity.yMax, entity.zMax, 0.0F, 0.125F, 0, 1, 0, pPackedLight);
-            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMax, entity.zMax, 0.5F, 0.125F, 0, 1, 0, pPackedLight);
+            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMin, entity.zMax, 0.5F, 0.0F, 0, 1, 0, pPackedLight, entity.clientCurrentLifeTime);
+            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMax, entity.yMin, entity.zMax, 0.0F, 0.0F, 0, 1, 0, pPackedLight, entity.clientCurrentLifeTime);
+            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMax, entity.yMax, entity.zMax, 0.0F, 0.125F, 0, 1, 0, pPackedLight, entity.clientCurrentLifeTime);
+            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMax, entity.zMax, 0.5F, 0.125F, 0, 1, 0, pPackedLight, entity.clientCurrentLifeTime);
 
             // Left side
-            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMax, entity.zMin, 0.5F, 0.0F, 0, 1, 0, pPackedLight);
-            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMax, entity.yMax, entity.zMin, 0.0F, 0.0F, 0, 1, 0, pPackedLight);
-            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMax, entity.yMin, entity.zMin, 0.0F, 0.125F, 0, 1, 0, pPackedLight);
-            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMin, entity.zMin, 0.5F, 0.125F, 0, 1, 0, pPackedLight);
+            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMax, entity.zMin, 0.5F, 0.0F, 0, 1, 0, pPackedLight, entity.clientCurrentLifeTime);
+            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMax, entity.yMax, entity.zMin, 0.0F, 0.0F, 0, 1, 0, pPackedLight, entity.clientCurrentLifeTime);
+            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMax, entity.yMin, entity.zMin, 0.0F, 0.125F, 0, 1, 0, pPackedLight, entity.clientCurrentLifeTime);
+            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMin, entity.zMin, 0.5F, 0.125F, 0, 1, 0, pPackedLight, entity.clientCurrentLifeTime);
 
             // Top Side
-            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMax, entity.zMin, 0.5F, 0.0F, 0, 1, 0, pPackedLight);
-            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMax, entity.yMax, entity.zMin, 0.0F, 0.0F, 0, 1, 0, pPackedLight);
-            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMax, entity.yMax, entity.zMax, 0.0F, 0.125F, 0, 1, 0, pPackedLight);
-            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMax, entity.zMax, 0.5F, 0.125F, 0, 1, 0, pPackedLight);
+            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMax, entity.zMin, 0.5F, 0.0F, 0, 1, 0, pPackedLight, entity.clientCurrentLifeTime);
+            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMax, entity.yMax, entity.zMin, 0.0F, 0.0F, 0, 1, 0, pPackedLight, entity.clientCurrentLifeTime);
+            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMax, entity.yMax, entity.zMax, 0.0F, 0.125F, 0, 1, 0, pPackedLight, entity.clientCurrentLifeTime);
+            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMax, entity.zMax, 0.5F, 0.125F, 0, 1, 0, pPackedLight, entity.clientCurrentLifeTime);
 
             // Bottom Side
-            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMin, entity.zMin, 0.5F, 0.0F, 0, 1, 0, pPackedLight);
-            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMax, entity.yMin, entity.zMin, 0.0F, 0.0F, 0, 1, 0, pPackedLight);
-            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMax, entity.yMin, entity.zMax, 0.0F, 0.125F, 0, 1, 0, pPackedLight);
-            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMin, entity.zMax, 0.5F, 0.125F, 0, 1, 0, pPackedLight);
+            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMin, entity.zMin, 0.5F, 0.0F, 0, 1, 0, pPackedLight, entity.clientCurrentLifeTime);
+            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMax, entity.yMin, entity.zMin, 0.0F, 0.0F, 0, 1, 0, pPackedLight, entity.clientCurrentLifeTime);
+            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMax, entity.yMin, entity.zMax, 0.0F, 0.125F, 0, 1, 0, pPackedLight, entity.clientCurrentLifeTime);
+            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMin, entity.zMax, 0.5F, 0.125F, 0, 1, 0, pPackedLight, entity.clientCurrentLifeTime);
 
             // Front side
-            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMax, entity.zMin, 0.375F, 0.0F, 0, 1, 0, pPackedLight);
-            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMin, entity.zMin, 0.375F, 0.125F, 0, 1, 0, pPackedLight);
-            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMin, entity.zMax, 0.5F, 0.125F, 0, 1, 0, pPackedLight);
-            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMax, entity.zMax, 0.5F, 0.125F, 0, 1, 0, pPackedLight);
+            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMax, entity.zMin, 0.375F, 0.0F, 0, 1, 0, pPackedLight, entity.clientCurrentLifeTime);
+            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMin, entity.zMin, 0.375F, 0.125F, 0, 1, 0, pPackedLight, entity.clientCurrentLifeTime);
+            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMin, entity.zMax, 0.5F, 0.125F, 0, 1, 0, pPackedLight, entity.clientCurrentLifeTime);
+            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMax, entity.zMax, 0.5F, 0.125F, 0, 1, 0, pPackedLight, entity.clientCurrentLifeTime);
 
             // Back side
-            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMax, entity.yMax, entity.zMin, 0.0F, 0.0F, 0, 1, 0, pPackedLight);
-            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMax, entity.yMax, entity.zMax, 0.125F, 0.0F, 0, 1, 0, pPackedLight);
-            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMax, entity.yMin, entity.zMax, 0.125F, 0.125F, 0, 1, 0, pPackedLight);
-            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMax, entity.yMin, entity.zMin, 0.0F, 0.125F, 0, 1, 0, pPackedLight);
+            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMax, entity.yMax, entity.zMin, 0.0F, 0.0F, 0, 1, 0, pPackedLight, entity.clientCurrentLifeTime);
+            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMax, entity.yMax, entity.zMax, 0.125F, 0.0F, 0, 1, 0, pPackedLight, entity.clientCurrentLifeTime);
+            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMax, entity.yMin, entity.zMax, 0.125F, 0.125F, 0, 1, 0, pPackedLight, entity.clientCurrentLifeTime);
+            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMax, entity.yMin, entity.zMin, 0.0F, 0.125F, 0, 1, 0, pPackedLight, entity.clientCurrentLifeTime);
         }
         else {
 //            if (this.spatter == null) {
@@ -127,10 +125,10 @@ public class BloodSprayRenderer extends EntityRenderer<BloodSprayEntity> {
 //            }
 
             // Front side
-            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMax, entity.zMin, 0.0F, 0.0F, 0, 1, 0, pPackedLight);
-            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMin, entity.zMin, 0.0F, 1.0F, 0, 1, 0, pPackedLight);
-            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMin, entity.zMax, 1.0F, 1.0F, 0, 1, 0, pPackedLight);
-            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMax, entity.zMax, 1.0F, 0.0F, 0, 1, 0, pPackedLight);
+            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMax, entity.zMin, 0.0F, 0.0F, 0, 1, 0, pPackedLight, entity.clientCurrentLifeTime);
+            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMin, entity.zMin, 0.0F, 1.0F, 0, 1, 0, pPackedLight, entity.clientCurrentLifeTime);
+            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMin, entity.zMax, 1.0F, 1.0F, 0, 1, 0, pPackedLight, entity.clientCurrentLifeTime);
+            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMax, entity.zMax, 1.0F, 0.0F, 0, 1, 0, pPackedLight, entity.clientCurrentLifeTime);
 
             // TODO: Uncomment when I want to revisit dripping & drip textures.
 //            if (entity.entityDirection != null && !entity.entityDirection.equals(Direction.UP) && !entity.entityDirection.equals(Direction.DOWN)) {
@@ -148,12 +146,13 @@ public class BloodSprayRenderer extends EntityRenderer<BloodSprayEntity> {
         pPoseStack.popPose();
     }
 
-    public void vertex(Matrix4f pMatrix, Matrix3f pNormal, VertexConsumer pConsumer, float pX, float pY, float pZ, float pU, float pV, int pNormalX, int pNormalZ, int pNormalY, int pPackedLight) {
-        // TODO: Change the alpha as the entity is reaching the end of its life.
-        //       Now that I'm using entityTranslucentCull the alpha is able to change.
+    public void vertex(Matrix4f pMatrix, Matrix3f pNormal, VertexConsumer pConsumer, float pX, float pY, float pZ, float pU, float pV, int pNormalX, int pNormalZ, int pNormalY, int pPackedLight, int lifeTime) {
+        double percentageOfLifetime = ((double) lifeTime / BloodSprayEntity.DESPAWN_TIME);
+        int alpha = (int) (255 - (((double) lifeTime / BloodSprayEntity.DESPAWN_TIME) * 255));
+//        BloodyBitsMod.LOGGER.info("RENDERER entity.clientCurrentLifeTimeTIME: {} DESPAWN TIME: {} THOSE DIVIDED: {} AND ALPHA: {}", lifeTime, BloodSprayEntity.DESPAWN_TIME, percentageOfLifetime,  alpha);
         pConsumer
                 .vertex(pMatrix, pX, pY, pZ)
-                .color(255, 50, 50, 255)
+                .color(255, 50, 50, alpha)
                 .uv(pU, pV)
                 .overlayCoords(OverlayTexture.NO_OVERLAY)
                 .uv2(pPackedLight)

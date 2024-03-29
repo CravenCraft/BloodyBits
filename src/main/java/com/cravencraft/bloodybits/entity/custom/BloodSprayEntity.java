@@ -19,12 +19,13 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.network.NetworkHooks;
 import org.joml.Random;
 
-import java.util.ArrayList;
-
 public class BloodSprayEntity extends AbstractArrow {
     public static final int BLOOD_SPATTER_AMOUNT = 20;
-    public static final int BLOOD_SPATTER_TEXTURES = 3;
+    public static final int BLOOD_SPATTER_TEXTURES = 3; // TODO: private?
+    public static final int WALL_SLIDE_DOWN_AMOUNT = 20;
+    public static final int DESPAWN_TIME = 1200; // TODO: Set this in the client config.
 
+    public int clientCurrentLifeTime;
     public int randomTextureNumber;
     public float xMin;
     public float xMax = 0; // TODO: I bet this needs to be at least 0.001 to not clip into blocks.
@@ -54,6 +55,14 @@ public class BloodSprayEntity extends AbstractArrow {
         super(entityType, shooter, level);
     }
 
+    private void clientTickDespawn() {
+//        BloodyBitsMod.LOGGER.info("ENTITY TICK DESPAWN: {}", this.clientCurrentLifeTime);
+        ++this.clientCurrentLifeTime;
+        if (this.clientCurrentLifeTime >= DESPAWN_TIME) {
+            this.discard();
+        }
+    }
+
     @Override
     protected ItemStack getPickupItem() {
         return null;
@@ -66,14 +75,19 @@ public class BloodSprayEntity extends AbstractArrow {
     @Override
     public void tick() {
         super.tick();
-//        if (this.getOnPos().east())
-//        BloodyBitsMod.LOGGER.info("EAST BLOCK POS: {}", this.getOnPos().east());
-//        BloodyBitsMod.LOGGER.info("BLOCK AT ENTITY POS: {}", this.level().getBlockState(this.getOnPos()));
-
         if (this.inGround) {
             if (this.xMin < this.xMax) {
                 this.xMin = this.xMax;
             }
+
+            if (this.level().isClientSide()) {
+                BlockPos blockpos = this.blockPosition();
+//                BloodyBitsMod.LOGGER.info("IS LAST STATE CURRENT STATE: {} SHOULD NOT FALL: {}", this.lastState == this.level().getBlockState(blockpos), !this.shouldFall());
+                if (!this.shouldFall()) {
+                    this.clientTickDespawn();
+                }
+            }
+
 
             if (this.entityDirection != null) {
 //                BloodyBitsMod.LOGGER.info("HIT BLOCK POS: {} ENTITY POS: {} HIT DIRECTION: {}", this.hitBlockPos, this.position(), this.entityDirection);
@@ -83,21 +97,9 @@ public class BloodSprayEntity extends AbstractArrow {
                 setZMax();
                 setYDrip();
             }
-
-            // Expands the blood spatter.
-            // TODO: Make this part of the else statement actually. So it shrinks & drips down after the initial expansion
-//            if (this.entityDirection != null && this.yMin > -16 && !this.entityDirection.equals(Direction.UP) && !this.entityDirection.equals(Direction.DOWN)) {
-//                this.yMin -= 0.35F;
-//            }
-
-//            if (this.yMin > -4 && (this.position() < this.blockPosition())) {
-//                this.yMin -= 0.25F;
-//            }
-//            if (this.yMax < 4) this.yMax += 0.25F;
-//            if (this.zMin > -4) this.zMin -= 0.25F;
-//            if (this.zMax < 4) this.zMax += 0.25F;
         }
         else {
+            this.clientCurrentLifeTime = 0;
 //            BloodyBitsMod.LOGGER.info("MOVEMENT INFO: " + this.getDeltaMovement());
             double velocity = this.getDeltaMovement().length();
 //            BloodyBitsMod.LOGGER.info("VELOCITY: {}", velocity);
@@ -209,25 +211,37 @@ public class BloodSprayEntity extends AbstractArrow {
     public void setYMin() {
         boolean nonExpandableBlockAdjacent;
         double expansionAmount;
+        int wallSlideAmount;
         BlockState blockExpandingTo;
 
         if (this.entityDirection.equals(Direction.UP) || this.entityDirection.equals(Direction.DOWN)) {
             blockExpandingTo = this.level().getBlockState(BlockPos.containing(this.position().x - (this.yMin - 1.0F) * 0.1F, this.hitBlockPos.getY(), this.position().z + this.zMin * 0.1F));
             expansionAmount = (this.xHitAngle < 0) ? BLOOD_SPATTER_AMOUNT * this.xHitAngle : 0;
+            wallSlideAmount = 0;
         }
         else if (this.entityDirection.equals(Direction.NORTH) || this.entityDirection.equals(Direction.SOUTH)) {
             blockExpandingTo = this.level().getBlockState(BlockPos.containing(this.position().x + this.zMin * 0.1F, this.position().y + (this.yMin - 1.0F) * 0.1F, this.hitBlockPos.getZ()));
-            expansionAmount = (this.yHitAngle < 0) ? BLOOD_SPATTER_AMOUNT * this.yHitAngle : 0;
+            expansionAmount = (this.yHitAngle < 0) ? (BLOOD_SPATTER_AMOUNT * this.yHitAngle) : 0;
+            wallSlideAmount = WALL_SLIDE_DOWN_AMOUNT;
         }
         else {
             blockExpandingTo = this.level().getBlockState(BlockPos.containing(this.hitBlockPos.getX(), this.position().y + (this.yMin - 1.0F) * 0.1F, this.position().z + this.zMin * 0.1F));
-            expansionAmount = (this.yHitAngle < 0) ? BLOOD_SPATTER_AMOUNT * this.yHitAngle : 0;
-
+            expansionAmount = (this.yHitAngle < 0) ? (BLOOD_SPATTER_AMOUNT * this.yHitAngle) : 0;
+            wallSlideAmount = WALL_SLIDE_DOWN_AMOUNT;
         }
         nonExpandableBlockAdjacent = nonExpandableBlocks(blockExpandingTo.getBlock().toString());
 
         if (this.yMin > expansionAmount && !nonExpandableBlockAdjacent) {
             this.yMin -= 1.0F;
+        }
+
+        if (!nonExpandableBlockAdjacent) {
+            if (this.yMin > expansionAmount) {
+                this.yMin -= 1.0F;
+            }
+            else if (this.yMin > expansionAmount - wallSlideAmount) {
+                this.yMin -= 0.025F;
+            }
         }
     }
 
@@ -266,12 +280,12 @@ public class BloodSprayEntity extends AbstractArrow {
         }
         else if (this.entityDirection.equals(Direction.NORTH) || this.entityDirection.equals(Direction.SOUTH)) {
             // TODO: May have to account for going left and DOWN and UP. Just one more check.
-            blockExpandingTo = this.level().getBlockState(BlockPos.containing(this.position().x + (this.zMin - 1.0F) * 0.1F, this.position().y + this.yMin * 0.1, this.hitBlockPos.getZ()));
-            expansionAmount = (this.xHitAngle < 0) ? BLOOD_SPATTER_AMOUNT * this.xHitAngle : 0;
+            blockExpandingTo = this.level().getBlockState(BlockPos.containing(this.position().x - (this.zMin - 1.0F) * 0.1F, this.position().y + this.yMin * 0.1, this.hitBlockPos.getZ()));
+            expansionAmount = (this.xHitAngle > 0) ? BLOOD_SPATTER_AMOUNT * -this.xHitAngle : 0;
         }
         else {
-            blockExpandingTo = this.level().getBlockState(BlockPos.containing(this.hitBlockPos.getX(), this.position().y + this.yMin * 0.1F, this.position().z + (this.zMin - 1.0F) * 0.1F));
-            expansionAmount = (this.zHitAngle < 0) ? BLOOD_SPATTER_AMOUNT * this.xHitAngle : 0;
+            blockExpandingTo = this.level().getBlockState(BlockPos.containing(this.hitBlockPos.getX(), this.position().y + this.yMin * 0.1F, this.position().z - (this.zMin - 1.0F) * 0.1F));
+            expansionAmount = (this.zHitAngle < 0) ? BLOOD_SPATTER_AMOUNT * this.zHitAngle : 0;
         }
         nonExpandableBlockAdjacent = nonExpandableBlocks(blockExpandingTo.getBlock().toString());
 
@@ -291,7 +305,7 @@ public class BloodSprayEntity extends AbstractArrow {
         }
         else if (this.entityDirection.equals(Direction.NORTH) || this.entityDirection.equals(Direction.SOUTH)) {
             blockExpandingTo = this.level().getBlockState(BlockPos.containing(this.position().x + (this.zMax + 1.0F) * 0.1F, this.position().y + this.yMax * 0.1F, this.hitBlockPos.getZ()));
-            expansionAmount = (this.xHitAngle < 0) ? BLOOD_SPATTER_AMOUNT * this.xHitAngle : 0;
+            expansionAmount = (this.xHitAngle < 0) ? BLOOD_SPATTER_AMOUNT * -this.xHitAngle : 0;
         }
         else {
             blockExpandingTo = this.level().getBlockState(BlockPos.containing(this.hitBlockPos.getX(), this.position().y + this.yMax * 0.1F, this.position().z + (this.zMax + 1.0F) * 0.1F));
@@ -302,6 +316,7 @@ public class BloodSprayEntity extends AbstractArrow {
         if (this.zMax < expansionAmount && !nonExpandableBlockAdjacent) {
             this.zMax += 1.0F;
         }
+//        this.zMax += 0.1F;
     }
 
     public boolean isInGround() {
