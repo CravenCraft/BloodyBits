@@ -8,6 +8,7 @@ import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -63,9 +64,23 @@ public class BloodSprayEntity extends AbstractArrow {
         }
     }
 
+    /**
+     * Do nothing when the player interacts with the entity.
+     * TODO: Maybe later down the line we can add bloody footprints if the player steps on one in the UP direction?
+     *
+     * @param player
+     */
+    @Override
+    public void playerTouch(Player player) {}
+
+    /**
+     * Hopefully this is never called because of the above playerTouch override method.
+     *
+     * @return
+     */
     @Override
     protected ItemStack getPickupItem() {
-        return null;
+        return ItemStack.EMPTY;
     }
 
     //TODO: Making the note here as to not forget, but does not pertain to the tick() method.
