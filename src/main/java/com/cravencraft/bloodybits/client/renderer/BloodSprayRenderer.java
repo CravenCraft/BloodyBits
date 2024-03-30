@@ -38,6 +38,7 @@ public class BloodSprayRenderer extends EntityRenderer<BloodSprayEntity> {
         // todo: I know this is dumb. I'll reverse it after testing.
         //TODO: For now this is the most accurate one. Maybe can play around with other methods later that
         //      Don't cause that small clipping through a block that only I will really notice.
+        //TODO: Can probably put most of the below code in these blocks.
         if (entity.entityDirection == null) {
             pPoseStack.mulPose(Axis.YP.rotationDegrees(Mth.lerp(pPartialTicks, entity.yRotO, entity.getYRot()) - 90.0F));
             pPoseStack.mulPose(Axis.ZP.rotationDegrees(Mth.lerp(pPartialTicks, entity.xRotO, entity.getXRot())));
@@ -114,15 +115,6 @@ public class BloodSprayRenderer extends EntityRenderer<BloodSprayEntity> {
             this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMax, entity.yMin, entity.zMin, 0.0F, 0.125F, 0, 1, 0, pPackedLight, entity.currentLifeTime);
         }
         else {
-//            if (this.spatter == null) {
-
-//            }
-//            if (entity.entityDirection.equals(Direction.NORTH) || entity.entityDirection.equals(Direction.SOUTH)) {
-//                pPoseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
-//            }
-//            else if (entity.entityDirection.equals(Direction.UP) || entity.entityDirection.equals(Direction.DOWN)) {
-//                pPoseStack.mulPose(Axis.ZP.rotationDegrees(90.0F));
-//            }
 
             // Front side
             this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMax, entity.zMin, 0.0F, 0.0F, 0, 1, 0, pPackedLight, entity.currentLifeTime);
@@ -131,15 +123,30 @@ public class BloodSprayRenderer extends EntityRenderer<BloodSprayEntity> {
             this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMax, entity.zMax, 1.0F, 0.0F, 0, 1, 0, pPackedLight, entity.currentLifeTime);
 
             // TODO: Uncomment when I want to revisit dripping & drip textures.
-//            if (entity.entityDirection != null && !entity.entityDirection.equals(Direction.UP) && !entity.entityDirection.equals(Direction.DOWN)) {
-//                float zPos = (Math.abs(entity.zMax - entity.zMin) / 2) + entity.zMin;
-//                float yPos = (Math.abs(entity.yMax - entity.yMin) / 2) + entity.zMin;
-//                // Blood drip
-//                this.vertex(matrix4f, matrix3f, vertexConsumer, -0.5F, yPos, zPos - 0.25F, 0.53125F, 0.53125F, 0, 1, 0, pPackedLight);
-//                this.vertex(matrix4f, matrix3f, vertexConsumer, -0.5F, entity.yDrip, zPos - 0.25F, 0.53125F, 0.53125F, 0, 1, 0, pPackedLight);
-//                this.vertex(matrix4f, matrix3f, vertexConsumer, -0.5F, entity.yDrip, zPos + 0.25F, 0.53125F, 0.53125F, 0, 1, 0, pPackedLight);
-//                this.vertex(matrix4f, matrix3f, vertexConsumer, -0.5F, yPos, zPos + 0.25F, 0.53125F, 0.53125F, 0, 1, 0, pPackedLight);
-//            }
+            if (entity.currentLifeTime > 50 && entity.entityDirection != null && entity.entityDirection.equals(Direction.DOWN)) {
+                VertexConsumer dripVertexConsumer = pBuffer.getBuffer(RenderType.entityTranslucent(SPRAY));
+                float zPos = (Math.abs(entity.zMax - entity.zMin) / 2) + entity.zMin; // Gets the center point to make the Z-axis.
+                float yPos = (Math.abs(entity.yMax - entity.yMin) / 2) + entity.yMin;
+                float thickness = (entity.drip * 0.01F);
+                int dripLifeTime = (int) (entity.currentLifeTime + ((entity.drip / BloodSprayEntity.MAX_DRIP_LENGTH) * (BloodSprayEntity.DESPAWN_TIME - entity.currentLifeTime)));
+
+                /*
+                 * Blood drip. Keeping it at just 2 drips so the player can see a drip at all angles without having to do too much crazy math
+                 * to make an actual rectangle that would also add a performance cost. This is a good compromise.
+                 */
+
+                // Z-axis view
+                this.vertex(matrix4f, matrix3f, dripVertexConsumer, entity.xMax, yPos, zPos - 0.5F + thickness, 0.5F, 0.0F, 0, 1, 0, pPackedLight, dripLifeTime);
+                this.vertex(matrix4f, matrix3f, dripVertexConsumer, -entity.drip, yPos, zPos - 0.5F + thickness, 0.0F, 0.0F, 0, 1, 0, pPackedLight, dripLifeTime);
+                this.vertex(matrix4f, matrix3f, dripVertexConsumer, -entity.drip, yPos, zPos + 0.5F - thickness, 0.0F, 0.125F, 0, 1, 0, pPackedLight, dripLifeTime);
+                this.vertex(matrix4f, matrix3f, dripVertexConsumer, entity.xMax, yPos, zPos + 0.5F - thickness, 0.5F, 0.125F, 0, 1, 0, pPackedLight, dripLifeTime);
+
+                // Y-axis view
+                this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMax, yPos - 0.5F + thickness, zPos, 0.5F, 0.0F, 0, 1, 0, pPackedLight, dripLifeTime);
+                this.vertex(matrix4f, matrix3f, vertexConsumer, -entity.drip, yPos - 0.5F + thickness, zPos, 0.0F, 0.0F, 0, 1, 0, pPackedLight, dripLifeTime);
+                this.vertex(matrix4f, matrix3f, vertexConsumer, -entity.drip, yPos + 0.5F - thickness, zPos, 0.0F, 0.125F, 0, 1, 0, pPackedLight, dripLifeTime);
+                this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMax, yPos + 0.5F - thickness, zPos, 0.5F, 0.125F, 0, 1, 0, pPackedLight, dripLifeTime);
+            }
 
         }
 
@@ -147,9 +154,7 @@ public class BloodSprayRenderer extends EntityRenderer<BloodSprayEntity> {
     }
 
     public void vertex(Matrix4f pMatrix, Matrix3f pNormal, VertexConsumer pConsumer, float pX, float pY, float pZ, float pU, float pV, int pNormalX, int pNormalZ, int pNormalY, int pPackedLight, int lifeTime) {
-        double percentageOfLifetime = ((double) lifeTime / BloodSprayEntity.DESPAWN_TIME);
         int alpha = (int) (255 - (((double) lifeTime / BloodSprayEntity.DESPAWN_TIME) * 255));
-//        BloodyBitsMod.LOGGER.info("RENDERER entity.clientCurrentLifeTimeTIME: {} DESPAWN TIME: {} THOSE DIVIDED: {} AND ALPHA: {}", lifeTime, BloodSprayEntity.DESPAWN_TIME, percentageOfLifetime,  alpha);
         pConsumer
                 .vertex(pMatrix, pX, pY, pZ)
                 .color(255, 50, 50, alpha)

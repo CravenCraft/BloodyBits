@@ -15,12 +15,14 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.*;
 import net.minecraftforge.network.NetworkHooks;
+import org.jetbrains.annotations.NotNull;
 import org.joml.Random;
 
 public class BloodSprayEntity extends AbstractArrow {
     public static final int BLOOD_SPATTER_AMOUNT = 20;
     public static final int BLOOD_SPATTER_TEXTURES = 3; // TODO: private?
     public static final int WALL_SLIDE_DOWN_AMOUNT = 20;
+    public static final int MAX_DRIP_LENGTH = 50;
     public static final int DESPAWN_TIME = 1200; // TODO: Set this in the client config.
 
     public int currentLifeTime;
@@ -31,11 +33,13 @@ public class BloodSprayEntity extends AbstractArrow {
     public float yMax;
     public float zMin;
     public float zMax;
-    public float yDrip;
+    public float drip;
 
     public double xHitAngle;
     public double yHitAngle;
     public double zHitAngle;
+
+    public boolean shouldDrip;
     public Direction entityDirection;
     public BlockPos hitBlockPos;
     public Vec3 hitPosition;
@@ -53,12 +57,15 @@ public class BloodSprayEntity extends AbstractArrow {
         super(entityType, shooter, level);
     }
 
+    // TODO: Might be doubling since it's called both client and server side, which is causing the
+    //       fade out to be slower than the discard since the fade out only happens client side.
     @Override
     protected void tickDespawn() {
-//        BloodyBitsMod.LOGGER.info("ENTITY TICK DESPAWN: {}", this.currentLifeTime);
-        ++this.currentLifeTime;
-        if (this.currentLifeTime >= DESPAWN_TIME) {
-            this.discard();
+        if (this.level().isClientSide()) {
+            ++this.currentLifeTime;
+            if (this.currentLifeTime >= DESPAWN_TIME) {
+                this.discard();
+            }
         }
     }
 
@@ -69,7 +76,7 @@ public class BloodSprayEntity extends AbstractArrow {
      * @param player
      */
     @Override
-    public void playerTouch(Player player) {}
+    public void playerTouch(@NotNull Player player) {}
 
     /**
      * Hopefully this is never called because of the above playerTouch override method.
@@ -98,22 +105,17 @@ public class BloodSprayEntity extends AbstractArrow {
                 this.xMin = this.xMax;
             }
 
-//            if (this.level().isClientSide()) {
-                BlockPos blockpos = this.blockPosition();
-//                BloodyBitsMod.LOGGER.info("IS LAST STATE CURRENT STATE: {} SHOULD NOT FALL: {}", this.lastState == this.level().getBlockState(blockpos), !this.shouldFall());
-                if (!this.shouldFall()) {
-                    this.tickDespawn();
-                }
-//            }
+            if (!this.shouldFall()) {
+                this.tickDespawn();
+            }
 
 
             if (this.entityDirection != null) {
-//                BloodyBitsMod.LOGGER.info("HIT BLOCK POS: {} ENTITY POS: {} HIT DIRECTION: {}", this.hitBlockPos, this.position(), this.entityDirection);
                 setYMin();
                 setYMax();
                 setZMin();
                 setZMax();
-                setYDrip();
+                setDrip();
             }
         }
         else if (!this.isInWater()) {
@@ -124,13 +126,13 @@ public class BloodSprayEntity extends AbstractArrow {
 
             // TODO: The larger the divisor the smaller the thickness.
             float widthAndHeight = (length > 10) ? (length - 10) / 4 : (10 - length) / 4;
-//            BloodyBitsMod.LOGGER.info("WIDTH AND HEIGHT: {}", widthAndHeight);
             this.yMin = -(widthAndHeight / 2);
             this.yMax = (widthAndHeight / 2);
             this.zMin = -(widthAndHeight / 2);
             this.zMax = (widthAndHeight / 2);
         }
         else {
+            // TODO: Put all if statement logic in their one private methods to better organize.
             this.yMin -= 0.1F;
             this.yMax += 0.1F;
             this.xMin -= 0.01F;
@@ -138,10 +140,9 @@ public class BloodSprayEntity extends AbstractArrow {
             this.zMin -= 0.1F;
             this.zMax += 0.1F;
 
-//            if (this.level().isClientSide()) {
+            // Rapidly decrease the life of the entity in water.
             this.currentLifeTime += 25;
             this.tickDespawn();
-//            }
         }
     }
 
@@ -209,19 +210,21 @@ public class BloodSprayEntity extends AbstractArrow {
         return blockName.contains("air") || blockName.contains("water") || blockName.contains("lava");
     }
 
-    public void setYDrip() {
-        boolean nonExpandableBlockAdjacent;
-        boolean isSizeInBounds;
-
-        if (this.yDrip > -BLOOD_SPATTER_AMOUNT) {
-            if (!this.entityDirection.equals(Direction.UP) && !this.entityDirection.equals(Direction.DOWN)) {
-                nonExpandableBlockAdjacent = nonExpandableBlocks(this.level().getBlockState(this.hitBlockPos.below()).getBlock().toString());
-                isSizeInBounds = this.position().y - Math.abs(this.yDrip * 0.1) > this.hitBlockPos.getY();
-
-                if (!nonExpandableBlockAdjacent || isSizeInBounds) {
-                    this.yDrip -= 0.1F;
+    public void setDrip() {
+        if (this.drip < MAX_DRIP_LENGTH) {
+            if (this.currentLifeTime > 50 && this.entityDirection.equals(Direction.DOWN)) {
+                if (this.shouldDrip) {
+                    this.drip += 1.0F;
+                }
+                else {
+                    double random = Math.random();
+                    this.shouldDrip = random > 0.99;
                 }
             }
+        }
+        else {
+            this.drip = 0;
+            this.shouldDrip = false;
         }
     }
 
