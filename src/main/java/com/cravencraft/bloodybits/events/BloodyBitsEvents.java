@@ -12,6 +12,9 @@ import net.minecraftforge.fml.common.Mod;
 public class BloodyBitsEvents {
     @SubscribeEvent
     public static void particleOnEntityDamage(LivingAttackEvent event) {
+        // TODO: We want to check damage type. There is a HUGE issue when calling a command to
+        //       kill all entities in that it spawns countless blood sprays. Need to add the config
+        //       too in order to limit the total number of blood spray entities that are able to spawn.
         if (!event.getEntity().level().isClientSide()) {
             for (int i = 0; i < event.getAmount(); i++) {
                 BloodSprayEntity bloodSprayEntity = new BloodSprayEntity(EntityRegistry.BLOOD_SPRAY.get(), event.getEntity(), event.getEntity().level(), event.getAmount());
