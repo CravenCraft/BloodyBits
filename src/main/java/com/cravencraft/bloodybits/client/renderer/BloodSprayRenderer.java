@@ -2,7 +2,6 @@ package com.cravencraft.bloodybits.client.renderer;
 
 import com.cravencraft.bloodybits.BloodyBitsMod;
 import com.cravencraft.bloodybits.config.CommonConfig;
-import com.cravencraft.bloodybits.config.ConfigManager;
 import com.cravencraft.bloodybits.entity.custom.BloodSprayEntity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;

@@ -1,6 +1,6 @@
 package com.cravencraft.bloodybits;
 
-import com.cravencraft.bloodybits.config.ConfigManager;
+import com.cravencraft.bloodybits.config.CommonConfig;
 import com.cravencraft.bloodybits.registries.EntityRegistry;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
@@ -24,7 +24,7 @@ public class BloodyBitsMod
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
         MinecraftForge.EVENT_BUS.register(this);
-        ConfigManager.registerCommonConfig();
+        CommonConfig.loadCommonConfig();
         EntityRegistry.ENTITY_TYPES.register(modEventBus);
     }
 
