@@ -15,6 +15,5 @@ public class ClientSetup {
     @SubscribeEvent
     public static void setup(FMLClientSetupEvent event) {
         EntityRenderers.register(EntityRegistry.BLOOD_SPRAY.get(), BloodSprayRenderer::new);
-        BloodyBitsMod.LOGGER.info("BLOOD SPRAY RENDERER REGISTERED.");
     }
 }

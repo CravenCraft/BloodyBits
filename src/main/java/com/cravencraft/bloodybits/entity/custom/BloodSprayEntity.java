@@ -1,6 +1,5 @@
 package com.cravencraft.bloodybits.entity.custom;
 
-import com.cravencraft.bloodybits.BloodyBitsMod;
 import com.cravencraft.bloodybits.config.CommonConfig;
 import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
 import net.minecraft.core.BlockPos;
@@ -25,7 +24,6 @@ public class BloodSprayEntity extends AbstractArrow {
     private static final int BLOOD_SPATTER_TEXTURES = 3; // TODO: private?
     public static final int WALL_SLIDE_DOWN_AMOUNT = 20;
     public static final int MAX_DRIP_LENGTH = 50;
-    public static final int DESPAWN_TIME = (1200); // TODO: Set this in the client config.
 
     public int currentLifeTime;
     public int randomTextureNumber;
@@ -162,7 +160,6 @@ public class BloodSprayEntity extends AbstractArrow {
      */
     @Override
     protected void onHitBlock(BlockHitResult result) {
-        BloodyBitsMod.LOGGER.info("DESPAWN TIME: {}", CommonConfig.despawnTime());
         this.hitBlockPos = result.getBlockPos();
         this.entityDirection = result.getDirection();
         this.hitPosition = this.position();

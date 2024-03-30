@@ -1,6 +1,5 @@
 package com.cravencraft.bloodybits.mixins;
 
-import com.cravencraft.bloodybits.BloodyBitsMod;
 import com.cravencraft.bloodybits.entity.custom.BloodSprayEntity;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
@@ -51,7 +50,6 @@ public abstract class AbstractArrowMixin extends Projectile {
     private void slowSinking(AbstractArrow instance, double x, double y, double z) {
         if (instance instanceof BloodSprayEntity && this.isInWater()){
             instance.setDeltaMovement(x, 0, z);
-            BloodyBitsMod.LOGGER.info("BLOOD SPRAY Y DELTA MOVEMENT: {} - X: {} - Z: {}", instance.getDeltaMovement().y, instance.getDeltaMovement().x, instance.getDeltaMovement().z);
         }
         else {
             instance.setDeltaMovement(x, y, z);
