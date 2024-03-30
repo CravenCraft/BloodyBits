@@ -5,6 +5,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -149,7 +150,7 @@ public class BloodSprayEntity extends AbstractArrow {
     /**
      * TODO:
      *       - We probably want to set the direction as a field & then the render class can modify how the entity
-     *       is rendered based on the direction hit.
+     *         is rendered based on the direction hit.
      *
      *
      * Is called once on block hit. Can get the direction the entity has hit the block on, which will dictate how
@@ -162,36 +163,27 @@ public class BloodSprayEntity extends AbstractArrow {
         this.hitBlockPos = result.getBlockPos();
         this.entityDirection = result.getDirection();
         this.hitPosition = this.position();
-        BlockState blockState = this.level().getBlockState(result.getBlockPos());
-//        blockstate.
-        BlockPos blockPos = result.getBlockPos();
-//        BloodyBitsMod.LOGGER.info("BLOCK HIT: {}", blockState);
-//        BloodyBitsMod.LOGGER.info("BLOCK EAST {} WEST {} NORTH {} SOUTH {} ABOVE {} BELOW {}",
-//                this.level().getBlockState(blockPos.east()),
-//                this.level().getBlockState(blockPos.west()),
-//                this.level().getBlockState(blockPos.north()),
-//                this.level().getBlockState(blockPos.south()),
-//                this.level().getBlockState(blockPos.above()),
-//                this.level().getBlockState(blockPos.below()));
-//        BloodyBitsMod.LOGGER.info("BLOCK STATE COLLISION SHAPE: {}", blockState.getCollisionShape(this.level(), result.getBlockPos()));
         this.lastState = this.level().getBlockState(result.getBlockPos());
-//        BloodyBitsMod.LOGGER.info("BLOOD ANGLE ON HIT: {}", this.getLookAngle());
         this.xHitAngle = this.getLookAngle().x;
         this.yHitAngle = -this.getLookAngle().y;
         this.zHitAngle = this.getLookAngle().z;
 
-//        BloodyBitsMod.LOGGER.info("\nBLOCK HIT POS: {}\nLOCATION: {}", result.getBlockPos(), result.getLocation());
-//        BloodyBitsMod.LOGGER.info("DIRECTION: {}", result.getDirection());
-        super.onHitBlock(result);
+        // All of this is boilerplate from AbstractArrow except the setSoundEvent now playing a slime sound.
+        this.lastState = this.level().getBlockState(result.getBlockPos());
+        BlockState blockstate = this.level().getBlockState(result.getBlockPos());
+        blockstate.onProjectileHit(this.level(), blockstate, result, this);
         Vec3 vec3 = result.getLocation().subtract(this.getX(), this.getY(), this.getZ());
         this.setDeltaMovement(vec3);
         Vec3 vec31 = vec3.normalize().scale((double)0.05F);
         this.setPosRaw(this.getX() - vec31.x, this.getY() - vec31.y, this.getZ() - vec31.z);
-        this.playSound(this.getHitGroundSoundEvent(), 1.0F, 1.2F / (this.random.nextFloat() * 0.2F + 0.9F));
+
+        // Modified sound to be a deeper pitch of Slime Block sounds.
+        this.setSoundEvent((Math.random() > 0.5) ? SoundEvents.SLIME_BLOCK_HIT : SoundEvents.SLIME_BLOCK_STEP);
+        this.playSound(this.getHitGroundSoundEvent(), 0.75F, 1.8F / (this.random.nextFloat() * 0.2F + 0.9F));
+
         this.inGround = true;
         this.setCritArrow(false);
         this.setPierceLevel((byte)0);
-        this.setSoundEvent(SoundEvents.SLIME_BLOCK_HIT);
         this.setShotFromCrossbow(false);
         this.resetPiercedEntities();
     }
