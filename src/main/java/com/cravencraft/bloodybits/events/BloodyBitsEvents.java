@@ -1,8 +1,10 @@
 package com.cravencraft.bloodybits.events;
 
 import com.cravencraft.bloodybits.BloodyBitsMod;
+import com.cravencraft.bloodybits.config.CommonConfig;
 import com.cravencraft.bloodybits.entity.custom.BloodSprayEntity;
 import com.cravencraft.bloodybits.registries.EntityRegistry;
+import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -17,8 +19,12 @@ public class BloodyBitsEvents {
         //       too in order to limit the total number of blood spray entities that are able to spawn.
         if (!event.getEntity().level().isClientSide() && event.getSource().isCreativePlayer()) {
             for (int i = 0; i < event.getAmount(); i++) {
+                if (BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.size() >= CommonConfig.maxSpatters()) {
+                    BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.get(0).discard();
+                    BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.remove(0);
+                }
                 BloodSprayEntity bloodSprayEntity = new BloodSprayEntity(EntityRegistry.BLOOD_SPRAY.get(), event.getEntity(), event.getEntity().level(), event.getAmount());
-
+                BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.add(bloodSprayEntity);
                 Vec3 sourceAngle;
                 if (event.getSource().getEntity() != null) {
                     sourceAngle = (event.getSource().getDirectEntity() != null) ? event.getSource().getDirectEntity().getLookAngle() : event.getSource().getEntity().getLookAngle();

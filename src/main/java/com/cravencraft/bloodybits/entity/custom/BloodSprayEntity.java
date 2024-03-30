@@ -2,6 +2,7 @@ package com.cravencraft.bloodybits.entity.custom;
 
 import com.cravencraft.bloodybits.BloodyBitsMod;
 import com.cravencraft.bloodybits.config.CommonConfig;
+import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.protocol.Packet;
@@ -66,6 +67,7 @@ public class BloodSprayEntity extends AbstractArrow {
             ++this.currentLifeTime;
             if (this.currentLifeTime >= CommonConfig.despawnTime()) {
                 this.discard();
+                BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.remove(this);
             }
         }
     }
