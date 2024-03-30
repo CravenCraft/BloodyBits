@@ -1,11 +1,12 @@
 package com.cravencraft.bloodybits.entity.custom;
 
 import com.cravencraft.bloodybits.BloodyBitsMod;
+import com.cravencraft.bloodybits.config.CommonConfig;
+import com.cravencraft.bloodybits.config.ConfigManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
-import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -21,10 +22,10 @@ import org.joml.Random;
 
 public class BloodSprayEntity extends AbstractArrow {
     public static final int BLOOD_SPATTER_AMOUNT = 20;
-    public static final int BLOOD_SPATTER_TEXTURES = 3; // TODO: private?
+    private static final int BLOOD_SPATTER_TEXTURES = 3; // TODO: private?
     public static final int WALL_SLIDE_DOWN_AMOUNT = 20;
     public static final int MAX_DRIP_LENGTH = 50;
-    public static final int DESPAWN_TIME = 1200; // TODO: Set this in the client config.
+    public static final int DESPAWN_TIME = (1200); // TODO: Set this in the client config.
 
     public int currentLifeTime;
     public int randomTextureNumber;
@@ -64,7 +65,7 @@ public class BloodSprayEntity extends AbstractArrow {
     protected void tickDespawn() {
         if (this.level().isClientSide()) {
             ++this.currentLifeTime;
-            if (this.currentLifeTime >= DESPAWN_TIME) {
+            if (this.currentLifeTime >= CommonConfig.despawnTime()) {
                 this.discard();
             }
         }
@@ -142,7 +143,7 @@ public class BloodSprayEntity extends AbstractArrow {
             this.zMax += 0.1F;
 
             // Rapidly decrease the life of the entity in water.
-            this.currentLifeTime += 25;
+            this.currentLifeTime += (CommonConfig.despawnTime() / 50);
             this.tickDespawn();
         }
     }
@@ -160,6 +161,7 @@ public class BloodSprayEntity extends AbstractArrow {
      */
     @Override
     protected void onHitBlock(BlockHitResult result) {
+        BloodyBitsMod.LOGGER.info("DESPAWN TIME: {}", CommonConfig.despawnTime());
         this.hitBlockPos = result.getBlockPos();
         this.entityDirection = result.getDirection();
         this.hitPosition = this.position();

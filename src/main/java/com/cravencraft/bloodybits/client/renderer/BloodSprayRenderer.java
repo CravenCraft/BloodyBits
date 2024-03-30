@@ -1,6 +1,8 @@
 package com.cravencraft.bloodybits.client.renderer;
 
 import com.cravencraft.bloodybits.BloodyBitsMod;
+import com.cravencraft.bloodybits.config.CommonConfig;
+import com.cravencraft.bloodybits.config.ConfigManager;
 import com.cravencraft.bloodybits.entity.custom.BloodSprayEntity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -128,7 +130,7 @@ public class BloodSprayRenderer extends EntityRenderer<BloodSprayEntity> {
                 float zPos = (Math.abs(entity.zMax - entity.zMin) / 2) + entity.zMin; // Gets the center point to make the Z-axis.
                 float yPos = (Math.abs(entity.yMax - entity.yMin) / 2) + entity.yMin;
                 float thickness = (entity.drip * 0.01F);
-                int dripLifeTime = (int) (entity.currentLifeTime + ((entity.drip / BloodSprayEntity.MAX_DRIP_LENGTH) * (BloodSprayEntity.DESPAWN_TIME - entity.currentLifeTime)));
+                int dripLifeTime = (int) (entity.currentLifeTime + ((entity.drip / BloodSprayEntity.MAX_DRIP_LENGTH) * (CommonConfig.despawnTime() - entity.currentLifeTime)));
 
                 /*
                  * Blood drip. Keeping it at just 2 drips so the player can see a drip at all angles without having to do too much crazy math
@@ -154,7 +156,7 @@ public class BloodSprayRenderer extends EntityRenderer<BloodSprayEntity> {
     }
 
     public void vertex(Matrix4f pMatrix, Matrix3f pNormal, VertexConsumer pConsumer, float pX, float pY, float pZ, float pU, float pV, int pNormalX, int pNormalZ, int pNormalY, int pPackedLight, int lifeTime) {
-        int alpha = (int) (255 - (((double) lifeTime / BloodSprayEntity.DESPAWN_TIME) * 255));
+        int alpha = (int) (255 - (((double) lifeTime / CommonConfig.despawnTime()) * 255));
         pConsumer
                 .vertex(pMatrix, pX, pY, pZ)
                 .color(255, 50, 50, alpha)
