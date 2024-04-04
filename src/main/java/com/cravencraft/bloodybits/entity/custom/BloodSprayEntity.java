@@ -22,7 +22,7 @@ import org.joml.Random;
 
 public class BloodSprayEntity extends AbstractArrow {
 
-    private static final int BLOOD_SPATTER_TEXTURES = 3; // TODO: private?
+    private static final int BLOOD_SPATTER_TEXTURES = 4; // TODO: private?
     public static final int WALL_SLIDE_DOWN_AMOUNT = 20;
     public static final int MAX_DRIP_LENGTH = 50;
 

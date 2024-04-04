@@ -156,16 +156,11 @@ public class BloodSprayRenderer extends EntityRenderer<BloodSprayEntity> {
     }
 
     private ResourceLocation getRandomSpatterTexture(int randomInt) {
-        switch (randomInt) {
-            case 1 -> {
-                return new ResourceLocation(BloodyBitsMod.MODID, "textures/entity/spatter_1.png");
-            }
-            case 2 -> {
-                return new ResourceLocation(BloodyBitsMod.MODID, "textures/entity/spatter_2.png");
-            }
-            default -> {
-                return new ResourceLocation(BloodyBitsMod.MODID, "textures/entity/spatter_0.png");
-            }
-        }
+        return switch (randomInt) {
+            case 1 -> new ResourceLocation(BloodyBitsMod.MODID, "textures/entity/spatter_1.png");
+            case 2 -> new ResourceLocation(BloodyBitsMod.MODID, "textures/entity/spatter_2.png");
+            case 3 -> new ResourceLocation(BloodyBitsMod.MODID, "textures/entity/spatter_3.png");
+            default -> new ResourceLocation(BloodyBitsMod.MODID, "textures/entity/spatter_0.png");
+        };
     }
 }
