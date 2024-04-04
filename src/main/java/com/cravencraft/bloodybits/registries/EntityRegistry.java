@@ -14,5 +14,5 @@ public class EntityRegistry {
 
     public static final RegistryObject<EntityType<BloodSprayEntity>> BLOOD_SPRAY = ENTITY_TYPES.register("blood_spray",
             () -> EntityType.Builder.of((EntityType.EntityFactory<BloodSprayEntity>) BloodSprayEntity::new, MobCategory.MISC)
-                    .sized(0.5F, 0.5F).build("blood_spray"));
+                    .sized(0.01F, 0.01F).build("blood_spray"));
 }
