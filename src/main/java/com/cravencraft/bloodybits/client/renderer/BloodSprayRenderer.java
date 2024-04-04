@@ -21,15 +21,12 @@ import org.joml.Matrix4f;
 public class BloodSprayRenderer extends EntityRenderer<BloodSprayEntity> {
     public static final ResourceLocation SPRAY = new ResourceLocation(BloodyBitsMod.MODID, "textures/entity/spray.png");
 
-//    public ResourceLocation spatter;
-
     public BloodSprayRenderer(EntityRendererProvider.Context context) {
         super(context);
     }
 
     @Override
     public void render(BloodSprayEntity entity, float pEntityYaw, float pPartialTicks, PoseStack pPoseStack, @NotNull MultiBufferSource pBuffer, int pPackedLight) {
-        BloodyBitsMod.LOGGER.info("PACKED LIGHT: {}", pPackedLight);
         // Stops the blood from rendering as black when in a dark location such as a ceiling.
         int correctedPackedLight = (pPackedLight < 10485776) ? 10485776 : pPackedLight;
         pPoseStack.pushPose();

@@ -132,7 +132,6 @@ public class BloodSprayEntity extends AbstractArrow {
             float length = (float) (velocity * 10);
             this.xMin = -(length);
 
-            // TODO: The larger the divisor the smaller the thickness.
             float widthAndHeight = (length > 10) ? (length - 10) / 4 : (10 - length) / 4;
             this.yMin = -(widthAndHeight / 2);
             this.yMax = (widthAndHeight / 2);
@@ -155,11 +154,6 @@ public class BloodSprayEntity extends AbstractArrow {
     }
 
     /**
-     * TODO:
-     *       - We probably want to set the direction as a field & then the render class can modify how the entity
-     *         is rendered based on the direction hit.
-     *
-     *
      * Is called once on block hit. Can get the direction the entity has hit the block on, which will dictate how
      * it is expanded.
      *
@@ -336,11 +330,7 @@ public class BloodSprayEntity extends AbstractArrow {
                 modifiedExpansionAmount = (isNonExpandable) ? getBlockBoundsExpAmount(this.hitBlockPos.getZ(), isMax) : modifiedExpansionAmount;
                 return modifiedExpansionAmount - this.hitPosition.z;
             }
-
-//            modifiedExpansionAmount = (isNonExpandable) ? getBlockBoundsExpAmount(this.hitBlockPos.getX(), isMax) : modifiedExpansionAmount;
-//            BloodyBitsMod.LOGGER.info("IS BLOCK NON-EXPANDABLE: {} EXPANSION AMOUNT: {}", isNonExpandable, modifiedExpansionAmount);
         }
-//        return modifiedExpansionAmount;
     }
 
     private double getMaxBlockBoundsExpAmount(int blockPos, double expansionAmount, boolean isMax) {
@@ -407,8 +397,8 @@ public class BloodSprayEntity extends AbstractArrow {
                 this.yMin -= (this.yMin - 0.025F < this.yMinLimit - WALL_SLIDE_DOWN_AMOUNT) ? this.yMin - (this.yMinLimit - WALL_SLIDE_DOWN_AMOUNT) : 0.025F;
             }
         }
-        else if (this.yMin < this.yMinLimit) {
-            this.yMin += (this.yMin + SPATTER_SPEED > this.yMinLimit) ? this.yMin + this.yMinLimit : SPATTER_SPEED;
+        else if (this.yMin > this.yMinLimit) {
+            this.yMin -= (this.yMin - SPATTER_SPEED < this.yMinLimit) ? this.yMin - this.yMinLimit : SPATTER_SPEED;
         }
     }
 
