@@ -20,6 +20,8 @@ import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Random;
 
+import java.util.HexFormat;
+
 public class BloodSprayEntity extends AbstractArrow {
 
     private static final int BLOOD_SPATTER_TEXTURES = 4; // TODO: private?
@@ -251,7 +253,7 @@ public class BloodSprayEntity extends AbstractArrow {
         this.zMinLimit = (float) determineSpatterExpansion(initialZMinVal, false, false) * 10; // Z MIN
         this.zMaxLimit = (float) determineSpatterExpansion(initialZMaxVal, false, true) * 10; // Z MAX
 
-        BloodyBitsMod.LOGGER.info("\nY MIN: {}\nY MAX: {}\nZ MIN: {}\nZ MAX: {}",yMinLimit, yMaxLimit, zMinLimit, zMaxLimit);
+        BloodyBitsMod.LOGGER.info("INT VALUE OF HEX #FF: {}", HexFormat.fromHexDigits("FF")); //TODO: Works. Use this.
 
         // All of this is boilerplate from AbstractArrow except the setSoundEvent now playing a slime sound.
         BlockState blockstate = this.level().getBlockState(result.getBlockPos());
@@ -380,13 +382,14 @@ public class BloodSprayEntity extends AbstractArrow {
     }
 
     public void setYMin() {
+        BloodyBitsMod.LOGGER.info("CURRENT Y MIN: {}", this.yMin);
         BlockState blockExpandingTo = this.level().getBlockState(this.blockPosition());
 
         if (this.entityDirection.equals(Direction.EAST) || this.entityDirection.equals(Direction.WEST)) {
-            blockExpandingTo = this.level().getBlockState(BlockPos.containing(this.hitBlockPos.getX(), this.hitPosition.y + (this.yMin - 0.025F) * 0.1F, this.hitPosition.z + this.zMin * 0.1F));
+            blockExpandingTo = this.level().getBlockState(BlockPos.containing(this.hitBlockPos.getX(), this.hitPosition.y + (this.yMin * 0.1) - 0.025F, this.hitPosition.z));
         }
         else if (this.entityDirection.equals(Direction.NORTH) || this.entityDirection.equals(Direction.SOUTH)) {
-            blockExpandingTo = this.level().getBlockState(BlockPos.containing(this.hitPosition.x + this.zMin * 0.1F, this.hitPosition.y + (this.yMin - 0.025F) * 0.1F, this.hitBlockPos.getZ()));
+            blockExpandingTo = this.level().getBlockState(BlockPos.containing(this.hitPosition.x, this.hitPosition.y + (this.yMin * 0.1) - 0.025F, this.hitBlockPos.getZ()));
         }
 
         if (!this.entityDirection.equals(Direction.UP) && !this.entityDirection.equals(Direction.DOWN)) {

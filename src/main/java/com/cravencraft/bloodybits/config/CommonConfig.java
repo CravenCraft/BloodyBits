@@ -3,6 +3,9 @@ package com.cravencraft.bloodybits.config;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.config.ModConfig;
+import org.apache.commons.codec.binary.Hex;
+
+import java.util.HexFormat;
 
 
 public class CommonConfig {
