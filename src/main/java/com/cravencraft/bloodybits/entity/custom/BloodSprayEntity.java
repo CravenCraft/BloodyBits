@@ -2,8 +2,8 @@ package com.cravencraft.bloodybits.entity.custom;
 
 import com.cravencraft.bloodybits.BloodyBitsMod;
 import com.cravencraft.bloodybits.config.CommonConfig;
-import com.cravencraft.bloodybits.network.ModNet;
-import com.cravencraft.bloodybits.network.SyncActionToClientMsg;
+import com.cravencraft.bloodybits.network.BloodyBitsPacketHandler;
+import com.cravencraft.bloodybits.network.messages.BloodySprayEntityMessage;
 import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -22,8 +22,6 @@ import net.minecraftforge.network.NetworkHooks;
 import net.minecraftforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Random;
-
-import java.util.HexFormat;
 
 public class BloodSprayEntity extends AbstractArrow {
 
@@ -69,18 +67,22 @@ public class BloodSprayEntity extends AbstractArrow {
 
     public BloodSprayEntity(EntityType<BloodSprayEntity> entityType, LivingEntity shooter, Level level, float damageAmount) {
         super(entityType, shooter, level);
-        BloodyBitsMod.LOGGER.info("OWNER NAME STRING: {}", this.getOwner().getName().getString());
-        ModNet.NET.send(PacketDistributor.TRACKING_ENTITY.with(() -> this), new SyncActionToClientMsg(this.getOwner().getName().getString()));
+//        BloodyBitsMod.LOGGER.info("OWNER NAME STRING: {}", this.getOwner().getName().getString());
+
+        if (!this.level().isClientSide) {
+        }
     }
 
     @Override
     protected void tickDespawn() {
+
         if (this.level().isClientSide()) {
             ++this.currentLifeTime;
-            if (this.currentLifeTime >= CommonConfig.despawnTime()) {
-                this.discard();
-                BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.remove(this);
-            }
+        }
+
+        if (this.currentLifeTime >= CommonConfig.despawnTime()) {
+            this.discard();
+            BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.remove(this);
         }
     }
 
@@ -327,11 +329,11 @@ public class BloodSprayEntity extends AbstractArrow {
 
             if (isYAxis) {
                 modifiedExpansionAmount = getMaxBlockBoundsExpAmount(this.hitBlockPos.getX(), initialExpansionAmount, isMax);
-                BloodyBitsMod.LOGGER.info("Y MIN FOR X MIN FIRST EXPANSION: {}", modifiedExpansionAmount);
+//                BloodyBitsMod.LOGGER.info("Y MIN FOR X MIN FIRST EXPANSION: {}", modifiedExpansionAmount);
                 isNonExpandable = nonExpandableBlocks(this.level().getBlockState(BlockPos.containing(modifiedExpansionAmount, this.hitBlockPos.getY(), hitPosition.z)).getBlock().toString());
-                BloodyBitsMod.LOGGER.info("IS NON EXPANDABLE: {}", isNonExpandable);
+//                BloodyBitsMod.LOGGER.info("IS NON EXPANDABLE: {}", isNonExpandable);
                 modifiedExpansionAmount = (isNonExpandable) ? getBlockBoundsExpAmount(this.hitBlockPos.getX(), isMax) : modifiedExpansionAmount;
-                BloodyBitsMod.LOGGER.info("SECOND MODIFIED EXPANSION: {}", modifiedExpansionAmount);
+//                BloodyBitsMod.LOGGER.info("SECOND MODIFIED EXPANSION: {}", modifiedExpansionAmount);
                 return modifiedExpansionAmount - this.hitPosition.x;
             }
             else {

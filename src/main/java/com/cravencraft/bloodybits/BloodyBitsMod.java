@@ -2,12 +2,13 @@ package com.cravencraft.bloodybits;
 
 import com.cravencraft.bloodybits.config.ClientConfig;
 import com.cravencraft.bloodybits.config.CommonConfig;
-import com.cravencraft.bloodybits.network.ModNet;
+import com.cravencraft.bloodybits.network.BloodyBitsPacketHandler;
 import com.cravencraft.bloodybits.registries.EntityRegistry;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -21,14 +22,18 @@ public class BloodyBitsMod
     // Directly reference a slf4j logger
     public static final Logger LOGGER = LogManager.getLogger("BloodyBitsMod");
 
-    public BloodyBitsMod()
-    {
+    public BloodyBitsMod() {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
-        ModNet.init();
         MinecraftForge.EVENT_BUS.register(this);
         CommonConfig.loadCommonConfig();
         ClientConfig.loadClientConfig();
+        BloodyBitsPacketHandler.register();
+//        modEventBus.addListener(this::networkSetup);
         EntityRegistry.ENTITY_TYPES.register(modEventBus);
+    }
+
+    private void networkSetup(final FMLCommonSetupEvent event) {
+        BloodyBitsPacketHandler.register();
     }
 
     public static ResourceLocation id(@NotNull String path) {
