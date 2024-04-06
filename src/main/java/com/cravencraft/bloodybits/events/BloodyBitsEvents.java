@@ -39,6 +39,10 @@ public class BloodyBitsEvents {
                 }
             }
         }
+        else {
+            BloodSprayEntity bloodSprayEntity = new BloodSprayEntity(EntityRegistry.BLOOD_SPRAY.get(), event.getEntity(), event.getEntity().level(), event.getAmount());
+            bloodSprayEntity.setOwner(event.getEntity());
+        }
     }
 
     private static void createBloodSpray(LivingAttackEvent event) {

@@ -2,6 +2,8 @@ package com.cravencraft.bloodybits.entity.custom;
 
 import com.cravencraft.bloodybits.BloodyBitsMod;
 import com.cravencraft.bloodybits.config.CommonConfig;
+import com.cravencraft.bloodybits.network.ModNet;
+import com.cravencraft.bloodybits.network.SyncActionToClientMsg;
 import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -17,6 +19,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.*;
 import net.minecraftforge.network.NetworkHooks;
+import net.minecraftforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Random;
 
@@ -66,6 +69,8 @@ public class BloodSprayEntity extends AbstractArrow {
 
     public BloodSprayEntity(EntityType<BloodSprayEntity> entityType, LivingEntity shooter, Level level, float damageAmount) {
         super(entityType, shooter, level);
+        BloodyBitsMod.LOGGER.info("OWNER NAME STRING: {}", this.getOwner().getName().getString());
+        ModNet.NET.send(PacketDistributor.TRACKING_ENTITY.with(() -> this), new SyncActionToClientMsg(this.getOwner().getName().getString()));
     }
 
     @Override
@@ -163,17 +168,20 @@ public class BloodSprayEntity extends AbstractArrow {
      */
     @Override
     protected void onHitBlock(BlockHitResult result) {
-        BloodyBitsMod.LOGGER.info("BLOCK HIT: {}", result.getBlockPos());
+        if (this.level().isClientSide()) {
+            BloodyBitsMod.LOGGER.info("ENTITY OWNER: {}", this.getOwner());
+        }
+//        BloodyBitsMod.LOGGER.info("BLOCK HIT: {}", result.getBlockPos());
         this.hitBlockPos = result.getBlockPos();
         this.entityDirection = result.getDirection();
         this.hitPosition = result.getLocation();
-        BloodyBitsMod.LOGGER.info("BLOCK HIT LOCATION: {}", result.getLocation());
+//        BloodyBitsMod.LOGGER.info("BLOCK HIT LOCATION: {}", result.getLocation());
         this.lastState = this.level().getBlockState(result.getBlockPos());
         this.xHitAngle = -this.getLookAngle().x;
         this.yHitAngle = -this.getLookAngle().y;
         this.zHitAngle = this.getLookAngle().z;
 
-        BloodyBitsMod.LOGGER.info("HIT ANGLE: {}", this.getLookAngle());
+//        BloodyBitsMod.LOGGER.info("HIT ANGLE: {}", this.getLookAngle());
 
         boolean isYNorm = (result.getDirection().equals(Direction.EAST) || result.getDirection().equals(Direction.WEST) || result.getDirection().equals(Direction.SOUTH) || result.getDirection().equals(Direction.NORTH));
         boolean isZNorm = (result.getDirection().equals(Direction.EAST) || result.getDirection().equals(Direction.WEST) || result.getDirection().equals(Direction.UP) || result.getDirection().equals(Direction.DOWN));
@@ -186,28 +194,28 @@ public class BloodSprayEntity extends AbstractArrow {
             if (this.yHitAngle > 0) {
                 initialYMinVal = hitPosition.y - BLOOD_SPATTER_AMOUNT;
                 initialYMaxVal = hitPosition.y + BLOOD_SPATTER_AMOUNT + this.yHitAngle;
-                BloodyBitsMod.LOGGER.info("Y MIN POSITIVE HIT ANGLE: {}", initialYMinVal);
-                BloodyBitsMod.LOGGER.info("Y MAX POSITIVE HIT ANGLE: {}", initialYMaxVal);
+//                BloodyBitsMod.LOGGER.info("Y MIN POSITIVE HIT ANGLE: {}", initialYMinVal);
+//                BloodyBitsMod.LOGGER.info("Y MAX POSITIVE HIT ANGLE: {}", initialYMaxVal);
             }
             else {
                 initialYMinVal = hitPosition.y - BLOOD_SPATTER_AMOUNT + this.yHitAngle;
                 initialYMaxVal = hitPosition.y + BLOOD_SPATTER_AMOUNT;
-                BloodyBitsMod.LOGGER.info("Y MIN NEGATIVE HIT ANGLE: {}", initialYMinVal);
-                BloodyBitsMod.LOGGER.info("Y MAX NEGATIVE HIT ANGLE: {}", initialYMaxVal);
+//                BloodyBitsMod.LOGGER.info("Y MIN NEGATIVE HIT ANGLE: {}", initialYMinVal);
+//                BloodyBitsMod.LOGGER.info("Y MAX NEGATIVE HIT ANGLE: {}", initialYMaxVal);
             }
         }
         else {
             if (this.xHitAngle > 0) {
                 initialYMinVal = hitPosition.x - BLOOD_SPATTER_AMOUNT;
                 initialYMaxVal = hitPosition.x + BLOOD_SPATTER_AMOUNT + this.xHitAngle;
-                BloodyBitsMod.LOGGER.info("X MIN POSITIVE HIT ANGLE: {}", initialYMinVal);
-                BloodyBitsMod.LOGGER.info("X MAX POSITIVE HIT ANGLE: {}", initialYMaxVal);
+//                BloodyBitsMod.LOGGER.info("X MIN POSITIVE HIT ANGLE: {}", initialYMinVal);
+//                BloodyBitsMod.LOGGER.info("X MAX POSITIVE HIT ANGLE: {}", initialYMaxVal);
             }
             else {
                 initialYMinVal = hitPosition.x - BLOOD_SPATTER_AMOUNT + this.xHitAngle;
                 initialYMaxVal = hitPosition.x + BLOOD_SPATTER_AMOUNT;
-                BloodyBitsMod.LOGGER.info("X MIN NEGATIVE HIT ANGLE: {}", initialYMinVal);
-                BloodyBitsMod.LOGGER.info("X MAX NEGATIVE HIT ANGLE: {}", initialYMaxVal);
+//                BloodyBitsMod.LOGGER.info("X MIN NEGATIVE HIT ANGLE: {}", initialYMinVal);
+//                BloodyBitsMod.LOGGER.info("X MAX NEGATIVE HIT ANGLE: {}", initialYMaxVal);
             }
         }
 
@@ -215,14 +223,14 @@ public class BloodSprayEntity extends AbstractArrow {
             if (this.zHitAngle > 0) {
                 initialZMinVal = hitPosition.z - BLOOD_SPATTER_AMOUNT;
                 initialZMaxVal = hitPosition.z + BLOOD_SPATTER_AMOUNT + this.zHitAngle;
-                BloodyBitsMod.LOGGER.info("Z MIN POSITIVE HIT ANGLE: {}", initialZMinVal);
-                BloodyBitsMod.LOGGER.info("Z MAX POSITIVE HIT ANGLE: {}", initialZMaxVal);
+//                BloodyBitsMod.LOGGER.info("Z MIN POSITIVE HIT ANGLE: {}", initialZMinVal);
+//                BloodyBitsMod.LOGGER.info("Z MAX POSITIVE HIT ANGLE: {}", initialZMaxVal);
             }
             else {
                 initialZMinVal = hitPosition.z - BLOOD_SPATTER_AMOUNT + this.zHitAngle;
                 initialZMaxVal = hitPosition.z + BLOOD_SPATTER_AMOUNT;
-                BloodyBitsMod.LOGGER.info("Z MIN NEGATIVE HIT ANGLE: {}", initialZMinVal);
-                BloodyBitsMod.LOGGER.info("Z MAX NEGATIVE HIT ANGLE: {}", initialZMaxVal);
+//                BloodyBitsMod.LOGGER.info("Z MIN NEGATIVE HIT ANGLE: {}", initialZMinVal);
+//                BloodyBitsMod.LOGGER.info("Z MAX NEGATIVE HIT ANGLE: {}", initialZMaxVal);
             }
         }
         else {
@@ -230,14 +238,14 @@ public class BloodSprayEntity extends AbstractArrow {
             if (this.xHitAngle > 0) {
                 initialZMinVal = hitPosition.x - BLOOD_SPATTER_AMOUNT;
                 initialZMaxVal = hitPosition.x + BLOOD_SPATTER_AMOUNT + this.xHitAngle;
-                BloodyBitsMod.LOGGER.info("X MIN POSITIVE HIT ANGLE: {}", initialZMinVal);
-                BloodyBitsMod.LOGGER.info("X MAX POSITIVE HIT ANGLE: {}", initialZMaxVal);
+//                BloodyBitsMod.LOGGER.info("X MIN POSITIVE HIT ANGLE: {}", initialZMinVal);
+//                BloodyBitsMod.LOGGER.info("X MAX POSITIVE HIT ANGLE: {}", initialZMaxVal);
             }
             else {
                 initialZMinVal = hitPosition.x - BLOOD_SPATTER_AMOUNT + this.xHitAngle;
                 initialZMaxVal = hitPosition.x + BLOOD_SPATTER_AMOUNT;
-                BloodyBitsMod.LOGGER.info("X MIN NEGATIVE HIT ANGLE: {}", initialZMinVal);
-                BloodyBitsMod.LOGGER.info("X MAX NEGATIVE HIT ANGLE: {}", initialZMaxVal);
+//                BloodyBitsMod.LOGGER.info("X MIN NEGATIVE HIT ANGLE: {}", initialZMinVal);
+//                BloodyBitsMod.LOGGER.info("X MAX NEGATIVE HIT ANGLE: {}", initialZMaxVal);
             }
         }
 
@@ -253,7 +261,7 @@ public class BloodSprayEntity extends AbstractArrow {
         this.zMinLimit = (float) determineSpatterExpansion(initialZMinVal, false, false) * 10; // Z MIN
         this.zMaxLimit = (float) determineSpatterExpansion(initialZMaxVal, false, true) * 10; // Z MAX
 
-        BloodyBitsMod.LOGGER.info("INT VALUE OF HEX #FF: {}", HexFormat.fromHexDigits("FF")); //TODO: Works. Use this.
+//        BloodyBitsMod.LOGGER.info("INT VALUE OF HEX #FF: {}", HexFormat.fromHexDigits("FF")); //TODO: Works. Use this.
 
         // All of this is boilerplate from AbstractArrow except the setSoundEvent now playing a slime sound.
         BlockState blockstate = this.level().getBlockState(result.getBlockPos());
@@ -382,7 +390,6 @@ public class BloodSprayEntity extends AbstractArrow {
     }
 
     public void setYMin() {
-        BloodyBitsMod.LOGGER.info("CURRENT Y MIN: {}", this.yMin);
         BlockState blockExpandingTo = this.level().getBlockState(this.blockPosition());
 
         if (this.entityDirection.equals(Direction.EAST) || this.entityDirection.equals(Direction.WEST)) {
