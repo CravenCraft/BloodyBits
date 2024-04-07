@@ -28,12 +28,10 @@ public class BloodyBitsMod
         CommonConfig.loadCommonConfig();
         ClientConfig.loadClientConfig();
         BloodyBitsPacketHandler.register();
-//        modEventBus.addListener(this::networkSetup);
         EntityRegistry.ENTITY_TYPES.register(modEventBus);
     }
 
     private void networkSetup(final FMLCommonSetupEvent event) {
-        BloodyBitsPacketHandler.register();
     }
 
     public static ResourceLocation id(@NotNull String path) {

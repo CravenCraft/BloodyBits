@@ -7,11 +7,19 @@ import com.cravencraft.bloodybits.network.BloodyBitsPacketHandler;
 import com.cravencraft.bloodybits.network.messages.BloodySprayEntityMessage;
 import com.cravencraft.bloodybits.registries.EntityRegistry;
 import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
+import net.minecraft.client.Minecraft;
+import net.minecraft.commands.Commands;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
+import net.minecraftforge.event.level.LevelEvent;
+import net.minecraftforge.event.server.ServerStartedEvent;
+import net.minecraftforge.event.server.ServerStartingEvent;
+import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.network.PacketDistributor;
@@ -20,6 +28,23 @@ import java.util.Objects;
 
 @Mod.EventBusSubscriber(modid = BloodyBitsMod.MODID)
 public class BloodyBitsEvents {
+
+    @SubscribeEvent
+    public static void clearBloodEntitiesOnServerStart(ServerStartedEvent event) {
+//        event.getServer().createCommandSourceStack()
+//        Minecraft.getInstance().player.getServer().createCommandSourceStack().
+//        Commands.
+//        event.getEntity().level().getEntities(EntityRegistry.BLOOD_SPRAY.get(), event.getEntity().getBoundingBox());
+//        event.getEntity().level().
+
+//        BloodyBitsMod.LOGGER.info("BLOODY ENTITIES ON SERVER START: {}", BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.size());
+    }
+
+    @SubscribeEvent
+    public static void clearBloodEntitiesOnUnloadedChunks(LevelEvent.Unload event) {
+//        event.getLevel().getChunkSource().
+//        event.getLevel().getChunkSource().
+    }
 
     @SubscribeEvent
     public static void testSpatters(PlayerInteractEvent.RightClickBlock event) {

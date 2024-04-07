@@ -68,9 +68,10 @@ public class BloodSprayEntity extends AbstractArrow {
     public BloodSprayEntity(EntityType<BloodSprayEntity> entityType, LivingEntity shooter, Level level, float damageAmount) {
         super(entityType, shooter, level);
 //        BloodyBitsMod.LOGGER.info("OWNER NAME STRING: {}", this.getOwner().getName().getString());
-
-        if (!this.level().isClientSide) {
-        }
+//
+//        if (!this.level().isClientSide) {
+//
+//        }
     }
 
     @Override
@@ -116,6 +117,12 @@ public class BloodSprayEntity extends AbstractArrow {
     //      do this mainly when the blood is spawned and not when it actually hits an entity.
     @Override
     public void tick() {
+        //TODO: Kinda works. Main catch is that when the entity owner dies the textures will be deleted too.
+        //      Have to save the owner (probably make a local field & override the setOwner() method so it persists.
+        if (this.getOwner() == null) {
+            BloodyBitsMod.LOGGER.info("OWNER IS NULL. REMOVING");
+            this.discard();
+        }
         super.tick();
         if (this.inGround) {
             if (this.xMin < this.xMax) {
