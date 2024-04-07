@@ -119,6 +119,9 @@ public class BloodSprayEntity extends AbstractArrow {
     public void tick() {
         //TODO: Kinda works. Main catch is that when the entity owner dies the textures will be deleted too.
         //      Have to save the owner (probably make a local field & override the setOwner() method so it persists.
+        //      Also, worth noting that making that change may solve the issue of needed to delete the blood spatters
+        //      all together. If their owner persists through the loading/unloading of a level & the death of their owner,
+        //      then I don't care about deleting the entities. That will automatically be done in my code in the Event class.
         if (this.getOwner() == null) {
             BloodyBitsMod.LOGGER.info("OWNER IS NULL. REMOVING");
             this.discard();
