@@ -10,6 +10,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -22,6 +23,8 @@ import net.minecraftforge.network.NetworkHooks;
 import net.minecraftforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Random;
+
+import javax.annotation.Nullable;
 
 public class BloodSprayEntity extends AbstractArrow {
 
@@ -51,6 +54,8 @@ public class BloodSprayEntity extends AbstractArrow {
     public double yHitAngle;
     public double zHitAngle;
 
+    public String ownerName;
+
     public boolean shouldDrip;
     public Direction entityDirection;
     public BlockPos hitBlockPos;
@@ -72,6 +77,12 @@ public class BloodSprayEntity extends AbstractArrow {
 //        if (!this.level().isClientSide) {
 //
 //        }
+    }
+
+    @Override
+    public void setOwner(@Nullable Entity ownerEntity) {
+        super.setOwner(ownerEntity);
+        this.ownerName = ownerEntity.getName().getString();
     }
 
     @Override
@@ -117,13 +128,8 @@ public class BloodSprayEntity extends AbstractArrow {
     //      do this mainly when the blood is spawned and not when it actually hits an entity.
     @Override
     public void tick() {
-        //TODO: Kinda works. Main catch is that when the entity owner dies the textures will be deleted too.
-        //      Have to save the owner (probably make a local field & override the setOwner() method so it persists.
-        //      Also, worth noting that making that change may solve the issue of needed to delete the blood spatters
-        //      all together. If their owner persists through the loading/unloading of a level & the death of their owner,
-        //      then I don't care about deleting the entities. That will automatically be done in my code in the Event class.
-        if (this.getOwner() == null) {
-            BloodyBitsMod.LOGGER.info("OWNER IS NULL. REMOVING");
+        // Removes any blood spray entity that has a null owner. This usually happens whenever the game closes & opens back up.
+        if (this.ownerName == null) {
             this.discard();
         }
         super.tick();
@@ -173,6 +179,9 @@ public class BloodSprayEntity extends AbstractArrow {
     }
 
     /**
+     * TODO: When hitting the TOP (bottom, actually) of a block and expanding WEST still seeing
+     *       an issue with the texture expanding into air.
+     *
      * Is called once on block hit. Can get the direction the entity has hit the block on, which will dictate how
      * it is expanded.
      *
@@ -181,7 +190,7 @@ public class BloodSprayEntity extends AbstractArrow {
     @Override
     protected void onHitBlock(BlockHitResult result) {
         if (this.level().isClientSide()) {
-            BloodyBitsMod.LOGGER.info("ENTITY OWNER: {}", this.getOwner());
+            BloodyBitsMod.LOGGER.info("ENTITY OWNER: {}", this.ownerName);
         }
 //        BloodyBitsMod.LOGGER.info("BLOCK HIT: {}", result.getBlockPos());
         this.hitBlockPos = result.getBlockPos();
