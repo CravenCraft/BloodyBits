@@ -1,6 +1,7 @@
 package com.cravencraft.bloodybits.entity.custom;
 
 import com.cravencraft.bloodybits.BloodyBitsMod;
+import com.cravencraft.bloodybits.config.ClientConfig;
 import com.cravencraft.bloodybits.config.CommonConfig;
 import com.cravencraft.bloodybits.network.BloodyBitsPacketHandler;
 import com.cravencraft.bloodybits.network.messages.BloodySprayEntityMessage;
@@ -25,6 +26,8 @@ import org.jetbrains.annotations.NotNull;
 import org.joml.Random;
 
 import javax.annotation.Nullable;
+import java.util.HexFormat;
+import java.util.List;
 
 public class BloodSprayEntity extends AbstractArrow {
 
@@ -60,6 +63,9 @@ public class BloodSprayEntity extends AbstractArrow {
     public Direction entityDirection;
     public BlockPos hitBlockPos;
     public Vec3 hitPosition;
+    public int red = 255;
+    public int green = 50;
+    public int blue = 50;
 
     public BloodSprayEntity(EntityType<BloodSprayEntity> entityType, Level level) {
         super(entityType, level);
@@ -72,17 +78,30 @@ public class BloodSprayEntity extends AbstractArrow {
 
     public BloodSprayEntity(EntityType<BloodSprayEntity> entityType, LivingEntity shooter, Level level, float damageAmount) {
         super(entityType, shooter, level);
-//        BloodyBitsMod.LOGGER.info("OWNER NAME STRING: {}", this.getOwner().getName().getString());
-//
-//        if (!this.level().isClientSide) {
-//
-//        }
+
     }
 
     @Override
     public void setOwner(@Nullable Entity ownerEntity) {
         super.setOwner(ownerEntity);
-        this.ownerName = ownerEntity.getName().getString();
+
+        if (ownerEntity != null) {
+            this.ownerName = ownerEntity.getEncodeId();
+
+            if (this.level().isClientSide()) {
+                for (List<?> mobBloodType : ClientConfig.mobBloodTypes()) {
+                    BloodyBitsMod.LOGGER.info("MOB NAME SEARCHING: {}", mobBloodType.get(0));
+                    if (mobBloodType.get(0).toString().contains(this.ownerName)) {
+                        String bloodColorHexVal = (String) mobBloodType.get(1);
+                        this.red = HexFormat.fromHexDigits(bloodColorHexVal, 1, 3);
+                        this.green = HexFormat.fromHexDigits(bloodColorHexVal, 3, 5);
+                        this.blue = HexFormat.fromHexDigits(bloodColorHexVal.substring(5));
+                        break;
+                    }
+                }
+            }
+        }
+
     }
 
     @Override

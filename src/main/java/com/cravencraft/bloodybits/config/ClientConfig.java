@@ -17,16 +17,15 @@ public class ClientConfig {
     public static void loadClientConfig() {
         BUILDER.push("blood spray settings");
 
-        MOB_BLOOD_TYPES = BUILDER.comment("Define what color the blood from certain mobs should be.")
+        MOB_BLOOD_TYPES = BUILDER.comment("Define what color the blood from certain mobs should be. If a mob isn't listed, then it'll default to red.")
                 .defineListAllowEmpty("blood_test", List.of(
-                        List.of(List.of("minecraft:cow", "minecraft:pillager"), 255, 0, 15)
+                        List.of("minecraft:spider, minecraft:cave_spider, minecraft:creeper, minecraft:bee, minecraft:slime", "#32ff32"),
+                        List.of("minecraft:enderman, minecraft:shulker, minecraft:ender_dragon", "#c832ff")
                         ), it -> it instanceof List<?> list &&
-                                list.size() == 4 &&
-                                list.get(0) instanceof List entityList &&
+                                list.size() == 2 &&
+                                list.get(0) instanceof List<?> entityList &&
                                 entityList.get(0) instanceof String &&
-                                list.get(1) instanceof Number &&
-                                list.get(2) instanceof Number &&
-                                list.get(3) instanceof Number);
+                                list.get(1) instanceof String);
 
 
         BUILDER.comment("How long in ticks (20 ticks = 1 second) until a blood spatter despawns.")
