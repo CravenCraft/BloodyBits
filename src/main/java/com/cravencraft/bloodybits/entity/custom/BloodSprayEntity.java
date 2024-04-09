@@ -64,8 +64,8 @@ public class BloodSprayEntity extends AbstractArrow {
     public BlockPos hitBlockPos;
     public Vec3 hitPosition;
     public int red = 255;
-    public int green = 50;
-    public int blue = 50;
+    public int green = 1;
+    public int blue = 1;
 
     public BloodSprayEntity(EntityType<BloodSprayEntity> entityType, Level level) {
         super(entityType, level);
@@ -90,7 +90,7 @@ public class BloodSprayEntity extends AbstractArrow {
 
             if (this.level().isClientSide()) {
                 for (List<?> mobBloodType : ClientConfig.mobBloodTypes()) {
-                    BloodyBitsMod.LOGGER.info("MOB NAME SEARCHING: {}", mobBloodType.get(0));
+//                    BloodyBitsMod.LOGGER.info("MOB NAME SEARCHING: {}", mobBloodType.get(0));
                     if (mobBloodType.get(0).toString().contains(this.ownerName)) {
                         String bloodColorHexVal = (String) mobBloodType.get(1);
                         this.red = HexFormat.fromHexDigits(bloodColorHexVal, 1, 3);
