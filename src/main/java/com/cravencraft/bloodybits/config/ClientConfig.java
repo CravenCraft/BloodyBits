@@ -3,7 +3,6 @@ package com.cravencraft.bloodybits.config;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.config.ModConfig;
-import java.util.Arrays;
 import java.util.List;
 
 
@@ -18,21 +17,16 @@ public class ClientConfig {
         BUILDER.push("blood spray settings");
 
         MOB_BLOOD_TYPES = BUILDER.comment("Define what color the blood from certain mobs should be. If a mob isn't listed, then it'll default to red.")
-                .defineListAllowEmpty("blood_test", List.of(
+                .defineListAllowEmpty("blood_colors", List.of(
                         List.of("minecraft:spider, minecraft:cave_spider, minecraft:creeper, minecraft:bee, minecraft:slime", "#32ff32"),
-                        List.of("minecraft:enderman, minecraft:shulker, minecraft:ender_dragon", "#c832ff")
+                        List.of("minecraft:enderman, minecraft:shulker, minecraft:ender_dragon, minecraft:endermite", "#c832ff")
                         ), it -> it instanceof List<?> list &&
                                 list.size() == 2 &&
                                 list.get(0) instanceof List<?> entityList &&
                                 entityList.get(0) instanceof String &&
                                 list.get(1) instanceof String);
 
-
-        BUILDER.comment("How long in ticks (20 ticks = 1 second) until a blood spatter despawns.")
-                .defineList("compressBlacklist", Arrays.asList("minecraft:sandstone", "minecraft:iron_trapdoor"), it -> it instanceof String);
-
         BUILDER.pop();
-
         ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, BUILDER.build());
     }
 }

@@ -11,6 +11,8 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
@@ -28,7 +30,7 @@ public class BloodSprayRenderer extends EntityRenderer<BloodSprayEntity> {
     @Override
     public void render(BloodSprayEntity entity, float pEntityYaw, float pPartialTicks, PoseStack pPoseStack, @NotNull MultiBufferSource pBuffer, int pPackedLight) {
         // Stops the blood from rendering as black when in a dark location such as a ceiling.
-        int correctedPackedLight = (pPackedLight < 10485776) ? 10485776 : pPackedLight;
+        int correctedPackedLight = Math.max(pPackedLight, 10485776);
         pPoseStack.pushPose();
         // todo: I know this is dumb. I'll reverse it after testing.
         //TODO: For now this is the most accurate one. Maybe can play around with other methods later that

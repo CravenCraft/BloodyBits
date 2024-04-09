@@ -7,6 +7,10 @@
   "mixins": [
     "AbstractArrowMixin"
   ],
+  "client": [
+    "LivingEntityRendererMixin",
+    "CubeModelPartMixin"
+  ],
   "injectors": {
     "defaultRequire": 1
   }
