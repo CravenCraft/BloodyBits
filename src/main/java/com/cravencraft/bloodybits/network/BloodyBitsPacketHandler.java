@@ -3,11 +3,8 @@ package com.cravencraft.bloodybits.network;
 import com.cravencraft.bloodybits.BloodyBitsMod;
 import com.cravencraft.bloodybits.network.messages.BloodySprayEntityMessage;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.simple.SimpleChannel;
-
-import java.util.Optional;
 
 public class BloodyBitsPacketHandler {
     public static SimpleChannel INSTANCE = NetworkRegistry.ChannelBuilder

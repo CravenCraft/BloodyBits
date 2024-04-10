@@ -11,8 +11,6 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
@@ -49,7 +47,6 @@ public class BloodSprayRenderer extends EntityRenderer<BloodSprayEntity> {
 
 //        pPoseStack.mulPose(Axis.XP.rotationDegrees(45.0F));
         pPoseStack.scale(0.05625F, 0.05625F, 0.05625F);
-        // TODO: Make if statement here to swap between the textures when the entity is in a specific state.
         VertexConsumer vertexConsumer = pBuffer.getBuffer(RenderType.entityTranslucent(getTextureLocation(entity)));
         PoseStack.Pose posestack$pose = pPoseStack.last();
         Matrix4f matrix4f = posestack$pose.pose();
@@ -101,10 +98,10 @@ public class BloodSprayRenderer extends EntityRenderer<BloodSprayEntity> {
         else {
 
             // Front side
-            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMax, entity.zMin, 0.0F, 0.0F, 0, 0, 0, correctedPackedLight, entity.currentLifeTime, entity.red, entity.green, entity.blue);
-            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMin, entity.zMin, 0.0F, 1.0F, 0, 0, 0, correctedPackedLight, entity.currentLifeTime, entity.red, entity.green, entity.blue);
-            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMin, entity.zMax, 1.0F, 1.0F, 0, 0, 0, correctedPackedLight, entity.currentLifeTime, entity.red, entity.green, entity.blue);
-            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMax, entity.zMax, 1.0F, 0.0F, 0, 0, 0, correctedPackedLight, entity.currentLifeTime, entity.red, entity.green, entity.blue);
+            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMax, entity.zMin, 0.0F, 0.0F, 0, 1, 0, correctedPackedLight, entity.currentLifeTime, entity.red, entity.green, entity.blue);
+            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMin, entity.zMin, 0.0F, 1.0F, 0, 1, 0, correctedPackedLight, entity.currentLifeTime, entity.red, entity.green, entity.blue);
+            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMin, entity.zMax, 1.0F, 1.0F, 0, 1, 0, correctedPackedLight, entity.currentLifeTime, entity.red, entity.green, entity.blue);
+            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMax, entity.zMax, 1.0F, 0.0F, 0, 1, 0, correctedPackedLight, entity.currentLifeTime, entity.red, entity.green, entity.blue);
 
             if (entity.currentLifeTime > 50 && entity.entityDirection != null && entity.entityDirection.equals(Direction.DOWN)) {
                 VertexConsumer dripVertexConsumer = pBuffer.getBuffer(RenderType.entityTranslucent(SPRAY));

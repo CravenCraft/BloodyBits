@@ -203,20 +203,13 @@ public class BloodSprayEntity extends AbstractArrow {
      */
     @Override
     protected void onHitBlock(BlockHitResult result) {
-        if (this.level().isClientSide()) {
-            BloodyBitsMod.LOGGER.info("ENTITY OWNER: {}", this.ownerName);
-        }
-//        BloodyBitsMod.LOGGER.info("BLOCK HIT: {}", result.getBlockPos());
         this.hitBlockPos = result.getBlockPos();
         this.entityDirection = result.getDirection();
         this.hitPosition = result.getLocation();
-//        BloodyBitsMod.LOGGER.info("BLOCK HIT LOCATION: {}", result.getLocation());
         this.lastState = this.level().getBlockState(result.getBlockPos());
         this.xHitAngle = -this.getLookAngle().x;
         this.yHitAngle = -this.getLookAngle().y;
         this.zHitAngle = this.getLookAngle().z;
-
-//        BloodyBitsMod.LOGGER.info("HIT ANGLE: {}", this.getLookAngle());
 
         boolean isYNorm = (result.getDirection().equals(Direction.EAST) || result.getDirection().equals(Direction.WEST) || result.getDirection().equals(Direction.SOUTH) || result.getDirection().equals(Direction.NORTH));
         boolean isZNorm = (result.getDirection().equals(Direction.EAST) || result.getDirection().equals(Direction.WEST) || result.getDirection().equals(Direction.UP) || result.getDirection().equals(Direction.DOWN));
@@ -296,8 +289,6 @@ public class BloodSprayEntity extends AbstractArrow {
         this.zMinLimit = (float) determineSpatterExpansion(initialZMinVal, false, false) * 10; // Z MIN
         this.zMaxLimit = (float) determineSpatterExpansion(initialZMaxVal, false, true) * 10; // Z MAX
 
-//        BloodyBitsMod.LOGGER.info("INT VALUE OF HEX #FF: {}", HexFormat.fromHexDigits("FF")); //TODO: Works. Use this.
-
         // All of this is boilerplate from AbstractArrow except the setSoundEvent now playing a slime sound.
         BlockState blockstate = this.level().getBlockState(result.getBlockPos());
         blockstate.onProjectileHit(this.level(), blockstate, result, this);
@@ -322,8 +313,6 @@ public class BloodSprayEntity extends AbstractArrow {
         double modifiedExpansionAmount;
 
         if (this.entityDirection.equals(Direction.EAST) || entityDirection.equals(Direction.WEST)) {
-//            BloodyBitsMod.LOGGER.info("INITIAL EXPANSION AMOUNT: {}", initialExpansionAmount);
-
             if (isYAxis) {
                 modifiedExpansionAmount = getMaxBlockBoundsExpAmount(this.hitBlockPos.getY(), initialExpansionAmount, isMax);
                 isNonExpandable = nonExpandableBlocks(this.level().getBlockState(BlockPos.containing(this.hitBlockPos.getX(), modifiedExpansionAmount, hitPosition.z)).getBlock().toString());
@@ -336,11 +325,8 @@ public class BloodSprayEntity extends AbstractArrow {
                 modifiedExpansionAmount = (isNonExpandable) ? getBlockBoundsExpAmount(this.hitBlockPos.getZ(), isMax) : modifiedExpansionAmount;
                 return modifiedExpansionAmount - this.hitPosition.z;
             }
-
-//            BloodyBitsMod.LOGGER.info("IS BLOCK NON-EXPANDABLE: {} EXPANSION AMOUNT: {}", isNonExpandable, modifiedExpansionAmount);
         }
         else if (this.entityDirection.equals(Direction.NORTH) || entityDirection.equals(Direction.SOUTH)) {
-//            BloodyBitsMod.LOGGER.info("INITIAL EXPANSION AMOUNT: {}", initialExpansionAmount);
 
             if (isYAxis) {
                 modifiedExpansionAmount = getMaxBlockBoundsExpAmount(this.hitBlockPos.getY(), initialExpansionAmount, isMax);
@@ -353,20 +339,14 @@ public class BloodSprayEntity extends AbstractArrow {
                 isNonExpandable = nonExpandableBlocks(this.level().getBlockState(BlockPos.containing(modifiedExpansionAmount, hitPosition.y, this.hitBlockPos.getZ())).getBlock().toString());
                 modifiedExpansionAmount = (isNonExpandable) ? getBlockBoundsExpAmount(this.hitBlockPos.getX(), isMax) : modifiedExpansionAmount;
                 return modifiedExpansionAmount - this.hitPosition.x;
-//                BloodyBitsMod.LOGGER.info("REDUCING Z MIN INITIAL EXPANSION: {} MODIFIED EXPANSION: {}", initialExpansionAmount, modifiedExpansionAmount);
             }
-//            BloodyBitsMod.LOGGER.info("IS BLOCK NON-EXPANDABLE: {} EXPANSION AMOUNT: {}", isNonExpandable, modifiedExpansionAmount);
         }
         else {
-//            BloodyBitsMod.LOGGER.info("INITIAL EXPANSION AMOUNT: {}", initialExpansionAmount);
 
             if (isYAxis) {
                 modifiedExpansionAmount = getMaxBlockBoundsExpAmount(this.hitBlockPos.getX(), initialExpansionAmount, isMax);
-//                BloodyBitsMod.LOGGER.info("Y MIN FOR X MIN FIRST EXPANSION: {}", modifiedExpansionAmount);
                 isNonExpandable = nonExpandableBlocks(this.level().getBlockState(BlockPos.containing(modifiedExpansionAmount, this.hitBlockPos.getY(), hitPosition.z)).getBlock().toString());
-//                BloodyBitsMod.LOGGER.info("IS NON EXPANDABLE: {}", isNonExpandable);
                 modifiedExpansionAmount = (isNonExpandable) ? getBlockBoundsExpAmount(this.hitBlockPos.getX(), isMax) : modifiedExpansionAmount;
-//                BloodyBitsMod.LOGGER.info("SECOND MODIFIED EXPANSION: {}", modifiedExpansionAmount);
                 return modifiedExpansionAmount - this.hitPosition.x;
             }
             else {
