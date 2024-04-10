@@ -8,8 +8,7 @@
     "AbstractArrowMixin"
   ],
   "client": [
-    "LivingEntityRendererMixin",
-    "CubeModelPartMixin"
+    "LivingEntityRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1

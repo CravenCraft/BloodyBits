@@ -46,8 +46,9 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extend
             int redDamage = 200;
             int greenDamage = 1;
             int blueDamage = 1;
+            String entityName = (this.entity.toString().contains("Player")) ? "player" : this.entity.getEncodeId();
             for (List<?> mobBloodType : ClientConfig.mobBloodTypes()) {
-                if (mobBloodType.get(0).toString().contains(this.entity.getEncodeId())) {
+                if (mobBloodType.get(0).toString().contains(Objects.requireNonNull(entityName))) {
                     String bloodColorHexVal = (String) mobBloodType.get(1);
                     redDamage = HexFormat.fromHexDigits(bloodColorHexVal, 1, 3);
                     greenDamage = HexFormat.fromHexDigits(bloodColorHexVal, 3, 5);
@@ -73,34 +74,21 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extend
                     List<ArrayList<Integer>> updatedPatternList = patternMap.get(this.entity.getUUID());
 
                     ArrayList<Integer> patternToAdd = new ArrayList<>(3);
-//                    boolean isWidth = Math.random() < 0.5;
-//                    patternToAdd.add(isWidth);
                     patternToAdd.add(new Random().nextInt(nativeImage.getWidth() - 1));
-//                    patternToAdd.add(new Random().nextInt((20 - 5) + 5));
                     patternToAdd.add(new Random().nextInt(nativeImage.getHeight() - 1));
                     patternToAdd.add(new Random().ints(-1, 1).findFirst().getAsInt());
                     updatedPatternList.add(patternToAdd);
-//                    BloodyBitsMod.LOGGER.info("ITERATION {} PATTERN TO ADD: {}", i, updatedPatternList);
 
                     patternMap.put(this.entity.getUUID(), updatedPatternList);
                 }
-
-//                BloodyBitsMod.LOGGER.info("PATTERN MAP SIZE {} INFO: {}", patternMap.size(), patternMap.get(this.entity.getUUID()));
             }
 
             for (ArrayList<Integer> currentPattern : patternMap.get(this.entity.getUUID())) {
-//                boolean isWidth = (boolean) currentPattern.get(0);
                 int randomChosenWidthStart = currentPattern.get(0);
                 int randomChosenHeightStart = currentPattern.get(1);
                 int randomColorHue = currentPattern.get(2);
-//                int randomHeightLength = (int) currentPattern.get(4);
-//                int iteratorStart;
-//                int damagePixelLength;
-//                int randomExpansionLength;
-//                BloodyBitsMod.LOGGER.info("RANDOM CHOSEN WIDTH AND HEIGHT START: {} - {}", randomChosenWidthStart, randomChosenHeightStart);
 
                 if (nativeImage.getPixelRGBA(randomChosenWidthStart, randomChosenHeightStart) != 0) {
-//                    BloodyBitsMod.LOGGER.info("RANDOM HUE: {}", randomColorHue);
                     if (randomColorHue < 0) {
                         nativeImage.setPixelRGBA(randomChosenWidthStart, randomChosenHeightStart, damageColor.darker().getRGB());
                     }

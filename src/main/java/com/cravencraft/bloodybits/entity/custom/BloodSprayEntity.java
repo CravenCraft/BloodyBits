@@ -3,8 +3,6 @@ package com.cravencraft.bloodybits.entity.custom;
 import com.cravencraft.bloodybits.BloodyBitsMod;
 import com.cravencraft.bloodybits.config.ClientConfig;
 import com.cravencraft.bloodybits.config.CommonConfig;
-import com.cravencraft.bloodybits.network.BloodyBitsPacketHandler;
-import com.cravencraft.bloodybits.network.messages.BloodySprayEntityMessage;
 import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -21,7 +19,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.*;
 import net.minecraftforge.network.NetworkHooks;
-import net.minecraftforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Random;
 
@@ -84,13 +81,11 @@ public class BloodSprayEntity extends AbstractArrow {
     @Override
     public void setOwner(@Nullable Entity ownerEntity) {
         super.setOwner(ownerEntity);
-
         if (ownerEntity != null) {
-            this.ownerName = ownerEntity.getEncodeId();
+            this.ownerName = (ownerEntity.toString().contains("Player")) ? "player" : ownerEntity.getEncodeId();
 
             if (this.level().isClientSide()) {
                 for (List<?> mobBloodType : ClientConfig.mobBloodTypes()) {
-//                    BloodyBitsMod.LOGGER.info("MOB NAME SEARCHING: {}", mobBloodType.get(0));
                     if (mobBloodType.get(0).toString().contains(this.ownerName)) {
                         String bloodColorHexVal = (String) mobBloodType.get(1);
                         this.red = HexFormat.fromHexDigits(bloodColorHexVal, 1, 3);

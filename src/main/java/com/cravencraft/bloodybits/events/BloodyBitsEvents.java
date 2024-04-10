@@ -48,15 +48,15 @@ public class BloodyBitsEvents {
 
     @SubscribeEvent
     public static void testSpatters(PlayerInteractEvent.RightClickBlock event) {
-        if (!event.getEntity().level().isClientSide) {
-            BloodSprayEntity bloodSprayEntity = new BloodSprayEntity(EntityRegistry.BLOOD_SPRAY.get(), event.getEntity(), event.getEntity().level(), 4.0F);
-            bloodSprayEntity.setDeltaMovement(event.getEntity().getLookAngle());
-            event.getEntity().level().addFreshEntity(bloodSprayEntity);
-
-
-            BloodyBitsMod.LOGGER.info("ABOUT TO SEND PACKET");
-//            BloodyBitsPacketHandler.INSTANCE.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) event.getEntity()), new BloodySprayEntityMessage(event.getEntity().getId(), event.getEntity().getId()));
-        }
+//        if (!event.getEntity().level().isClientSide) {
+//            BloodSprayEntity bloodSprayEntity = new BloodSprayEntity(EntityRegistry.BLOOD_SPRAY.get(), event.getEntity(), event.getEntity().level(), 4.0F);
+//            bloodSprayEntity.setDeltaMovement(event.getEntity().getLookAngle());
+//            event.getEntity().level().addFreshEntity(bloodSprayEntity);
+//
+//
+//            BloodyBitsMod.LOGGER.info("ABOUT TO SEND PACKET");
+////            BloodyBitsPacketHandler.INSTANCE.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) event.getEntity()), new BloodySprayEntityMessage(event.getEntity().getId(), event.getEntity().getId()));
+//        }
     }
 
     /**
@@ -77,7 +77,7 @@ public class BloodyBitsEvents {
     }
 
     private static void createBloodSpray(LivingAttackEvent event) {
-        if (event.getSource().isCreativePlayer()) {
+//        if (event.getSource().isCreativePlayer()) {
             for (int i = 0; i < event.getAmount(); i++) {
                 if (BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.size() >= CommonConfig.maxSpatters()) {
                     BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.get(0).discard();
@@ -120,7 +120,7 @@ public class BloodyBitsEvents {
                 BloodyBitsPacketHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> bloodSprayEntity),
                         new BloodySprayEntityMessage(bloodSprayEntity.getId(), event.getEntity().getId()));
             }
-        }
+//        }
 
     }
 }
