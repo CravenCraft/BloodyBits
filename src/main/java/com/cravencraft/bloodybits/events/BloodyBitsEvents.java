@@ -52,29 +52,17 @@ public class BloodyBitsEvents {
                 sourceAngle = event.getEntity().getLookAngle();
             }
 
-            double xAngle = -sourceAngle.x;
+            double xAngle = sourceAngle.x;
             double yAngle = -sourceAngle.y + Math.random();
-            double zAngle = -sourceAngle.z;
+            double zAngle = sourceAngle.z;
             double adjustedDamage = event.getAmount() * 0.1;
             // Ensure the angles are always going where they are expected to go.
             xAngle = (xAngle > 0) ? (xAngle - Math.random()) : (xAngle + Math.random()) - adjustedDamage;
-//              yAngle = (yAngle > 0) ? (yAngle - Math.random()) : (yAngle + Math.random()) - adjustedDamage;
             zAngle = (zAngle > 0) ? (zAngle - Math.random()) : (zAngle + Math.random()) - adjustedDamage;
-//              BloodyBitsMod.LOGGER.info("X Y AND Z FORCES: {}, {}, {}", xAngle, yAngle, zAngle);
             // TODO: 0.5 seems to be a good sweet spot for an average hit. What I can do in the future could be
             //       to make that number be related to weapon damage. With base being something like maybe 0.25
             //       and higher numbers bringing it up to maybe a 0.75 cap.
-            bloodSprayEntity.setDeltaMovement(xAngle * 0.5, yAngle * 0.5, zAngle * 0.5);
-//                bloodSprayEntity.setDeltaMovement(Objects.requireNonNull(event.getSource().getDirectEntity()).getLookAngle().x  * Math.random(),
-//                        Objects.requireNonNull(event.getSource().getDirectEntity()).getLookAngle().y  * Math.random(),
-//                        Objects.requireNonNull(event.getSource().getDirectEntity()).getLookAngle().z  * Math.random()
-//                        );
-
-//                    bloodSprayEntity.setDeltaMovement(
-//                            (event.getAmount() * 0.25) * Math.random(),
-//                            (event.getAmount() * 0.25) * Math.random(),
-//                            (event.getAmount() * 0.25) * Math.random());
-//                BloodyBitsMod.LOGGER.info(" ENTITY DELTA MOVEMENT{}", bloodSprayEntity.getDeltaMovement());
+            bloodSprayEntity.setDeltaMovement(xAngle * 0.25, yAngle * 0.35, zAngle * 0.25);
             event.getEntity().level().addFreshEntity(bloodSprayEntity);
             BloodyBitsPacketHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> bloodSprayEntity),
                     new BloodySprayEntityMessage(bloodSprayEntity.getId(), event.getEntity().getId()));

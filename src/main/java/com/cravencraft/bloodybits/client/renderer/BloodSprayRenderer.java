@@ -98,10 +98,10 @@ public class BloodSprayRenderer extends EntityRenderer<BloodSprayEntity> {
         else {
 
             // Front side
-            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMax, entity.zMin, 0.0F, 0.0F, 0, 1, 0, correctedPackedLight, entity.currentLifeTime, entity.red, entity.green, entity.blue);
-            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMin, entity.zMin, 0.0F, 1.0F, 0, 1, 0, correctedPackedLight, entity.currentLifeTime, entity.red, entity.green, entity.blue);
-            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMin, entity.zMax, 1.0F, 1.0F, 0, 1, 0, correctedPackedLight, entity.currentLifeTime, entity.red, entity.green, entity.blue);
-            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMax, entity.zMax, 1.0F, 0.0F, 0, 1, 0, correctedPackedLight, entity.currentLifeTime, entity.red, entity.green, entity.blue);
+            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMax, entity.zMin, 0.0F, 0.0F, 0, 0, 0, correctedPackedLight, entity.currentLifeTime, entity.red, entity.green, entity.blue);
+            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMin, entity.zMin, 0.0F, 1.0F, 0, 0, 0, correctedPackedLight, entity.currentLifeTime, entity.red, entity.green, entity.blue);
+            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMin, entity.zMax, 1.0F, 1.0F, 0, 0, 0, correctedPackedLight, entity.currentLifeTime, entity.red, entity.green, entity.blue);
+            this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMax, entity.zMax, 1.0F, 0.0F, 0, 0, 0, correctedPackedLight, entity.currentLifeTime, entity.red, entity.green, entity.blue);
 
             if (entity.currentLifeTime > 50 && entity.entityDirection != null && entity.entityDirection.equals(Direction.DOWN)) {
                 VertexConsumer dripVertexConsumer = pBuffer.getBuffer(RenderType.entityTranslucent(SPRAY));
