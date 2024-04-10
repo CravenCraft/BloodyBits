@@ -158,13 +158,22 @@ public class BloodSprayEntity extends AbstractArrow {
                 this.tickDespawn();
             }
 
-
             if (this.entityDirection != null) {
                 setYMin();
                 setYMax();
                 setZMin();
                 setZMax();
                 setDrip();
+            }
+
+            // Rapidly decrease life if the blood entity is in rain or water.
+            if (this.isInWaterOrRain()) {
+                this.yMin -= 0.1F;
+                this.yMax += 0.1F;
+                this.zMin -= 0.1F;
+                this.zMax += 0.1F;
+
+                this.currentLifeTime += (CommonConfig.despawnTime() / 50);
             }
         }
         else if (this.isSolid) {
