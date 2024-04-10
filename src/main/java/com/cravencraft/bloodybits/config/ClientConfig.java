@@ -19,7 +19,9 @@ public class ClientConfig {
         MOB_BLOOD_TYPES = BUILDER.comment("Define what color the blood from certain mobs should be. If a mob isn't listed, then it'll default to red.")
                 .defineListAllowEmpty("blood_colors", List.of(
                         List.of("minecraft:spider, minecraft:cave_spider, minecraft:creeper, minecraft:bee, minecraft:slime", "#01c801"),
-                        List.of("minecraft:enderman, minecraft:shulker, minecraft:ender_dragon, minecraft:endermite", "#c832ff")
+                        List.of("minecraft:enderman, minecraft:shulker, minecraft:ender_dragon, minecraft:endermite", "#c832ff"),
+                        List.of("minecraft:skeleton", "#c8c8c8"),
+                        List.of("minecraft:wither_skeleton, minecraft:wither", "#323232")
                         ), it -> it instanceof List<?> list &&
                                 list.size() == 2 &&
                                 list.get(0) instanceof List<?> entityList &&

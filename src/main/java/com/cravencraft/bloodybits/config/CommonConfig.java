@@ -3,9 +3,8 @@ package com.cravencraft.bloodybits.config;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.config.ModConfig;
-import org.apache.commons.codec.binary.Hex;
 
-import java.util.HexFormat;
+import java.util.List;
 
 
 public class CommonConfig {
@@ -13,6 +12,9 @@ public class CommonConfig {
     private static ForgeConfigSpec.IntValue DESPAWN_TIME;
     private static ForgeConfigSpec.IntValue MAX_SPATTERS;
     private static ForgeConfigSpec.IntValue DISTANCE_TO_PLAYERS;
+
+    private static ForgeConfigSpec.ConfigValue<List<?>> NO_BLOOD_MOBS;
+
 
     public static int despawnTime() {
         return DESPAWN_TIME.get();
@@ -23,6 +25,7 @@ public class CommonConfig {
     }
 
     public static int distanceToPlayers() { return DISTANCE_TO_PLAYERS.get(); }
+    public static List<?> noBloodMobs() { return NO_BLOOD_MOBS.get(); }
 
     public static void loadCommonConfig() {
         BUILDER.push("blood spray settings");
@@ -33,6 +36,11 @@ public class CommonConfig {
                 .defineInRange("max_spatters", 100, 0, 10000);
         DISTANCE_TO_PLAYERS = BUILDER.comment("The maximum amount of distance a player can be away from a damaged entity for blood to spray.")
                 .defineInRange("distance_to_players", 100, 0, 1000);
+        NO_BLOOD_MOBS = BUILDER.comment("Define what mobs won't have blood. This is mainly skeletons. Instead of bleeding, they will just shoot out colored rectangles that disappear when they hit a surface," +
+                        "and instead of getting bloodier when damaged, they will lose pixels.")
+                .defineListAllowEmpty("no_blood_mobs",
+                        List.of("minecraft:skeleton", "minecraft:wither_skeleton", "minecraft:wither"),
+                        it -> it instanceof List<?>);
 
         BUILDER.pop();
 

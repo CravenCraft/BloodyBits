@@ -2,6 +2,7 @@ package com.cravencraft.bloodybits.mixins;
 
 import com.cravencraft.bloodybits.BloodyBitsMod;
 import com.cravencraft.bloodybits.config.ClientConfig;
+import com.cravencraft.bloodybits.config.CommonConfig;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -44,6 +45,8 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extend
     @Redirect(method = "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/model/EntityModel;renderToBuffer(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;IIFFFF)V"))
     private void renderEntitiesDifferently(EntityModel<net.minecraft.world.entity.Entity> instance, PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, float red, float green, float blue, float alpha) throws IOException {
         VertexConsumer customVertexConsumer = vertexConsumer;
+        //TODO: Add a client config option to make this optional (will probably save a lot of memory on lower end machines).
+        //      Maybe add some options for how much of the entity is bloodied as well.
         if (!this.entity.isDeadOrDying() && this.entity.getHealth() < this.entity.getMaxHealth()) {
             try {
                 InputStream fileInput = Minecraft.getInstance().getResourceManager().open(this.getTextureLocation((T) this.entity));
@@ -52,17 +55,29 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extend
                 int redDamage = 200;
                 int greenDamage = 1;
                 int blueDamage = 1;
+                int alphaDamage = 255;
                 String entityName = (this.entity.toString().contains("Player")) ? "player" : this.entity.getEncodeId();
-                for (List<?> mobBloodType : ClientConfig.mobBloodTypes()) {
-                    if (mobBloodType.get(0).toString().contains(Objects.requireNonNull(entityName))) {
-                        String bloodColorHexVal = (String) mobBloodType.get(1);
-                        redDamage = HexFormat.fromHexDigits(bloodColorHexVal, 1, 3);
-                        greenDamage = HexFormat.fromHexDigits(bloodColorHexVal, 3, 5);
-                        blueDamage = HexFormat.fromHexDigits(bloodColorHexVal.substring(5));
-                        break;
+
+                if (CommonConfig.noBloodMobs().contains(entityName)) {
+
+                    redDamage = 0;
+                    greenDamage = 0;
+                    blueDamage = 0;
+                    alphaDamage = 0;
+                }
+                else {
+                    for (List<?> mobBloodType : ClientConfig.mobBloodTypes()) {
+                        if (mobBloodType.get(0).toString().contains(Objects.requireNonNull(entityName))) {
+                            String bloodColorHexVal = (String) mobBloodType.get(1);
+                            redDamage = HexFormat.fromHexDigits(bloodColorHexVal, 1, 3);
+                            greenDamage = HexFormat.fromHexDigits(bloodColorHexVal, 3, 5);
+                            blueDamage = HexFormat.fromHexDigits(bloodColorHexVal.substring(5));
+                            break;
+                        }
                     }
                 }
-                Color damageColor = new Color(blueDamage, greenDamage, redDamage, 255);
+
+                Color damageColor = new Color(blueDamage, greenDamage, redDamage, alphaDamage);
 
                 int pixelsToModifyPerHealthPoint = (int) (((nativeImage.getHeight() * nativeImage.getWidth()) / this.entity.getMaxHealth()) / 2);
                 int currentPatterns = (int) Math.ceil((this.entity.getMaxHealth() - this.entity.getHealth())) * pixelsToModifyPerHealthPoint;
@@ -98,10 +113,10 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extend
                     int randomColorHue = currentPattern.get(2);
 
                     if (nativeImage.getPixelRGBA(randomChosenWidthStart, randomChosenHeightStart) != 0) {
-                        if (randomColorHue < 0) {
+                        if (randomColorHue < 0 && !CommonConfig.noBloodMobs().contains(entityName)) {
                             nativeImage.setPixelRGBA(randomChosenWidthStart, randomChosenHeightStart, damageColor.darker().getRGB());
                         }
-                        else if (randomColorHue > 0) {
+                        else if (randomColorHue > 0 && !CommonConfig.noBloodMobs().contains(entityName)) {
                             nativeImage.setPixelRGBA(randomChosenWidthStart, randomChosenHeightStart, damageColor.brighter().getRGB());
                         }
                         else {

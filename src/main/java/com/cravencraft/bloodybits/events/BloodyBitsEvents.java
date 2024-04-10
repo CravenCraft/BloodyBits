@@ -37,6 +37,9 @@ public class BloodyBitsEvents {
     }
 
     private static void createBloodSpray(LivingAttackEvent event) {
+        //TODO: Currently, creepers don't produce blood when exploding because it's not registered as a LivingAttackEvent on THEMSELF.
+        //      So, maybe have an exception happen in a damage event?
+        BloodyBitsMod.LOGGER.info("EVENT INFO: ENTITY: {} || SOURCE: {}", event.getEntity(), event.getSource());
         for (int i = 0; i < event.getAmount(); i++) {
             if (BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.size() >= CommonConfig.maxSpatters()) {
                 BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.get(0).discard();

@@ -57,6 +57,7 @@ public class BloodSprayEntity extends AbstractArrow {
     public String ownerName;
 
     public boolean shouldDrip;
+    public boolean isSolid;
     public Direction entityDirection;
     public BlockPos hitBlockPos;
     public Vec3 hitPosition;
@@ -81,9 +82,10 @@ public class BloodSprayEntity extends AbstractArrow {
     @Override
     public void setOwner(@Nullable Entity ownerEntity) {
         super.setOwner(ownerEntity);
+
         if (ownerEntity != null) {
             this.ownerName = (ownerEntity.toString().contains("Player")) ? "player" : ownerEntity.getEncodeId();
-
+            this.isSolid = CommonConfig.noBloodMobs().contains(this.ownerName);
             if (this.level().isClientSide()) {
                 for (List<?> mobBloodType : ClientConfig.mobBloodTypes()) {
                     if (mobBloodType.get(0).toString().contains(this.ownerName)) {
@@ -165,6 +167,22 @@ public class BloodSprayEntity extends AbstractArrow {
                 setDrip();
             }
         }
+        else if (this.isSolid) {
+            this.currentLifeTime = 0;
+            double velocity = this.getDeltaMovement().length();
+            float length = 5;
+            this.xMin = -(length);
+
+            float widthAndHeight = (length > 10) ? (length - 10) / 4 : (10 - length) / 4;
+            this.yMin = -(widthAndHeight / 2);
+            this.yMax = (widthAndHeight / 2);
+            this.zMin = -(widthAndHeight / 2);
+            this.zMax = (widthAndHeight / 2);
+
+            if (this.isInWater()) {
+                this.discard();
+            }
+        }
         else if (!this.isInWater()) {
             this.currentLifeTime = 0;
             double velocity = this.getDeltaMovement().length();
@@ -203,109 +221,115 @@ public class BloodSprayEntity extends AbstractArrow {
      */
     @Override
     protected void onHitBlock(BlockHitResult result) {
-        this.hitBlockPos = result.getBlockPos();
-        this.entityDirection = result.getDirection();
-        this.hitPosition = result.getLocation();
-        this.lastState = this.level().getBlockState(result.getBlockPos());
-        this.xHitAngle = -this.getLookAngle().x;
-        this.yHitAngle = -this.getLookAngle().y;
-        this.zHitAngle = this.getLookAngle().z;
+        //TODO: TEST FOR SOLIDS.
+        if (this.isSolid) {
+            this.discard();
+        }
+        else {
+            this.hitBlockPos = result.getBlockPos();
+            this.entityDirection = result.getDirection();
+            this.hitPosition = result.getLocation();
+            this.lastState = this.level().getBlockState(result.getBlockPos());
+            this.xHitAngle = -this.getLookAngle().x;
+            this.yHitAngle = -this.getLookAngle().y;
+            this.zHitAngle = this.getLookAngle().z;
 
-        boolean isYNorm = (result.getDirection().equals(Direction.EAST) || result.getDirection().equals(Direction.WEST) || result.getDirection().equals(Direction.SOUTH) || result.getDirection().equals(Direction.NORTH));
-        boolean isZNorm = (result.getDirection().equals(Direction.EAST) || result.getDirection().equals(Direction.WEST) || result.getDirection().equals(Direction.UP) || result.getDirection().equals(Direction.DOWN));
-        double initialYMinVal;
-        double initialZMinVal;
-        double initialYMaxVal;
-        double initialZMaxVal;
+            boolean isYNorm = (result.getDirection().equals(Direction.EAST) || result.getDirection().equals(Direction.WEST) || result.getDirection().equals(Direction.SOUTH) || result.getDirection().equals(Direction.NORTH));
+            boolean isZNorm = (result.getDirection().equals(Direction.EAST) || result.getDirection().equals(Direction.WEST) || result.getDirection().equals(Direction.UP) || result.getDirection().equals(Direction.DOWN));
+            double initialYMinVal;
+            double initialZMinVal;
+            double initialYMaxVal;
+            double initialZMaxVal;
 
-        if (isYNorm) {
-            if (this.yHitAngle > 0) {
-                initialYMinVal = hitPosition.y - BLOOD_SPATTER_AMOUNT;
-                initialYMaxVal = hitPosition.y + BLOOD_SPATTER_AMOUNT + this.yHitAngle;
+            if (isYNorm) {
+                if (this.yHitAngle > 0) {
+                    initialYMinVal = hitPosition.y - BLOOD_SPATTER_AMOUNT;
+                    initialYMaxVal = hitPosition.y + BLOOD_SPATTER_AMOUNT + this.yHitAngle;
 //                BloodyBitsMod.LOGGER.info("Y MIN POSITIVE HIT ANGLE: {}", initialYMinVal);
 //                BloodyBitsMod.LOGGER.info("Y MAX POSITIVE HIT ANGLE: {}", initialYMaxVal);
-            }
-            else {
-                initialYMinVal = hitPosition.y - BLOOD_SPATTER_AMOUNT + this.yHitAngle;
-                initialYMaxVal = hitPosition.y + BLOOD_SPATTER_AMOUNT;
+                }
+                else {
+                    initialYMinVal = hitPosition.y - BLOOD_SPATTER_AMOUNT + this.yHitAngle;
+                    initialYMaxVal = hitPosition.y + BLOOD_SPATTER_AMOUNT;
 //                BloodyBitsMod.LOGGER.info("Y MIN NEGATIVE HIT ANGLE: {}", initialYMinVal);
 //                BloodyBitsMod.LOGGER.info("Y MAX NEGATIVE HIT ANGLE: {}", initialYMaxVal);
+                }
             }
-        }
-        else {
-            if (this.xHitAngle > 0) {
-                initialYMinVal = hitPosition.x - BLOOD_SPATTER_AMOUNT;
-                initialYMaxVal = hitPosition.x + BLOOD_SPATTER_AMOUNT + this.xHitAngle;
+            else {
+                if (this.xHitAngle > 0) {
+                    initialYMinVal = hitPosition.x - BLOOD_SPATTER_AMOUNT;
+                    initialYMaxVal = hitPosition.x + BLOOD_SPATTER_AMOUNT + this.xHitAngle;
 //                BloodyBitsMod.LOGGER.info("X MIN POSITIVE HIT ANGLE: {}", initialYMinVal);
 //                BloodyBitsMod.LOGGER.info("X MAX POSITIVE HIT ANGLE: {}", initialYMaxVal);
-            }
-            else {
-                initialYMinVal = hitPosition.x - BLOOD_SPATTER_AMOUNT + this.xHitAngle;
-                initialYMaxVal = hitPosition.x + BLOOD_SPATTER_AMOUNT;
+                }
+                else {
+                    initialYMinVal = hitPosition.x - BLOOD_SPATTER_AMOUNT + this.xHitAngle;
+                    initialYMaxVal = hitPosition.x + BLOOD_SPATTER_AMOUNT;
 //                BloodyBitsMod.LOGGER.info("X MIN NEGATIVE HIT ANGLE: {}", initialYMinVal);
 //                BloodyBitsMod.LOGGER.info("X MAX NEGATIVE HIT ANGLE: {}", initialYMaxVal);
+                }
             }
-        }
 
-        if (isZNorm) {
-            if (this.zHitAngle > 0) {
-                initialZMinVal = hitPosition.z - BLOOD_SPATTER_AMOUNT;
-                initialZMaxVal = hitPosition.z + BLOOD_SPATTER_AMOUNT + this.zHitAngle;
+            if (isZNorm) {
+                if (this.zHitAngle > 0) {
+                    initialZMinVal = hitPosition.z - BLOOD_SPATTER_AMOUNT;
+                    initialZMaxVal = hitPosition.z + BLOOD_SPATTER_AMOUNT + this.zHitAngle;
 //                BloodyBitsMod.LOGGER.info("Z MIN POSITIVE HIT ANGLE: {}", initialZMinVal);
 //                BloodyBitsMod.LOGGER.info("Z MAX POSITIVE HIT ANGLE: {}", initialZMaxVal);
-            }
-            else {
-                initialZMinVal = hitPosition.z - BLOOD_SPATTER_AMOUNT + this.zHitAngle;
-                initialZMaxVal = hitPosition.z + BLOOD_SPATTER_AMOUNT;
+                }
+                else {
+                    initialZMinVal = hitPosition.z - BLOOD_SPATTER_AMOUNT + this.zHitAngle;
+                    initialZMaxVal = hitPosition.z + BLOOD_SPATTER_AMOUNT;
 //                BloodyBitsMod.LOGGER.info("Z MIN NEGATIVE HIT ANGLE: {}", initialZMinVal);
 //                BloodyBitsMod.LOGGER.info("Z MAX NEGATIVE HIT ANGLE: {}", initialZMaxVal);
-            }
-        }
-        else {
-            //TODO: Looks like this can be broken up into a separate method? Maybe included in the determineSpatterExpansion. Include hitAngle
-            if (this.xHitAngle > 0) {
-                initialZMinVal = hitPosition.x - BLOOD_SPATTER_AMOUNT;
-                initialZMaxVal = hitPosition.x + BLOOD_SPATTER_AMOUNT + this.xHitAngle;
-//                BloodyBitsMod.LOGGER.info("X MIN POSITIVE HIT ANGLE: {}", initialZMinVal);
-//                BloodyBitsMod.LOGGER.info("X MAX POSITIVE HIT ANGLE: {}", initialZMaxVal);
+                }
             }
             else {
-                initialZMinVal = hitPosition.x - BLOOD_SPATTER_AMOUNT + this.xHitAngle;
-                initialZMaxVal = hitPosition.x + BLOOD_SPATTER_AMOUNT;
+                //TODO: Looks like this can be broken up into a separate method? Maybe included in the determineSpatterExpansion. Include hitAngle
+                if (this.xHitAngle > 0) {
+                    initialZMinVal = hitPosition.x - BLOOD_SPATTER_AMOUNT;
+                    initialZMaxVal = hitPosition.x + BLOOD_SPATTER_AMOUNT + this.xHitAngle;
+//                BloodyBitsMod.LOGGER.info("X MIN POSITIVE HIT ANGLE: {}", initialZMinVal);
+//                BloodyBitsMod.LOGGER.info("X MAX POSITIVE HIT ANGLE: {}", initialZMaxVal);
+                }
+                else {
+                    initialZMinVal = hitPosition.x - BLOOD_SPATTER_AMOUNT + this.xHitAngle;
+                    initialZMaxVal = hitPosition.x + BLOOD_SPATTER_AMOUNT;
 //                BloodyBitsMod.LOGGER.info("X MIN NEGATIVE HIT ANGLE: {}", initialZMinVal);
 //                BloodyBitsMod.LOGGER.info("X MAX NEGATIVE HIT ANGLE: {}", initialZMaxVal);
+                }
             }
+
+            if (this.entityDirection.equals(Direction.UP) || this.entityDirection.equals(Direction.DOWN)) {
+                this.yMaxLimit = -(float) determineSpatterExpansion(initialYMinVal, true, false) * 10; // Y MIN
+                this.yMinLimit = -(float) determineSpatterExpansion(initialYMaxVal, true, true) * 10; // Y MAX
+            }
+            else {
+                this.yMinLimit = (float) determineSpatterExpansion(initialYMinVal, true, false) * 10; // Y MIN
+                this.yMaxLimit = (float) determineSpatterExpansion(initialYMaxVal, true, true) * 10; // Y MAX
+            }
+
+            this.zMinLimit = (float) determineSpatterExpansion(initialZMinVal, false, false) * 10; // Z MIN
+            this.zMaxLimit = (float) determineSpatterExpansion(initialZMaxVal, false, true) * 10; // Z MAX
+
+            // All of this is boilerplate from AbstractArrow except the setSoundEvent now playing a slime sound.
+            BlockState blockstate = this.level().getBlockState(result.getBlockPos());
+            blockstate.onProjectileHit(this.level(), blockstate, result, this);
+            Vec3 vec3 = result.getLocation().subtract(this.getX(), this.getY(), this.getZ());
+            this.setDeltaMovement(vec3);
+            Vec3 vec31 = vec3.normalize().scale((double)0.05F);
+            this.setPosRaw(this.getX() - vec31.x, this.getY() - vec31.y, this.getZ() - vec31.z);
+
+            // Modified sound to be a deeper pitch of Slime Block sounds.
+            this.setSoundEvent((Math.random() > 0.5) ? SoundEvents.SLIME_BLOCK_HIT : SoundEvents.SLIME_BLOCK_STEP);
+            this.playSound(this.getHitGroundSoundEvent(), 0.75F, 1.8F / (this.random.nextFloat() * 0.2F + 0.9F));
+
+            this.inGround = true;
+            this.setCritArrow(false);
+            this.setPierceLevel((byte)0);
+            this.setShotFromCrossbow(false);
+            this.resetPiercedEntities();
         }
-
-        if (this.entityDirection.equals(Direction.UP) || this.entityDirection.equals(Direction.DOWN)) {
-            this.yMaxLimit = -(float) determineSpatterExpansion(initialYMinVal, true, false) * 10; // Y MIN
-            this.yMinLimit = -(float) determineSpatterExpansion(initialYMaxVal, true, true) * 10; // Y MAX
-        }
-        else {
-            this.yMinLimit = (float) determineSpatterExpansion(initialYMinVal, true, false) * 10; // Y MIN
-            this.yMaxLimit = (float) determineSpatterExpansion(initialYMaxVal, true, true) * 10; // Y MAX
-        }
-
-        this.zMinLimit = (float) determineSpatterExpansion(initialZMinVal, false, false) * 10; // Z MIN
-        this.zMaxLimit = (float) determineSpatterExpansion(initialZMaxVal, false, true) * 10; // Z MAX
-
-        // All of this is boilerplate from AbstractArrow except the setSoundEvent now playing a slime sound.
-        BlockState blockstate = this.level().getBlockState(result.getBlockPos());
-        blockstate.onProjectileHit(this.level(), blockstate, result, this);
-        Vec3 vec3 = result.getLocation().subtract(this.getX(), this.getY(), this.getZ());
-        this.setDeltaMovement(vec3);
-        Vec3 vec31 = vec3.normalize().scale((double)0.05F);
-        this.setPosRaw(this.getX() - vec31.x, this.getY() - vec31.y, this.getZ() - vec31.z);
-
-        // Modified sound to be a deeper pitch of Slime Block sounds.
-        this.setSoundEvent((Math.random() > 0.5) ? SoundEvents.SLIME_BLOCK_HIT : SoundEvents.SLIME_BLOCK_STEP);
-        this.playSound(this.getHitGroundSoundEvent(), 0.75F, 1.8F / (this.random.nextFloat() * 0.2F + 0.9F));
-
-        this.inGround = true;
-        this.setCritArrow(false);
-        this.setPierceLevel((byte)0);
-        this.setShotFromCrossbow(false);
-        this.resetPiercedEntities();
     }
 
     private double determineSpatterExpansion(double initialExpansionAmount, boolean isYAxis, boolean isMax)  {
