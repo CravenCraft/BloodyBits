@@ -134,6 +134,7 @@ public class BloodSprayRenderer extends EntityRenderer<BloodSprayEntity> {
 
     public void vertex(Matrix4f pMatrix, Matrix3f pNormal, VertexConsumer pConsumer, float pX, float pY, float pZ, float pU, float pV, int pNormalX, int pNormalZ, int pNormalY, int packedLight, int lifeTime, int red, int green, int blue) {
         int alpha = (int) (255 - (((double) lifeTime / CommonConfig.despawnTime()) * 255));
+        alpha = Math.max(0, alpha);
         pConsumer
                 .vertex(pMatrix, pX, pY, pZ)
                 .color(red, green, blue, alpha)
