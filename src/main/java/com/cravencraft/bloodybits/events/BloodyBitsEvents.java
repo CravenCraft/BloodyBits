@@ -37,14 +37,15 @@ public class BloodyBitsEvents {
     }
 
     private static void createBloodSpray(LivingAttackEvent event) {
+        int maxDamage = (int) Math.min(20, event.getAmount());
         //TODO: Currently, creepers don't produce blood when exploding because it's not registered as a LivingAttackEvent on THEMSELF.
         //      So, maybe have an exception happen in a damage event?
-        for (int i = 0; i < event.getAmount(); i++) {
+        for (int i = 0; i < maxDamage; i++) {
             if (BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.size() >= CommonConfig.maxSpatters()) {
                 BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.get(0).discard();
                 BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.remove(0);
             }
-            BloodSprayEntity bloodSprayEntity = new BloodSprayEntity(EntityRegistry.BLOOD_SPRAY.get(), event.getEntity(), event.getEntity().level(), event.getAmount());
+            BloodSprayEntity bloodSprayEntity = new BloodSprayEntity(EntityRegistry.BLOOD_SPRAY.get(), event.getEntity(), event.getEntity().level(), maxDamage);
             BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.add(bloodSprayEntity);
             Vec3 sourceAngle;
             if (event.getSource().getEntity() != null) {
@@ -57,7 +58,7 @@ public class BloodyBitsEvents {
             double xAngle = sourceAngle.x;
             double yAngle = -sourceAngle.y + Math.random();
             double zAngle = sourceAngle.z;
-            double adjustedDamage = event.getAmount() * 0.1;
+            double adjustedDamage = maxDamage * 0.1;
             // Ensure the angles are always going where they are expected to go.
             xAngle = (xAngle > 0) ? (xAngle - Math.random()) : (xAngle + Math.random()) - adjustedDamage;
             zAngle = (zAngle > 0) ? (zAngle - Math.random()) : (zAngle + Math.random()) - adjustedDamage;
