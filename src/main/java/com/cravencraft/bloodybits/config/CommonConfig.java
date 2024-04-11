@@ -39,7 +39,7 @@ public class CommonConfig {
         NO_BLOOD_MOBS = BUILDER.comment("Define what mobs won't have blood. This is mainly skeletons. Instead of bleeding, they will just shoot out colored rectangles that disappear when they hit a surface," +
                         "and instead of getting bloodier when damaged, they will lose pixels.")
                 .defineListAllowEmpty("no_blood_mobs",
-                        List.of("minecraft:skeleton", "minecraft:wither_skeleton", "minecraft:wither"),
+                        List.of("minecraft:skeleton", "minecraft:skeleton_horse", "minecraft:wither_skeleton", "minecraft:wither", "minecraft:shulker"),
                         it -> it instanceof List<?>);
 
         BUILDER.pop();

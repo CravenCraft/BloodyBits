@@ -45,9 +45,8 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extend
     @Redirect(method = "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/model/EntityModel;renderToBuffer(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;IIFFFF)V"))
     private void renderEntitiesDifferently(EntityModel<net.minecraft.world.entity.Entity> instance, PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, float red, float green, float blue, float alpha) throws IOException {
         VertexConsumer customVertexConsumer = vertexConsumer;
-        //TODO: Add a client config option to make this optional (will probably save a lot of memory on lower end machines).
-        //      Maybe add some options for how much of the entity is bloodied as well.
-        if (!this.entity.isDeadOrDying() && this.entity.getHealth() < this.entity.getMaxHealth()) {
+
+        if (ClientConfig.showMobDamage() && !this.entity.isDeadOrDying() && this.entity.getHealth() < this.entity.getMaxHealth()) {
             try {
                 InputStream fileInput = Minecraft.getInstance().getResourceManager().open(this.getTextureLocation((T) this.entity));
                 NativeImage nativeImage = NativeImage.read(fileInput);
@@ -79,7 +78,7 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extend
 
                 Color damageColor = new Color(blueDamage, greenDamage, redDamage, alphaDamage);
 
-                int pixelsToModifyPerHealthPoint = (int) (((nativeImage.getHeight() * nativeImage.getWidth()) / this.entity.getMaxHealth()) / 2);
+                int pixelsToModifyPerHealthPoint = (int) (((nativeImage.getHeight() * nativeImage.getWidth()) / this.entity.getMaxHealth()) * (ClientConfig.entityDamageShownPercent() * 0.01));
                 int currentPatterns = (int) Math.ceil((this.entity.getMaxHealth() - this.entity.getHealth())) * pixelsToModifyPerHealthPoint;
 
                 if (!patternMap.containsKey(this.entity.getUUID())) {
