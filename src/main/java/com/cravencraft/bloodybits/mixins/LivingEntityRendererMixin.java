@@ -65,9 +65,9 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extend
                     alphaDamage = 0;
                 }
                 else {
-                    for (List<?> mobBloodType : ClientConfig.mobBloodTypes()) {
-                        if (mobBloodType.get(0).toString().contains(Objects.requireNonNull(entityName))) {
-                            String bloodColorHexVal = (String) mobBloodType.get(1);
+                    for (Map.Entry<String, List<String>> mapElement : ClientConfig.mobBloodColors().entrySet()) {
+                        if (mapElement.getValue().contains(Objects.requireNonNull(entityName))) {
+                            String bloodColorHexVal = mapElement.getKey();
                             redDamage = HexFormat.fromHexDigits(bloodColorHexVal, 1, 3);
                             greenDamage = HexFormat.fromHexDigits(bloodColorHexVal, 3, 5);
                             blueDamage = HexFormat.fromHexDigits(bloodColorHexVal.substring(5));

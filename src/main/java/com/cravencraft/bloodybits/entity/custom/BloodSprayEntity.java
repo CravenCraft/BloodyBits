@@ -1,6 +1,5 @@
 package com.cravencraft.bloodybits.entity.custom;
 
-import com.cravencraft.bloodybits.BloodyBitsMod;
 import com.cravencraft.bloodybits.config.ClientConfig;
 import com.cravencraft.bloodybits.config.CommonConfig;
 import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
@@ -25,6 +24,7 @@ import org.joml.Random;
 import javax.annotation.Nullable;
 import java.util.HexFormat;
 import java.util.List;
+import java.util.Map;
 
 public class BloodSprayEntity extends AbstractArrow {
 
@@ -87,9 +87,10 @@ public class BloodSprayEntity extends AbstractArrow {
             this.ownerName = (ownerEntity.toString().contains("Player")) ? "player" : ownerEntity.getEncodeId();
             this.isSolid = CommonConfig.noBloodMobs().contains(this.ownerName);
             if (this.level().isClientSide()) {
-                for (List<?> mobBloodType : ClientConfig.mobBloodTypes()) {
-                    if (mobBloodType.get(0).toString().contains(this.ownerName)) {
-                        String bloodColorHexVal = (String) mobBloodType.get(1);
+//                for (List<?> mobBloodType : ClientConfig.mobBloodTypesTest()) {
+                for (Map.Entry<String, List<String>> mapElement : ClientConfig.mobBloodColors().entrySet()) {
+                    if (mapElement.getValue().contains(this.ownerName)) {
+                        String bloodColorHexVal = mapElement.getKey();
                         this.red = HexFormat.fromHexDigits(bloodColorHexVal, 1, 3);
                         this.green = HexFormat.fromHexDigits(bloodColorHexVal, 3, 5);
                         this.blue = HexFormat.fromHexDigits(bloodColorHexVal.substring(5));
