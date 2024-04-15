@@ -177,7 +177,7 @@ public class BloodSprayEntity extends AbstractArrow {
         else if (this.isSolid) {
             this.currentLifeTime = 0;
             double velocity = this.getDeltaMovement().length();
-            float length = 5;
+            float length = 2;
             this.xMin = -(length);
 
             float widthAndHeight = (10 - length) / 4;
