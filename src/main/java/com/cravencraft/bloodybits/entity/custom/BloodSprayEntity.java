@@ -253,7 +253,7 @@ public class BloodSprayEntity extends AbstractArrow {
 
                 this.setDeltaMovement(vec3);
 
-                Vec3 vec31 = vec3.normalize().scale((double)0.05F);
+                Vec3 vec31 = vec3.normalize().scale(0.05F);
                 this.setPosRaw(this.getX() - vec31.x, this.getY() - vec31.y, this.getZ() - vec31.z);
             }
             else {
