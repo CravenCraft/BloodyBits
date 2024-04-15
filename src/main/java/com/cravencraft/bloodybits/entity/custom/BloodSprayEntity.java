@@ -1,5 +1,6 @@
 package com.cravencraft.bloodybits.entity.custom;
 
+import com.cravencraft.bloodybits.BloodyBitsMod;
 import com.cravencraft.bloodybits.config.ClientConfig;
 import com.cravencraft.bloodybits.config.CommonConfig;
 import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
@@ -147,7 +148,7 @@ public class BloodSprayEntity extends AbstractArrow {
         }
         super.tick();
         if (this.inGround) {
-            if (this.xMin < this.xMax) {
+            if (!this.isSolid && this.xMin < this.xMax) {
                 this.xMin = this.xMax;
             }
 
@@ -155,7 +156,7 @@ public class BloodSprayEntity extends AbstractArrow {
                 this.tickDespawn();
             }
 
-            if (this.entityDirection != null) {
+            if (!this.isSolid && this.entityDirection != null) {
                 setYMin();
                 setYMax();
                 setZMin();
@@ -229,7 +230,47 @@ public class BloodSprayEntity extends AbstractArrow {
     protected void onHitBlock(BlockHitResult result) {
         //TODO: TEST FOR SOLIDS.
         if (this.isSolid) {
-            this.discard();
+//            this.inGround = false;
+            BloodyBitsMod.LOGGER.info("IS ON GROUND: {}", this.onGround());
+
+//            BlockState blockstate = this.level().getBlockState(result.getBlockPos());
+////            blockstate.onProjectileHit(this.level(), blockstate, result, this);
+//            Vec3 vec3 = result.getLocation().subtract(this.getX(), this.getY(), this.getZ());
+//
+////            this.setDeltaMovement(vec3);
+//            this.setDeltaMovement(-this.getDeltaMovement().x, -this.getDeltaMovement().y, -this.getDeltaMovement().z);
+//            Vec3 vec31 = vec3.normalize().scale((double)0.05F);
+//            this.setPosRaw(this.getX() - vec31.x, this.getY() - vec31.y, this.getZ() - vec31.z);
+
+            // Modified sound to be a deeper pitch of Slime Block sounds.
+            this.setSoundEvent((Math.random() > 0.5) ? SoundEvents.SLIME_BLOCK_HIT : SoundEvents.SLIME_BLOCK_STEP);
+            this.playSound(this.getHitGroundSoundEvent(), 0.75F, 1.8F / (this.random.nextFloat() * 0.2F + 0.9F));
+
+            if (result.getDirection().equals(Direction.UP)) {
+                this.inGround = true;
+
+                Vec3 vec3 = result.getLocation().subtract(this.getX(), this.getY(), this.getZ());
+
+                this.setDeltaMovement(vec3);
+
+                Vec3 vec31 = vec3.normalize().scale((double)0.05F);
+                this.setPosRaw(this.getX() - vec31.x, this.getY() - vec31.y, this.getZ() - vec31.z);
+            }
+            else {
+
+                Vec3 vec3 = result.getLocation().subtract(this.getX(), this.getY(), this.getZ());
+
+//            this.setDeltaMovement(vec3);
+                this.setDeltaMovement(-this.getDeltaMovement().x, -this.getDeltaMovement().y, -this.getDeltaMovement().z);
+                Vec3 vec31 = vec3.normalize().scale((double)0.1F);
+                this.setPosRaw(this.getX() - vec31.x, this.getY() - vec31.y, this.getZ() - vec31.z);
+            }
+            this.setCritArrow(false);
+            this.setPierceLevel((byte)0);
+            this.setShotFromCrossbow(false);
+            this.resetPiercedEntities();
+
+//            this.discard();
         }
         else {
             this.hitBlockPos = result.getBlockPos();

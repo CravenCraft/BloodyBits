@@ -147,7 +147,7 @@ public class BloodSprayRenderer extends EntityRenderer<BloodSprayEntity> {
 
     @Override
     public ResourceLocation getTextureLocation(BloodSprayEntity bloodSprayEntity) {
-        if (bloodSprayEntity.isInGround()) {
+        if (!bloodSprayEntity.isSolid && bloodSprayEntity.isInGround()) {
             return this.getRandomSpatterTexture(bloodSprayEntity.randomTextureNumber);
         }
         else {
