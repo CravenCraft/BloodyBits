@@ -13,7 +13,8 @@ public class CommonConfig {
     private static ForgeConfigSpec.IntValue MAX_SPATTERS;
     private static ForgeConfigSpec.IntValue DISTANCE_TO_PLAYERS;
 
-    private static ForgeConfigSpec.ConfigValue<List<? extends String>> NO_BLOOD_MOBS;
+    private static ForgeConfigSpec.ConfigValue<List<? extends String>> SOLID_ENTITIES;
+    private static ForgeConfigSpec.ConfigValue<List<? extends String>> GAS_ENTITIES;
 
 
     public static int despawnTime() {
@@ -25,7 +26,8 @@ public class CommonConfig {
     }
 
     public static int distanceToPlayers() { return DISTANCE_TO_PLAYERS.get(); }
-    public static List<? extends String> noBloodMobs() { return NO_BLOOD_MOBS.get(); }
+    public static List<? extends String> solidEntities() { return SOLID_ENTITIES.get(); }
+    public static List<? extends String> gasEntities() { return GAS_ENTITIES.get(); }
 
     public static void loadCommonConfig() {
         BUILDER.push("blood spray settings");
@@ -36,10 +38,15 @@ public class CommonConfig {
                 .defineInRange("max_spatters", 100, 0, 10000);
         DISTANCE_TO_PLAYERS = BUILDER.comment("The maximum amount of distance a player can be away from a damaged entity for blood to spray.")
                 .defineInRange("distance_to_players", 100, 0, 1000);
-        NO_BLOOD_MOBS = BUILDER.comment("Define what mobs won't have blood. This is mainly skeletons. Instead of bleeding, they will just shoot out colored rectangles that disappear when they hit a surface," +
+        SOLID_ENTITIES = BUILDER.comment("Define what mobs 'bleed' solid bits. This is mainly skeletons. Instead of bleeding they will just shoot out colored bits," +
                         "and instead of getting bloodier when damaged, they will lose pixels.")
-                .defineListAllowEmpty("no_blood_mobs",
+                .defineListAllowEmpty("solid_entities",
                         List.of("minecraft:skeleton", "minecraft:skeleton_horse", "minecraft:wither_skeleton", "minecraft:wither", "minecraft:shulker"),
+                        it -> it instanceof String);
+        GAS_ENTITIES = BUILDER.comment("Define what mobs 'bleed' gas puffs. This is mainly ghasts. Instead of bleeding there will be a puff of gas," +
+                        "and instead of getting bloodier when damaged, their pixels will become more transparent.")
+                .defineListAllowEmpty("gas_entities",
+                        List.of("minecraft:ghast"),
                         it -> it instanceof String);
 
         BUILDER.pop();

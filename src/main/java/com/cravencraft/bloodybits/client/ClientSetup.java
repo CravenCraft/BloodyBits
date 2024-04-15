@@ -1,6 +1,7 @@
 package com.cravencraft.bloodybits.client;
 
 import com.cravencraft.bloodybits.BloodyBitsMod;
+import com.cravencraft.bloodybits.client.renderer.BloodChunkRenderer;
 import com.cravencraft.bloodybits.client.renderer.BloodSprayRenderer;
 import com.cravencraft.bloodybits.registries.EntityRegistry;
 import net.minecraft.client.renderer.entity.EntityRenderers;
@@ -14,5 +15,8 @@ public class ClientSetup {
     @SubscribeEvent
     public static void setup(FMLClientSetupEvent event) {
         EntityRenderers.register(EntityRegistry.BLOOD_SPRAY.get(), BloodSprayRenderer::new);
+        EntityRenderers.register(EntityRegistry.BLOOD_CHUNK.get(), BloodChunkRenderer::new);
     }
+
+
 }

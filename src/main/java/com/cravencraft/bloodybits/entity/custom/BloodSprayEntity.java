@@ -83,10 +83,10 @@ public class BloodSprayEntity extends AbstractArrow {
     @Override
     public void setOwner(@Nullable Entity ownerEntity) {
         super.setOwner(ownerEntity);
-
+        BloodyBitsMod.LOGGER.info("IS BLOOD SPRAY ENTITY CLIENT SIDE: {}", this.level().isClientSide());
         if (ownerEntity != null) {
             this.ownerName = (ownerEntity.toString().contains("Player")) ? "player" : ownerEntity.getEncodeId();
-            this.isSolid = CommonConfig.noBloodMobs().contains(this.ownerName);
+            this.isSolid = CommonConfig.solidEntities().contains(this.ownerName);
             if (this.level().isClientSide()) {
 //                for (List<?> mobBloodType : ClientConfig.mobBloodTypesTest()) {
                 for (Map.Entry<String, List<String>> mapElement : ClientConfig.mobBloodColors().entrySet()) {
@@ -165,7 +165,7 @@ public class BloodSprayEntity extends AbstractArrow {
             }
 
             // Rapidly decrease life if the blood entity is in rain or water.
-            if (this.isInWaterOrRain()) {
+            if (!this.isSolid && this.isInWaterOrRain()) {
                 this.yMin -= 0.1F;
                 this.yMax += 0.1F;
                 this.zMin -= 0.1F;

@@ -57,8 +57,7 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extend
                 int alphaDamage = 255;
                 String entityName = (this.entity.toString().contains("Player")) ? "player" : this.entity.getEncodeId();
 
-                if (CommonConfig.noBloodMobs().contains(entityName)) {
-
+                if (CommonConfig.solidEntities().contains(entityName)) {
                     redDamage = 0;
                     greenDamage = 0;
                     blueDamage = 0;
@@ -112,10 +111,15 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extend
                     int randomColorHue = currentPattern.get(2);
 
                     if (nativeImage.getPixelRGBA(randomChosenWidthStart, randomChosenHeightStart) != 0) {
-                        if (randomColorHue < 0 && !CommonConfig.noBloodMobs().contains(entityName)) {
+                        if (CommonConfig.gasEntities().contains(entityName)) {
+                            Color originalTempHolder = new Color(nativeImage.getPixelRGBA(randomChosenWidthStart, randomChosenHeightStart), true);
+                            Color gasDamage = new Color(originalTempHolder.getBlue(), originalTempHolder.getGreen(), originalTempHolder.getRed(), 200);
+                            nativeImage.setPixelRGBA(randomChosenWidthStart, randomChosenHeightStart, gasDamage.getRGB());
+                        }
+                        else if (randomColorHue < 0 && !CommonConfig.solidEntities().contains(entityName)) {
                             nativeImage.setPixelRGBA(randomChosenWidthStart, randomChosenHeightStart, damageColor.darker().getRGB());
                         }
-                        else if (randomColorHue > 0 && !CommonConfig.noBloodMobs().contains(entityName)) {
+                        else if (randomColorHue > 0 && !CommonConfig.solidEntities().contains(entityName)) {
                             nativeImage.setPixelRGBA(randomChosenWidthStart, randomChosenHeightStart, damageColor.brighter().getRGB());
                         }
                         else {
