@@ -11,7 +11,6 @@ import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 
 @Mod.EventBusSubscriber(modid = BloodyBitsMod.MODID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class ClientSetup {
-
     @SubscribeEvent
     public static void setup(FMLClientSetupEvent event) {
         EntityRenderers.register(EntityRegistry.BLOOD_SPRAY.get(), BloodSprayRenderer::new);

@@ -13,7 +13,7 @@ public class CommonConfig {
     private static ForgeConfigSpec.IntValue MAX_SPATTERS;
     private static ForgeConfigSpec.IntValue DISTANCE_TO_PLAYERS;
 
-    private static ForgeConfigSpec.ConfigValue<List<?>> NO_BLOOD_MOBS;
+    private static ForgeConfigSpec.ConfigValue<List<? extends String>> NO_BLOOD_MOBS;
 
 
     public static int despawnTime() {
@@ -25,7 +25,7 @@ public class CommonConfig {
     }
 
     public static int distanceToPlayers() { return DISTANCE_TO_PLAYERS.get(); }
-    public static List<?> noBloodMobs() { return NO_BLOOD_MOBS.get(); }
+    public static List<? extends String> noBloodMobs() { return NO_BLOOD_MOBS.get(); }
 
     public static void loadCommonConfig() {
         BUILDER.push("blood spray settings");
@@ -40,7 +40,7 @@ public class CommonConfig {
                         "and instead of getting bloodier when damaged, they will lose pixels.")
                 .defineListAllowEmpty("no_blood_mobs",
                         List.of("minecraft:skeleton", "minecraft:skeleton_horse", "minecraft:wither_skeleton", "minecraft:wither", "minecraft:shulker"),
-                        it -> it instanceof List<?>);
+                        it -> it instanceof String);
 
         BUILDER.pop();
 

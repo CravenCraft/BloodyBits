@@ -1,5 +1,6 @@
 package com.cravencraft.bloodybits.entity.custom;
 
+import com.cravencraft.bloodybits.BloodyBitsMod;
 import com.cravencraft.bloodybits.config.ClientConfig;
 import com.cravencraft.bloodybits.config.CommonConfig;
 import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
@@ -139,10 +140,6 @@ public class BloodSprayEntity extends AbstractArrow {
         return -0.01F;
     }
 
-    //TODO: Making the note here as to not forget, but does not pertain to the tick() method.
-    //      When an arrow hits an entity it sticks into it. We can look at that code to possibly
-    //      Create our own method that sticks our blood splatter to an entity. However, we want to
-    //      do this mainly when the blood is spawned and not when it actually hits an entity.
     @Override
     public void tick() {
         // Removes any blood spray entity that has a null owner. This usually happens whenever the game closes & opens back up.
@@ -151,7 +148,7 @@ public class BloodSprayEntity extends AbstractArrow {
         }
         super.tick();
         if (this.inGround) {
-            if (this.xMin < this.xMax) {
+            if (!this.isSolid && this.xMin < this.xMax) {
                 this.xMin = this.xMax;
             }
 
@@ -159,7 +156,7 @@ public class BloodSprayEntity extends AbstractArrow {
                 this.tickDespawn();
             }
 
-            if (this.entityDirection != null) {
+            if (!this.isSolid && this.entityDirection != null) {
                 setYMin();
                 setYMax();
                 setZMin();
@@ -180,10 +177,10 @@ public class BloodSprayEntity extends AbstractArrow {
         else if (this.isSolid) {
             this.currentLifeTime = 0;
             double velocity = this.getDeltaMovement().length();
-            float length = 5;
+            float length = 2;
             this.xMin = -(length);
 
-            float widthAndHeight = (length > 10) ? (length - 10) / 4 : (10 - length) / 4;
+            float widthAndHeight = (10 - length) / 4;
             this.yMin = -(widthAndHeight / 2);
             this.yMax = (widthAndHeight / 2);
             this.zMin = -(widthAndHeight / 2);
@@ -233,7 +230,47 @@ public class BloodSprayEntity extends AbstractArrow {
     protected void onHitBlock(BlockHitResult result) {
         //TODO: TEST FOR SOLIDS.
         if (this.isSolid) {
-            this.discard();
+//            this.inGround = false;
+            BloodyBitsMod.LOGGER.info("IS ON GROUND: {}", this.onGround());
+
+//            BlockState blockstate = this.level().getBlockState(result.getBlockPos());
+////            blockstate.onProjectileHit(this.level(), blockstate, result, this);
+//            Vec3 vec3 = result.getLocation().subtract(this.getX(), this.getY(), this.getZ());
+//
+////            this.setDeltaMovement(vec3);
+//            this.setDeltaMovement(-this.getDeltaMovement().x, -this.getDeltaMovement().y, -this.getDeltaMovement().z);
+//            Vec3 vec31 = vec3.normalize().scale((double)0.05F);
+//            this.setPosRaw(this.getX() - vec31.x, this.getY() - vec31.y, this.getZ() - vec31.z);
+
+            // Modified sound to be a deeper pitch of Slime Block sounds.
+            this.setSoundEvent((Math.random() > 0.5) ? SoundEvents.SLIME_BLOCK_HIT : SoundEvents.SLIME_BLOCK_STEP);
+            this.playSound(this.getHitGroundSoundEvent(), 0.75F, 1.8F / (this.random.nextFloat() * 0.2F + 0.9F));
+
+            if (result.getDirection().equals(Direction.UP)) {
+                this.inGround = true;
+
+                Vec3 vec3 = result.getLocation().subtract(this.getX(), this.getY(), this.getZ());
+
+                this.setDeltaMovement(vec3);
+
+                Vec3 vec31 = vec3.normalize().scale(0.05F);
+                this.setPosRaw(this.getX() - vec31.x, this.getY() - vec31.y, this.getZ() - vec31.z);
+            }
+            else {
+
+                Vec3 vec3 = result.getLocation().subtract(this.getX(), this.getY(), this.getZ());
+
+//            this.setDeltaMovement(vec3);
+                this.setDeltaMovement(-this.getDeltaMovement().x, -this.getDeltaMovement().y, -this.getDeltaMovement().z);
+                Vec3 vec31 = vec3.normalize().scale((double)0.1F);
+                this.setPosRaw(this.getX() - vec31.x, this.getY() - vec31.y, this.getZ() - vec31.z);
+            }
+            this.setCritArrow(false);
+            this.setPierceLevel((byte)0);
+            this.setShotFromCrossbow(false);
+            this.resetPiercedEntities();
+
+//            this.discard();
         }
         else {
             this.hitBlockPos = result.getBlockPos();
