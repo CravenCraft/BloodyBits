@@ -71,7 +71,7 @@ public class BloodSprayEntity extends AbstractArrow {
         this.randomTextureNumber = new Random().nextInt(BLOOD_SPATTER_TEXTURES);
     }
 
-    protected BloodSprayEntity(EntityType<BloodSprayEntity> entityType, double x, double y, double z, Level level) {
+    public BloodSprayEntity(EntityType<BloodSprayEntity> entityType, double x, double y, double z, Level level) {
         super(entityType, x, y, z, level);
     }
 

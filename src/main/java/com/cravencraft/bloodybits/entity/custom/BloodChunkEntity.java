@@ -68,7 +68,7 @@ public class BloodChunkEntity extends AbstractArrow {
         this.randomTextureNumber = new Random().nextInt(BLOOD_SPATTER_TEXTURES);
     }
 
-    protected BloodChunkEntity(EntityType<BloodChunkEntity> entityType, double x, double y, double z, Level level) {
+    public BloodChunkEntity(EntityType<BloodChunkEntity> entityType, double x, double y, double z, Level level) {
         super(entityType, x, y, z, level);
     }
 
