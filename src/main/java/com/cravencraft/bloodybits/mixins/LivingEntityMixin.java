@@ -8,66 +8,47 @@ import com.cravencraft.bloodybits.network.BloodyBitsPacketHandler;
 import com.cravencraft.bloodybits.network.messages.EntityMessage;
 import com.cravencraft.bloodybits.registries.EntityRegistry;
 import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
-import net.minecraft.core.particles.ParticleOptions;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.entity.Attackable;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.network.PacketDistributor;
-import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
-
-import java.util.Objects;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(LivingEntity.class)
 public abstract class LivingEntityMixin extends Entity {
 
+    private LivingEntity self;
+
     @Shadow public abstract float getHealth();
+
+    @Shadow public int deathTime;
 
     public LivingEntityMixin(EntityType<?> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
     }
 
-//    @Nullable
-//    @Override
-//    public LivingEntity getLastAttacker() {
-//        return null;
-//    }
-//
-//    @Override
-//    protected void defineSynchedData() {
-//
-//    }
-//
-//    @Override
-//    public void readAdditionalSaveData(CompoundTag pCompound) {
-//
-//    }
-//
-//    @Override
-//    protected void addAdditionalSaveData(CompoundTag pCompound) {
-//
-//    }
+    @Redirect(method = "hurt", at = @At(value = "INVOKE", target = "Lnet/minecraftforge/common/ForgeHooks;onLivingAttack(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/damagesource/DamageSource;F)Z"))
+    private boolean getSelf(LivingEntity entity, DamageSource src, float amount) {
+        this.self = entity;
+        return net.minecraftforge.common.ForgeHooks.onLivingAttack(entity, src, amount);
+    }
 
-    @Redirect(method = "makePoofParticles", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;addParticle(Lnet/minecraft/core/particles/ParticleOptions;DDDDDD)V"))
-    private void replacePoofWithBlood(Level instance, ParticleOptions pParticleData, double pX, double pY, double pZ, double pXSpeed, double pYSpeed, double pZSpeed) {
-        if (this.getHealth() <= 0) {
-            BloodyBitsMod.LOGGER.info("IN LIVING ENTITY MIXIN LESS THAN 0 HEALTH");
-//            if (!instance.isClientSide()) {
-//                for (Player player : Objects.requireNonNull(instance.getServer()).getPlayerList().getPlayers()) {
-//                    if (this.distanceTo(player) < CommonConfig.distanceToPlayers()) {
-                        this.createBloodChunk();
-//                        break;
-//                    }
-//                }
-//            }
+    @Inject(method = "tickDeath", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;broadcastEntityEvent(Lnet/minecraft/world/entity/Entity;B)V"))
+    private void addBloodChunksToDeath(CallbackInfo ci) {
+        this.createBloodChunk();
+    }
+
+    @Inject(method = "makePoofParticles", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;addParticle(Lnet/minecraft/core/particles/ParticleOptions;DDDDDD)V"), cancellable = true)
+    private void removeDeathPoof(CallbackInfo ci) {
+        if (this.deathTime >= 18) {
+            ci.cancel();
         }
     }
 
@@ -88,10 +69,10 @@ public abstract class LivingEntityMixin extends Entity {
                 BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.get(0).discard();
                 BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.remove(0);
             }
-            BloodChunkEntity bloodChunkEntity = new BloodChunkEntity(EntityRegistry.BLOOD_CHUNK.get(), this.position().x, this.position().y, this.position().z, this.level());
+            BloodChunkEntity bloodChunkEntity = new BloodChunkEntity(EntityRegistry.BLOOD_CHUNK.get(), this.self, this.level(), 0);
             BloodyBitsUtils.BLOOD_CHUNK_ENTITIES.add(bloodChunkEntity);
 
-            BloodSprayEntity bloodSprayEntity = new BloodSprayEntity(EntityRegistry.BLOOD_SPRAY.get(), this.position().x, this.position().y, this.position().z, this.level());
+            BloodSprayEntity bloodSprayEntity = new BloodSprayEntity(EntityRegistry.BLOOD_SPRAY.get(), this.self, this.level(), 0);
             BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.add(bloodSprayEntity);
 
             double xAngle = BloodyBitsUtils.getRandomAngle(0.5);
@@ -103,7 +84,7 @@ public abstract class LivingEntityMixin extends Entity {
 
             this.level().addFreshEntity(bloodChunkEntity);
             this.level().addFreshEntity(bloodSprayEntity);
-            BloodyBitsMod.LOGGER.info("SENDING INFO");
+
             BloodyBitsPacketHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> bloodChunkEntity),
                     new EntityMessage(bloodChunkEntity.getId(), this.getId()));
 

@@ -93,7 +93,7 @@ public class BloodChunkEntity extends AbstractArrow {
     @Override
     public void setOwner(@Nullable Entity ownerEntity) {
         super.setOwner(ownerEntity);
-        BloodyBitsMod.LOGGER.info("IS BLOOD CHUNK ENTITY CLIENT SIDE: {}", this.level().isClientSide());
+//        BloodyBitsMod.LOGGER.info("IS BLOOD CHUNK ENTITY CLIENT SIDE: {}", this.level().isClientSide());
         if (ownerEntity != null) {
             this.ownerBoundingBox = ownerEntity.getBoundingBox();
             this.ownerName = (ownerEntity.toString().contains("Player")) ? "player" : ownerEntity.getEncodeId();
@@ -110,7 +110,7 @@ public class BloodChunkEntity extends AbstractArrow {
                 }
             }
         }
-        BloodyBitsMod.LOGGER.info("RED GREEN BLUE : {} - {} - {}", red, green, blue);
+//        BloodyBitsMod.LOGGER.info("RED GREEN BLUE : {} - {} - {}", red, green, blue);
 
     }
 

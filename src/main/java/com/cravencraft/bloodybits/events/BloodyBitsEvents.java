@@ -91,6 +91,7 @@ public class BloodyBitsEvents {
             //       and higher numbers bringing it up to maybe a 0.75 cap.
             bloodSprayEntity.setDeltaMovement(xAngle * 0.25, yAngle * 0.35, zAngle * 0.25);
             event.getEntity().level().addFreshEntity(bloodSprayEntity);
+
             BloodyBitsPacketHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> bloodSprayEntity),
                     new EntityMessage(bloodSprayEntity.getId(), event.getEntity().getId()));
         }
