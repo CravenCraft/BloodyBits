@@ -83,7 +83,7 @@ public class BloodSprayEntity extends AbstractArrow {
     @Override
     public void setOwner(@Nullable Entity ownerEntity) {
         super.setOwner(ownerEntity);
-        BloodyBitsMod.LOGGER.info("IS BLOOD SPRAY ENTITY CLIENT SIDE: {}", this.level().isClientSide());
+//        BloodyBitsMod.LOGGER.info("IS BLOOD SPRAY ENTITY CLIENT SIDE: {}", this.level().isClientSide());
         if (ownerEntity != null) {
             this.ownerName = (ownerEntity.toString().contains("Player")) ? "player" : ownerEntity.getEncodeId();
             this.isSolid = CommonConfig.solidEntities().contains(this.ownerName);
@@ -231,7 +231,7 @@ public class BloodSprayEntity extends AbstractArrow {
         //TODO: TEST FOR SOLIDS.
         if (this.isSolid) {
 //            this.inGround = false;
-            BloodyBitsMod.LOGGER.info("IS ON GROUND: {}", this.onGround());
+//            BloodyBitsMod.LOGGER.info("IS ON GROUND: {}", this.onGround());
 
 //            BlockState blockstate = this.level().getBlockState(result.getBlockPos());
 ////            blockstate.onProjectileHit(this.level(), blockstate, result, this);

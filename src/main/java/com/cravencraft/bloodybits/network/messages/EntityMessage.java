@@ -12,15 +12,15 @@ import java.util.function.Supplier;
 public class EntityMessage {
 
     public int entityId;
-    public int entityOwner;
+    public int entityOwnerid;
 
-    public EntityMessage(int entityId, int entityOwner) {
+    public EntityMessage(int entityId, int entityOwnerId) {
         this.entityId = entityId;
-        this.entityOwner = entityOwner;
+        this.entityOwnerid = entityOwnerId;
     }
 
     public static void encode(EntityMessage message, FriendlyByteBuf buffer) {
-        buffer.writeInt(message.entityId).writeInt(message.entityOwner);
+        buffer.writeInt(message.entityId).writeInt(message.entityOwnerid);
     }
 
     public static EntityMessage decode(FriendlyByteBuf buffer) {
@@ -33,10 +33,10 @@ public class EntityMessage {
             if (context.getDirection().getReceptionSide().isClient()) {
                 Entity entity = Minecraft.getInstance().level.getEntity(message.entityId);
                 if (entity instanceof BloodSprayEntity bloodSprayEntity) {
-                    bloodSprayEntity.setOwner(Minecraft.getInstance().level.getEntity(message.entityOwner));
+                    bloodSprayEntity.setOwner(Minecraft.getInstance().level.getEntity(message.entityOwnerid));
                 }
                 else if (entity instanceof BloodChunkEntity bloodChunkEntity) {
-                    bloodChunkEntity.setOwner(Minecraft.getInstance().level.getEntity(message.entityOwner));
+                    bloodChunkEntity.setOwner(Minecraft.getInstance().level.getEntity(message.entityOwnerid));
                 }
             }
         });

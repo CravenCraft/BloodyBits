@@ -1,12 +1,12 @@
 package com.cravencraft.bloodybits.mixins;
 
-import com.cravencraft.bloodybits.BloodyBitsMod;
 import com.cravencraft.bloodybits.config.CommonConfig;
 import com.cravencraft.bloodybits.entity.custom.BloodChunkEntity;
 import com.cravencraft.bloodybits.entity.custom.BloodSprayEntity;
 import com.cravencraft.bloodybits.network.BloodyBitsPacketHandler;
 import com.cravencraft.bloodybits.network.messages.EntityMessage;
 import com.cravencraft.bloodybits.registries.EntityRegistry;
+import com.cravencraft.bloodybits.sounds.BloodyBitsSounds;
 import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
@@ -23,10 +23,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(LivingEntity.class)
 public abstract class LivingEntityMixin extends Entity {
-
     private LivingEntity self;
-
-    @Shadow public abstract float getHealth();
 
     @Shadow public int deathTime;
 
@@ -42,12 +39,14 @@ public abstract class LivingEntityMixin extends Entity {
 
     @Inject(method = "tickDeath", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;broadcastEntityEvent(Lnet/minecraft/world/entity/Entity;B)V"))
     private void addBloodChunksToDeath(CallbackInfo ci) {
-        this.createBloodChunk();
+        if (CommonConfig.showBloodChunks()) {
+            this.createBloodChunk();
+        }
     }
 
     @Inject(method = "makePoofParticles", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;addParticle(Lnet/minecraft/core/particles/ParticleOptions;DDDDDD)V"), cancellable = true)
     private void removeDeathPoof(CallbackInfo ci) {
-        if (this.deathTime >= 18) {
+        if (CommonConfig.showBloodChunks() && this.deathTime >= 18) {
             ci.cancel();
         }
     }
@@ -57,10 +56,10 @@ public abstract class LivingEntityMixin extends Entity {
         if (CommonConfig.gasEntities().contains(ownerName)) {
             return;
         }
-
-        for (int i=0; i < 10; i++) {
+        int maxChunks = (int) Math.min(20, this.getBoundingBox().getSize() * 10);
+        for (int i=0; i < maxChunks; i++) {
             // TODO: Setup Common Config for blood chunks as well.
-            if (BloodyBitsUtils.BLOOD_CHUNK_ENTITIES.size() >= CommonConfig.maxSpatters()) {
+            if (BloodyBitsUtils.BLOOD_CHUNK_ENTITIES.size() >= CommonConfig.maxChunks()) {
                 BloodyBitsUtils.BLOOD_CHUNK_ENTITIES.get(0).discard();
                 BloodyBitsUtils.BLOOD_CHUNK_ENTITIES.remove(0);
             }
@@ -91,5 +90,6 @@ public abstract class LivingEntityMixin extends Entity {
             BloodyBitsPacketHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> bloodSprayEntity),
                     new EntityMessage(bloodSprayEntity.getId(), this.getId()));
         }
+        this.playSound(BloodyBitsSounds.BODY_EXPLOSION.get(), 1.0F, 1.0F / (this.random.nextFloat() * 0.2F + 0.9F));
     }
 }

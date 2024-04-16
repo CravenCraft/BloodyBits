@@ -4,6 +4,7 @@ import com.cravencraft.bloodybits.config.ClientConfig;
 import com.cravencraft.bloodybits.config.CommonConfig;
 import com.cravencraft.bloodybits.network.BloodyBitsPacketHandler;
 import com.cravencraft.bloodybits.registries.EntityRegistry;
+import com.cravencraft.bloodybits.sounds.BloodyBitsSounds;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -28,6 +29,7 @@ public class BloodyBitsMod
         ClientConfig.loadClientConfig();
         BloodyBitsPacketHandler.register();
         EntityRegistry.ENTITY_TYPES.register(modEventBus);
+        BloodyBitsSounds.register(modEventBus);
     }
 
     public static ResourceLocation id(@NotNull String path) {

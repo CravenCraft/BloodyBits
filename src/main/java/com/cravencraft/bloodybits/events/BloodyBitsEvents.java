@@ -2,17 +2,14 @@ package com.cravencraft.bloodybits.events;
 
 import com.cravencraft.bloodybits.BloodyBitsMod;
 import com.cravencraft.bloodybits.config.CommonConfig;
-import com.cravencraft.bloodybits.entity.custom.BloodChunkEntity;
 import com.cravencraft.bloodybits.entity.custom.BloodSprayEntity;
 import com.cravencraft.bloodybits.network.BloodyBitsPacketHandler;
 import com.cravencraft.bloodybits.network.messages.EntityMessage;
 import com.cravencraft.bloodybits.registries.EntityRegistry;
 import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
-import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.network.PacketDistributor;
@@ -21,23 +18,6 @@ import java.util.Objects;
 
 @Mod.EventBusSubscriber(modid = BloodyBitsMod.MODID)
 public class BloodyBitsEvents {
-
-//    @SubscribeEvent
-//    public static void testDiscardEvent() {
-////        LivingEntity TODO: See if I can set the blood chunk spatter to when the entity poofs. Maybe in a mixin?
-//    }
-
-//    @SubscribeEvent
-//    public static void chunksOnEntityDeath(LivingDeathEvent event) {
-//        if (!event.getEntity().level().isClientSide()) {
-//            for (Player player : Objects.requireNonNull(event.getEntity().level().getServer()).getPlayerList().getPlayers()) {
-//                if (event.getEntity().distanceTo(player) < CommonConfig.distanceToPlayers()) {
-//                    createBloodChunk(event);
-//                    break;
-//                }
-//            }
-//        }
-//    }
 
     /**
      * Looks for all the players on a given server and creates blood sprays if the damage event is
