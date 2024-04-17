@@ -7,74 +7,66 @@ import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.entity.EnderDragonRenderer;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
-import net.minecraft.client.renderer.entity.LivingEntityRenderer;
-import net.minecraft.client.renderer.texture.*;
-import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.client.renderer.texture.DynamicTexture;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
+import org.checkerframework.checker.units.qual.A;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.awt.*;
-import java.io.*;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 import java.util.List;
 
-@Mixin(LivingEntityRenderer.class)
-public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extends EntityModel<T>> extends EntityRenderer<T> {
-    private LivingEntity entity;
-    private MultiBufferSource buffer;
+@Mixin(EnderDragonRenderer.class)
+public class EnderDragonRendererMixin extends EntityRenderer<EnderDragon> {
+    @Shadow @Final private static ResourceLocation DRAGON_LOCATION;
     private HashMap<UUID, List<ArrayList<Integer>>> patternMap = new HashMap<>();
+    private EnderDragon entity;
+    private MultiBufferSource buffer;
 
-    protected LivingEntityRendererMixin(EntityRendererProvider.Context pContext) {
+    protected EnderDragonRendererMixin(EntityRendererProvider.Context pContext) {
         super(pContext);
+    }
+
+    @Override
+    public ResourceLocation getTextureLocation(EnderDragon entity) {
+        return DRAGON_LOCATION;
     }
 
     /**
      * Simple injection to acquire the entity and buffer for use in the below method.
      */
-    @Inject(method = "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V", at = @At("HEAD"))
-    private void getEntityType(T pEntity, float pEntityYaw, float pPartialTicks, PoseStack pPoseStack, MultiBufferSource pBuffer, int pPackedLight, CallbackInfo ci) {
+    @Inject(method = "render(Lnet/minecraft/world/entity/boss/enderdragon/EnderDragon;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V", at = @At("HEAD"))
+    private void getEntityType(EnderDragon pEntity, float pEntityYaw, float pPartialTicks, PoseStack pPoseStack, MultiBufferSource pBuffer, int pPackedLight, CallbackInfo ci) {
         this.entity = pEntity;
         this.buffer = pBuffer;
     }
 
     /**
-     * A monumental redirect method that I didn't think was possible. If the Client Config is set to show mob damage,
-     * then this method will retrieve native image (texture) of an entity via its resource location.
-     *
-     * Custom blood colors are then mapped to the given entity via a client config (similar to how the blood spatters are made).
-     *
-     * The amount of pixels on the entity's texture to turn into blood textures (configurable) are determined by the
-     * amount of health remaining for the entity.
-     *
-     * A pattern map is created for the particular entity via its unique UUID. Textures are selected at random to apply
-     * the blood pattern to the map, then saved. As the damage to the entity grows, more will be added to the map, and
-     * as the entity heals more will be taken away.
-     *
-     * The texture for the entity is then converted into a Dynamic Texture and applied.
-     *
-     * NOTE: This seems to work perfectly well for most vanilla and modded entities. There are issues with certain
-     * modded entities such as MCDOOM enemies and Ice and Fire dragons. I will be looking into these to see how they
-     * render the textures for their entities differently to try and add compatibility for most vanilla and modded mobs.
-     *
-     * EXTRA NOTE: The Epic Fight Mod also renders its entities differently than normal Minecraft, which allows for its
-     * incredible animations. This is incompatible with this feature. So, for now it will be incompatible until I add in
-     * optional support later down the line.
+     * See LivingEntityRendererMixin. This method is basically a copy/paste to ensure the effects happen to the
+     * Ender Dragon as well since it is the child of LivingEntity's super class, unfortunately.
      */
-    @Redirect(method = "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/model/EntityModel;renderToBuffer(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;IIFFFF)V"))
-    private void renderEntitiesDifferently(EntityModel<net.minecraft.world.entity.Entity> instance, PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, float red, float green, float blue, float alpha) throws IOException {
-        VertexConsumer customVertexConsumer = vertexConsumer;
+    @Redirect(method = "render(Lnet/minecraft/world/entity/boss/enderdragon/EnderDragon;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/EnderDragonRenderer$DragonModel;renderToBuffer(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;IIFFFF)V"))
+    private void replaceWithDamageTextures(EnderDragonRenderer.DragonModel dragonModel, PoseStack poseStack, VertexConsumer buffer, int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
+        VertexConsumer customVertexConsumer = buffer;
 
         if (ClientConfig.showMobDamage() && !this.entity.isDeadOrDying() && this.entity.getHealth() < this.entity.getMaxHealth()) {
             try {
-                InputStream fileInput = Minecraft.getInstance().getResourceManager().open(this.getTextureLocation((T) this.entity));
+                InputStream fileInput = Minecraft.getInstance().getResourceManager().open(this.getTextureLocation(this.entity));
                 NativeImage nativeImage = NativeImage.read(fileInput);
 
                 int redDamage = 200;
@@ -157,13 +149,16 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extend
                 DynamicTexture dynamicTexture = new DynamicTexture(nativeImage);
                 customVertexConsumer = this.buffer.getBuffer(RenderType.entityTranslucent(Minecraft.getInstance().getTextureManager().register("test", dynamicTexture)));
             }
-            catch (FileNotFoundException e) {
-                BloodyBitsMod.LOGGER.error("ERROR: File for {} not found at resource location {}!", this.entity, this.getTextureLocation((T) this.entity));
+            catch (IOException e) {
+                BloodyBitsMod.LOGGER.error("ERROR: File for {} not found at resource location {}!", this.entity, this.getTextureLocation(this.entity));
             }
+//            catch (IOException e) {
+//                throw new RuntimeException(e);
+//            }
         }
         else {
             patternMap.remove(this.entity.getUUID());
         }
-        instance.renderToBuffer(poseStack, customVertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
+        dragonModel.renderToBuffer(poseStack, customVertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
     }
 }

@@ -44,10 +44,12 @@ public abstract class LivingEntityMixin extends Entity {
     /**
      * If the Common Config is set to allow blood chunks, then this mixin adds blood chunks at the final tick of the
      * entity's death.
+     *
+     * Also, has an extra check to the self entity value to ensure it's not null before trying to create the chunks.
      */
     @Inject(method = "tickDeath", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;broadcastEntityEvent(Lnet/minecraft/world/entity/Entity;B)V"))
     private void addBloodChunksToDeath(CallbackInfo ci) {
-        if (CommonConfig.showBloodChunks()) {
+        if (CommonConfig.showBloodChunks() && this.self != null) {
             this.createBloodChunk();
         }
     }
@@ -78,6 +80,7 @@ public abstract class LivingEntityMixin extends Entity {
                 BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.get(0).discard();
                 BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.remove(0);
             }
+
             BloodChunkEntity bloodChunkEntity = new BloodChunkEntity(EntityRegistry.BLOOD_CHUNK.get(), this.self, this.level(), 0);
             BloodyBitsUtils.BLOOD_CHUNK_ENTITIES.add(bloodChunkEntity);
 
