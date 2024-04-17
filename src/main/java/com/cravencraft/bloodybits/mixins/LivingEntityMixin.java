@@ -31,12 +31,20 @@ public abstract class LivingEntityMixin extends Entity {
         super(pEntityType, pLevel);
     }
 
+    /**
+     * Mixin method solely created as a sneaky way to get the instance of the LivingEntity class. This method will always
+     * be called before a living entity dies. So, this is a safe way to acquire it for what I want to use it for.
+     */
     @Redirect(method = "hurt", at = @At(value = "INVOKE", target = "Lnet/minecraftforge/common/ForgeHooks;onLivingAttack(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/damagesource/DamageSource;F)Z"))
     private boolean getSelf(LivingEntity entity, DamageSource src, float amount) {
         this.self = entity;
         return net.minecraftforge.common.ForgeHooks.onLivingAttack(entity, src, amount);
     }
 
+    /**
+     * If the Common Config is set to allow blood chunks, then this mixin adds blood chunks at the final tick of the
+     * entity's death.
+     */
     @Inject(method = "tickDeath", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;broadcastEntityEvent(Lnet/minecraft/world/entity/Entity;B)V"))
     private void addBloodChunksToDeath(CallbackInfo ci) {
         if (CommonConfig.showBloodChunks()) {
@@ -44,6 +52,9 @@ public abstract class LivingEntityMixin extends Entity {
         }
     }
 
+    /**
+     * If the Common Config is set to allow blood chunks, then the entity's death poof particles are prevented from spawning.
+     */
     @Inject(method = "makePoofParticles", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;addParticle(Lnet/minecraft/core/particles/ParticleOptions;DDDDDD)V"), cancellable = true)
     private void removeDeathPoof(CallbackInfo ci) {
         if (CommonConfig.showBloodChunks() && this.deathTime >= 18) {
@@ -51,6 +62,9 @@ public abstract class LivingEntityMixin extends Entity {
         }
     }
 
+    /**
+     * Creates blood chunks and sprays on an entity's death.
+     */
     private void createBloodChunk() {
         int maxChunks = (int) Math.min(20, this.getBoundingBox().getSize() * 10);
         for (int i=0; i < maxChunks; i++) {
