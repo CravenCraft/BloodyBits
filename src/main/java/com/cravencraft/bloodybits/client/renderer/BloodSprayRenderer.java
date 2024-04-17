@@ -11,7 +11,6 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
-import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
@@ -31,26 +30,14 @@ public class BloodSprayRenderer extends EntityRenderer<BloodSprayEntity> {
     }
 
     /**
-     * TODO: Address TODOs for the if statements
-     *
      * Renders a rectangle for blood chunks based on the position values defined in the BloodSprayEntity class.
-     *
-     * @param entity
-     * @param pEntityYaw
-     * @param pPartialTicks
-     * @param pPoseStack
-     * @param pBuffer
-     * @param pPackedLight
      */
     @Override
     public void render(BloodSprayEntity entity, float pEntityYaw, float pPartialTicks, PoseStack pPoseStack, @NotNull MultiBufferSource pBuffer, int pPackedLight) {
         // Stops the blood from rendering as black when in a dark location such as a ceiling.
         int correctedPackedLight = Math.max(pPackedLight, 10485776);
         pPoseStack.pushPose();
-        // todo: I know this is dumb. I'll reverse it after testing.
-        //TODO: For now this is the most accurate one. Maybe can play around with other methods later that
-        //      Don't cause that small clipping through a block that only I will really notice.
-        //TODO: Can probably put most of the below code in these blocks.
+
         if (entity.entityDirection == null) {
             pPoseStack.mulPose(Axis.YP.rotationDegrees(Mth.lerp(pPartialTicks, entity.yRotO, entity.getYRot()) - 90.0F));
             pPoseStack.mulPose(Axis.ZP.rotationDegrees(Mth.lerp(pPartialTicks, entity.xRotO, entity.getXRot())));
