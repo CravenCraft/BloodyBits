@@ -36,12 +36,39 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extend
         super(pContext);
     }
 
+    /**
+     * Simple injection to acquire the entity and buffer for use in the below method.
+     */
     @Inject(method = "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V", at = @At("HEAD"))
     private void getEntityType(T pEntity, float pEntityYaw, float pPartialTicks, PoseStack pPoseStack, MultiBufferSource pBuffer, int pPackedLight, CallbackInfo ci) {
         this.entity = pEntity;
         this.buffer = pBuffer;
     }
 
+    /**
+     * A monumental redirect method that I didn't think was possible. If the Client Config is set to show mob damage,
+     * then this method will retrieve native image (texture) of an entity via its resource location.
+     *
+     * Custom blood colors are then mapped to the given entity via a client config (similar to how the blood spatters are made).
+     *
+     * The amount of pixels on the entity's texture to turn into blood textures (configurable) are determined by the
+     * amount of health remaining for the entity.
+     *
+     * A pattern map is created for the particular entity via its unique UUID. Textures are selected at random to apply
+     * the blood pattern to the map, then saved. As the damage to the entity grows, more will be added to the map, and
+     * as the entity heals more will be taken away.
+     *
+     * The texture for the entity is then converted into a Dynamic Texture and applied.
+     *
+     * NOTE: This seems to work perfectly well for most vanilla and modded entities. There are issues with certain vanilla
+     * entities such as the Ender Dragon and certain modded entities such as MCDOOM enemies and Ice and Fire dragons.
+     * I will be looking into these to see how they render the textures for their entities differently to try and add
+     * compatibility for most vanilla and modded mobs.
+     *
+     * EXTRA NOTE: The Epic Fight Mod also renders its entities differently than normal Minecraft, which allows for its
+     * incredible animations. This is incompatible with this feature. So, for now it will be incompatible until I add in
+     * optional support later down the line.
+     */
     @Redirect(method = "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/model/EntityModel;renderToBuffer(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;IIFFFF)V"))
     private void renderEntitiesDifferently(EntityModel<net.minecraft.world.entity.Entity> instance, PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, float red, float green, float blue, float alpha) throws IOException {
         VertexConsumer customVertexConsumer = vertexConsumer;
