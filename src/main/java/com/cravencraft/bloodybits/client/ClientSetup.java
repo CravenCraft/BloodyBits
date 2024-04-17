@@ -17,6 +17,4 @@ public class ClientSetup {
         EntityRenderers.register(EntityRegistry.BLOOD_SPRAY.get(), BloodSprayRenderer::new);
         EntityRenderers.register(EntityRegistry.BLOOD_CHUNK.get(), BloodChunkRenderer::new);
     }
-
-
 }

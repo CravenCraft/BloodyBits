@@ -52,10 +52,6 @@ public abstract class LivingEntityMixin extends Entity {
     }
 
     private void createBloodChunk() {
-        String ownerName = (this.toString().contains("Player")) ? "player" : this.getEncodeId();
-        if (CommonConfig.gasEntities().contains(ownerName)) {
-            return;
-        }
         int maxChunks = (int) Math.min(20, this.getBoundingBox().getSize() * 10);
         for (int i=0; i < maxChunks; i++) {
             // TODO: Setup Common Config for blood chunks as well.

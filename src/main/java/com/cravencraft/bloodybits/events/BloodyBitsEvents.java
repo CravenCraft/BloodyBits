@@ -37,10 +37,6 @@ public class BloodyBitsEvents {
     }
 
     private static void createBloodSpray(LivingAttackEvent event) {
-        String ownerName = (event.getEntity().toString().contains("Player")) ? "player" : event.getEntity().getEncodeId();
-        if (CommonConfig.gasEntities().contains(ownerName)) {
-            return;
-        }
         int maxDamage = (int) Math.min(20, event.getAmount());
         //TODO: Currently, creepers don't produce blood when exploding because it's not registered as a LivingAttackEvent on THEMSELF.
         //      So, maybe have an exception happen in a damage event?

@@ -16,7 +16,6 @@ public class CommonConfig {
     private static ForgeConfigSpec.IntValue DISTANCE_TO_PLAYERS;
 
     private static ForgeConfigSpec.ConfigValue<List<? extends String>> SOLID_ENTITIES;
-    private static ForgeConfigSpec.ConfigValue<List<? extends String>> GAS_ENTITIES;
 
     public static boolean showBloodChunks() { return SHOW_BLOOD_CHUNKS.get(); }
 
@@ -36,8 +35,6 @@ public class CommonConfig {
 
     public static List<? extends String> solidEntities() { return SOLID_ENTITIES.get(); }
 
-    public static List<? extends String> gasEntities() { return GAS_ENTITIES.get(); }
-
     public static void loadCommonConfig() {
         BUILDER.push("blood spray settings");
 
@@ -56,11 +53,6 @@ public class CommonConfig {
                         "and instead of getting bloodier when damaged, they will lose pixels.")
                 .defineListAllowEmpty("solid_entities",
                         List.of("minecraft:skeleton", "minecraft:skeleton_horse", "minecraft:wither_skeleton", "minecraft:wither", "minecraft:shulker"),
-                        it -> it instanceof String);
-        GAS_ENTITIES = BUILDER.comment("Define what mobs 'bleed' gas puffs. This is mainly ghasts. Instead of bleeding there will be a puff of gas," +
-                        "and instead of getting bloodier when damaged, their pixels will become more transparent.")
-                .defineListAllowEmpty("gas_entities",
-                        List.of("minecraft:ghast"),
                         it -> it instanceof String);
 
         BUILDER.pop();

@@ -111,12 +111,12 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extend
                     int randomColorHue = currentPattern.get(2);
 
                     if (nativeImage.getPixelRGBA(randomChosenWidthStart, randomChosenHeightStart) != 0) {
-                        if (CommonConfig.gasEntities().contains(entityName)) {
-                            Color originalTempHolder = new Color(nativeImage.getPixelRGBA(randomChosenWidthStart, randomChosenHeightStart), true);
-                            Color gasDamage = new Color(originalTempHolder.getBlue(), originalTempHolder.getGreen(), originalTempHolder.getRed(), 200);
-                            nativeImage.setPixelRGBA(randomChosenWidthStart, randomChosenHeightStart, gasDamage.getRGB());
-                        }
-                        else if (randomColorHue < 0 && !CommonConfig.solidEntities().contains(entityName)) {
+//                        if (CommonConfig.gasEntities().contains(entityName)) {
+//                            Color originalTempHolder = new Color(nativeImage.getPixelRGBA(randomChosenWidthStart, randomChosenHeightStart), true);
+//                            Color gasDamage = new Color(originalTempHolder.getBlue(), originalTempHolder.getGreen(), originalTempHolder.getRed(), 200);
+//                            nativeImage.setPixelRGBA(randomChosenWidthStart, randomChosenHeightStart, gasDamage.getRGB());
+//                        }
+                        if (randomColorHue < 0 && !CommonConfig.solidEntities().contains(entityName)) {
                             nativeImage.setPixelRGBA(randomChosenWidthStart, randomChosenHeightStart, damageColor.darker().getRGB());
                         }
                         else if (randomColorHue > 0 && !CommonConfig.solidEntities().contains(entityName)) {
