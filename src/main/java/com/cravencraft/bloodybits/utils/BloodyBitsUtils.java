@@ -3,6 +3,10 @@ package com.cravencraft.bloodybits.utils;
 import com.cravencraft.bloodybits.config.CommonConfig;
 import com.cravencraft.bloodybits.entity.custom.BloodChunkEntity;
 import com.cravencraft.bloodybits.entity.custom.BloodSprayEntity;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import org.joml.Matrix3f;
+import org.joml.Matrix4f;
 
 import java.util.ArrayList;
 
@@ -22,5 +26,19 @@ public class BloodyBitsUtils {
         bloodChunkEntity.yMax = bloodChunkEntity.initialMaxY - (bloodChunkEntity.initialMaxY * lifetimePercentage);
         bloodChunkEntity.zMin = bloodChunkEntity.initialMinZ - (bloodChunkEntity.initialMinZ * lifetimePercentage);
         bloodChunkEntity.zMax = bloodChunkEntity.initialMaxZ - (bloodChunkEntity.initialMaxZ * lifetimePercentage);
+    }
+
+    /**
+     * Convenient helper method to simplify vertex drawing.
+     */
+    public static void vertex(Matrix4f pMatrix, Matrix3f pNormal, VertexConsumer pConsumer, float pX, float pY, float pZ, float pU, float pV, int pNormalX, int pNormalZ, int pNormalY, int packedLight, int red, int green, int blue, int alpha) {
+        pConsumer
+                .vertex(pMatrix, pX, pY, pZ)
+                .color(red, green, blue, alpha)
+                .uv(pU, pV)
+                .overlayCoords(OverlayTexture.NO_OVERLAY)
+                .uv2(packedLight)
+                .normal(pNormal, (float)pNormalX, (float)pNormalY, (float)pNormalZ)
+                .endVertex();
     }
 }

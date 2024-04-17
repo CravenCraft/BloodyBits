@@ -3,6 +3,7 @@ package com.cravencraft.bloodybits.client.renderer;
 import com.cravencraft.bloodybits.BloodyBitsMod;
 import com.cravencraft.bloodybits.config.CommonConfig;
 import com.cravencraft.bloodybits.entity.custom.BloodChunkEntity;
+import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
@@ -69,56 +70,42 @@ public class BloodChunkRenderer extends EntityRenderer<BloodChunkEntity> {
         Matrix3f matrix3f = posestack$pose.normal();
 
         // Right side
-        this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMin, entity.zMax, 0.0F, 0.0F, 0, 0, 0, correctedPackedLight, entity.red, entity.green, entity.blue, 255);
-        this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMax, entity.yMin, entity.zMax, 0.0F, 1.0F, 0, 0, 0, correctedPackedLight, entity.red, entity.green, entity.blue, 255);
-        this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMax, entity.yMax, entity.zMax, 1.0F, 1.0F, 0, 0, 0, correctedPackedLight, entity.red, entity.green, entity.blue, 255);
-        this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMax, entity.zMax, 1.0F, 0.0F, 0, 0, 0, correctedPackedLight, entity.red, entity.green, entity.blue, 255);
+        BloodyBitsUtils.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMin, entity.zMax, 0.0F, 0.0F, 0, 0, 0, correctedPackedLight, entity.red, entity.green, entity.blue, 255);
+        BloodyBitsUtils.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMax, entity.yMin, entity.zMax, 0.0F, 1.0F, 0, 0, 0, correctedPackedLight, entity.red, entity.green, entity.blue, 255);
+        BloodyBitsUtils.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMax, entity.yMax, entity.zMax, 1.0F, 1.0F, 0, 0, 0, correctedPackedLight, entity.red, entity.green, entity.blue, 255);
+        BloodyBitsUtils.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMax, entity.zMax, 1.0F, 0.0F, 0, 0, 0, correctedPackedLight, entity.red, entity.green, entity.blue, 255);
 
         // Left side
-        this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMax, entity.zMin, 0.0F, 0.0F, 0, 0, 0, correctedPackedLight, entity.red, entity.green, entity.blue, 255);
-        this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMax, entity.yMax, entity.zMin, 0.0F, 1.0F, 0, 0, 0, correctedPackedLight, entity.red, entity.green, entity.blue, 255);
-        this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMax, entity.yMin, entity.zMin, 1.0F, 1.0F, 0, 0, 0, correctedPackedLight, entity.red, entity.green, entity.blue, 255);
-        this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMin, entity.zMin, 1.0F, 0.0F, 0, 0, 0, correctedPackedLight, entity.red, entity.green, entity.blue, 255);
+        BloodyBitsUtils.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMax, entity.zMin, 0.0F, 0.0F, 0, 0, 0, correctedPackedLight, entity.red, entity.green, entity.blue, 255);
+        BloodyBitsUtils.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMax, entity.yMax, entity.zMin, 0.0F, 1.0F, 0, 0, 0, correctedPackedLight, entity.red, entity.green, entity.blue, 255);
+        BloodyBitsUtils.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMax, entity.yMin, entity.zMin, 1.0F, 1.0F, 0, 0, 0, correctedPackedLight, entity.red, entity.green, entity.blue, 255);
+        BloodyBitsUtils.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMin, entity.zMin, 1.0F, 0.0F, 0, 0, 0, correctedPackedLight, entity.red, entity.green, entity.blue, 255);
 
         // Top Side
-        this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMax, entity.zMin, 0.0F, 0.0F, 0, 0, 0, correctedPackedLight, entity.red, entity.green, entity.blue, 255);
-        this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMax, entity.yMax, entity.zMin, 0.0F, 1.0F, 0, 0, 0, correctedPackedLight, entity.red, entity.green, entity.blue, 255);
-        this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMax, entity.yMax, entity.zMax, 1.0F, 1.0F, 0, 0, 0, correctedPackedLight, entity.red, entity.green, entity.blue, 255);
-        this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMax, entity.zMax, 1.0F, 0.0F, 0, 0, 0, correctedPackedLight, entity.red, entity.green, entity.blue, 255);
+        BloodyBitsUtils.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMax, entity.zMin, 0.0F, 0.0F, 0, 0, 0, correctedPackedLight, entity.red, entity.green, entity.blue, 255);
+        BloodyBitsUtils.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMax, entity.yMax, entity.zMin, 0.0F, 1.0F, 0, 0, 0, correctedPackedLight, entity.red, entity.green, entity.blue, 255);
+        BloodyBitsUtils.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMax, entity.yMax, entity.zMax, 1.0F, 1.0F, 0, 0, 0, correctedPackedLight, entity.red, entity.green, entity.blue, 255);
+        BloodyBitsUtils.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMax, entity.zMax, 1.0F, 0.0F, 0, 0, 0, correctedPackedLight, entity.red, entity.green, entity.blue, 255);
 
         // Bottom Side
-        this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMin, entity.zMin, 0.0F, 0.0F, 0, 0, 0, correctedPackedLight, entity.red, entity.green, entity.blue, 255);
-        this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMax, entity.yMin, entity.zMin, 0.0F, 1.0F, 0, 0, 0, correctedPackedLight, entity.red, entity.green, entity.blue, 255);
-        this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMax, entity.yMin, entity.zMax, 1.0F, 1.0F, 0, 0, 0, correctedPackedLight, entity.red, entity.green, entity.blue, 255);
-        this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMin, entity.zMax, 1.0F, 0.0F, 0, 0, 0, correctedPackedLight, entity.red, entity.green, entity.blue, 255);
+        BloodyBitsUtils.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMin, entity.zMin, 0.0F, 0.0F, 0, 0, 0, correctedPackedLight, entity.red, entity.green, entity.blue, 255);
+        BloodyBitsUtils.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMax, entity.yMin, entity.zMin, 0.0F, 1.0F, 0, 0, 0, correctedPackedLight, entity.red, entity.green, entity.blue, 255);
+        BloodyBitsUtils.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMax, entity.yMin, entity.zMax, 1.0F, 1.0F, 0, 0, 0, correctedPackedLight, entity.red, entity.green, entity.blue, 255);
+        BloodyBitsUtils.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMin, entity.zMax, 1.0F, 0.0F, 0, 0, 0, correctedPackedLight, entity.red, entity.green, entity.blue, 255);
 
         // Front side
-        this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMax, entity.zMin, 0.0F, 0.0F, 0, 0, 0, correctedPackedLight, entity.red, entity.green, entity.blue, 255);
-        this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMin, entity.zMin, 0.0F, 1.0F, 0, 0, 0, correctedPackedLight, entity.red, entity.green, entity.blue, 255);
-        this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMin, entity.zMax, 1.0F, 1.0F, 0, 0, 0, correctedPackedLight, entity.red, entity.green, entity.blue, 255);
-        this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMax, entity.zMax, 1.0F, 0.0F, 0, 0, 0, correctedPackedLight, entity.red, entity.green, entity.blue, 255);
+        BloodyBitsUtils.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMax, entity.zMin, 0.0F, 0.0F, 0, 0, 0, correctedPackedLight, entity.red, entity.green, entity.blue, 255);
+        BloodyBitsUtils.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMin, entity.zMin, 0.0F, 1.0F, 0, 0, 0, correctedPackedLight, entity.red, entity.green, entity.blue, 255);
+        BloodyBitsUtils.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMin, entity.zMax, 1.0F, 1.0F, 0, 0, 0, correctedPackedLight, entity.red, entity.green, entity.blue, 255);
+        BloodyBitsUtils.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMax, entity.zMax, 1.0F, 0.0F, 0, 0, 0, correctedPackedLight, entity.red, entity.green, entity.blue, 255);
 
         // Back side
-        this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMax, entity.yMax, entity.zMin, 0.0F, 0.0F, 0, 0, 0, correctedPackedLight, entity.red, entity.green, entity.blue, 255);
-        this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMax, entity.yMax, entity.zMax, 0.0F, 1.0F, 0, 0, 0, correctedPackedLight, entity.red, entity.green, entity.blue, 255);
-        this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMax, entity.yMin, entity.zMax, 1.0F, 1.0F, 0, 0, 0, correctedPackedLight, entity.red, entity.green, entity.blue, 255);
-        this.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMax, entity.yMin, entity.zMin, 1.0F, 0.0F, 0, 0, 0, correctedPackedLight, entity.red, entity.green, entity.blue, 255);
+        BloodyBitsUtils.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMax, entity.yMax, entity.zMin, 0.0F, 0.0F, 0, 0, 0, correctedPackedLight, entity.red, entity.green, entity.blue, 255);
+        BloodyBitsUtils.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMax, entity.yMax, entity.zMax, 0.0F, 1.0F, 0, 0, 0, correctedPackedLight, entity.red, entity.green, entity.blue, 255);
+        BloodyBitsUtils.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMax, entity.yMin, entity.zMax, 1.0F, 1.0F, 0, 0, 0, correctedPackedLight, entity.red, entity.green, entity.blue, 255);
+        BloodyBitsUtils.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMax, entity.yMin, entity.zMin, 1.0F, 0.0F, 0, 0, 0, correctedPackedLight, entity.red, entity.green, entity.blue, 255);
 
         pPoseStack.popPose();
-    }
-
-    /**
-     * Convenient helper method to simplify vertex drawing.
-     */
-    public void vertex(Matrix4f pMatrix, Matrix3f pNormal, VertexConsumer pConsumer, float pX, float pY, float pZ, float pU, float pV, int pNormalX, int pNormalZ, int pNormalY, int packedLight, int red, int green, int blue, int alpha) {
-        pConsumer
-                .vertex(pMatrix, pX, pY, pZ)
-                .color(red, green, blue, alpha)
-                .uv(pU, pV)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(packedLight)
-                .normal(pNormal, (float)pNormalX, (float)pNormalY, (float)pNormalZ)
-                .endVertex();
     }
 
     /**
