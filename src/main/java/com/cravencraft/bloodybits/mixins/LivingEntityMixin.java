@@ -67,7 +67,7 @@ public abstract class LivingEntityMixin extends Entity {
             BloodChunkEntity bloodChunkEntity = new BloodChunkEntity(EntityRegistry.BLOOD_CHUNK.get(), this.self, this.level(), 0);
             BloodyBitsUtils.BLOOD_CHUNK_ENTITIES.add(bloodChunkEntity);
 
-            BloodSprayEntity bloodSprayEntity = new BloodSprayEntity(EntityRegistry.BLOOD_SPRAY.get(), this.self, this.level(), 0);
+            BloodSprayEntity bloodSprayEntity = new BloodSprayEntity(EntityRegistry.BLOOD_SPRAY.get(), this.self, this.level());
             BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.add(bloodSprayEntity);
 
             double xAngle = BloodyBitsUtils.getRandomAngle(0.5);

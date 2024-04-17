@@ -148,7 +148,7 @@ public class BloodChunkEntity extends AbstractArrow {
     }
 
     /**
-     * Ensures that the entity will not start counting down ticks to despawn until it has hit a surface.
+     * Ensures that the entity will not start counting down ticks to discard until it has hit a surface.
      * Will also discard if the entity has no owner, which will discard the entity upon restarting of the game.
      */
     @Override

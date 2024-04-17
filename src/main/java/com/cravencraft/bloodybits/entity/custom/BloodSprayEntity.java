@@ -44,7 +44,7 @@ public class BloodSprayEntity extends AbstractArrow {
     public float zMinLimit;
     public float zMaxLimit;
     public float xMin;
-    public float xMax = 0; // TODO: I bet this needs to be at least 0.001 to not clip into blocks.
+    public float xMax = 0;
     public float yMin;
     public float yMax;
     public float zMin;
@@ -71,24 +71,30 @@ public class BloodSprayEntity extends AbstractArrow {
         this.randomTextureNumber = new Random().nextInt(BLOOD_SPATTER_TEXTURES);
     }
 
-    public BloodSprayEntity(EntityType<BloodSprayEntity> entityType, double x, double y, double z, Level level) {
-        super(entityType, x, y, z, level);
-    }
-
-    public BloodSprayEntity(EntityType<BloodSprayEntity> entityType, LivingEntity shooter, Level level, float damageAmount) {
+    public BloodSprayEntity(EntityType<BloodSprayEntity> entityType, LivingEntity shooter, Level level) {
         super(entityType, shooter, level);
 
     }
 
+    /**
+     * If the owner of the entity is not null, then the string field 'ownerName' will be set to the
+     * entity's encoded ID (e.x., minecraft:villager), and if the entity is a player, then it will
+     * simply be set to 'player'.
+     *
+     * This value is used by the configs in order to determine which mobs have custom blood colors,
+     * and if a mob is found in the list, then its color will be set based on the hex format specified
+     * in the config.
+     *
+     * @param ownerEntity
+     */
     @Override
     public void setOwner(@Nullable Entity ownerEntity) {
         super.setOwner(ownerEntity);
-//        BloodyBitsMod.LOGGER.info("IS BLOOD SPRAY ENTITY CLIENT SIDE: {}", this.level().isClientSide());
+
         if (ownerEntity != null) {
             this.ownerName = (ownerEntity.toString().contains("Player")) ? "player" : ownerEntity.getEncodeId();
             this.isSolid = CommonConfig.solidEntities().contains(this.ownerName);
             if (this.level().isClientSide()) {
-//                for (List<?> mobBloodType : ClientConfig.mobBloodTypesTest()) {
                 for (Map.Entry<String, List<String>> mapElement : ClientConfig.mobBloodColors().entrySet()) {
                     if (mapElement.getValue().contains(this.ownerName)) {
                         String bloodColorHexVal = mapElement.getKey();
@@ -103,6 +109,11 @@ public class BloodSprayEntity extends AbstractArrow {
 
     }
 
+    /**
+     * Will tick down the entity & discard it whenever it reaches the time specified in the Common Config.
+     * This method only ticks client side since all the logic that matters is on this side. The blood spray
+     * will also slowly decrease in size based on its initial size and the current percentage of its lifetime.
+     */
     @Override
     protected void tickDespawn() {
 
@@ -118,7 +129,6 @@ public class BloodSprayEntity extends AbstractArrow {
 
     /**
      * Do nothing when the player interacts with the entity.
-     * TODO: Maybe later down the line we can add bloody footprints if the player steps on one in the UP direction?
      *
      * @param player
      */
@@ -135,11 +145,22 @@ public class BloodSprayEntity extends AbstractArrow {
         return ItemStack.EMPTY;
     }
 
+    /**
+     * Sets the water inertia to be very low. It being negative also helps the AbstractArrowMixin to remove
+     * the bubble particles from the blood spray entity when it's in the water.
+     */
     @Override
     protected float getWaterInertia() {
         return -0.01F;
     }
 
+    /**
+     * Ensures that the entity will not start counting down ticks to discard until it has hit a surface.
+     * Will also discard if the entity has no owner, which will discard the entity upon restarting of the game.
+     *
+     * Determines the blood spray shape whenever it is in the air, the water, and the ground. Also, ensures that
+     * if the entity is a solid that it does not change shape.
+     */
     @Override
     public void tick() {
         // Removes any blood spray entity that has a null owner. This usually happens whenever the game closes & opens back up.
@@ -218,30 +239,12 @@ public class BloodSprayEntity extends AbstractArrow {
     }
 
     /**
-     * TODO: When hitting the TOP (bottom, actually) of a block and expanding WEST still seeing
-     *       an issue with the texture expanding into air.
-     *
      * Is called once on block hit. Can get the direction the entity has hit the block on, which will dictate how
-     * it is expanded.
-     *
-     * @param result
+     * it is expanded. If the entity is a solid, then will make the entity bounce off a wall until it lands on a floor surface.
      */
     @Override
     protected void onHitBlock(BlockHitResult result) {
-        //TODO: TEST FOR SOLIDS.
         if (this.isSolid) {
-//            this.inGround = false;
-//            BloodyBitsMod.LOGGER.info("IS ON GROUND: {}", this.onGround());
-
-//            BlockState blockstate = this.level().getBlockState(result.getBlockPos());
-////            blockstate.onProjectileHit(this.level(), blockstate, result, this);
-//            Vec3 vec3 = result.getLocation().subtract(this.getX(), this.getY(), this.getZ());
-//
-////            this.setDeltaMovement(vec3);
-//            this.setDeltaMovement(-this.getDeltaMovement().x, -this.getDeltaMovement().y, -this.getDeltaMovement().z);
-//            Vec3 vec31 = vec3.normalize().scale((double)0.05F);
-//            this.setPosRaw(this.getX() - vec31.x, this.getY() - vec31.y, this.getZ() - vec31.z);
-
             // Modified sound to be a deeper pitch of Slime Block sounds.
             this.setSoundEvent((Math.random() > 0.5) ? SoundEvents.SLIME_BLOCK_HIT : SoundEvents.SLIME_BLOCK_STEP);
             this.playSound(this.getHitGroundSoundEvent(), 0.75F, 1.8F / (this.random.nextFloat() * 0.2F + 0.9F));
@@ -260,17 +263,10 @@ public class BloodSprayEntity extends AbstractArrow {
 
                 Vec3 vec3 = result.getLocation().subtract(this.getX(), this.getY(), this.getZ());
 
-//            this.setDeltaMovement(vec3);
                 this.setDeltaMovement(-this.getDeltaMovement().x, -this.getDeltaMovement().y, -this.getDeltaMovement().z);
                 Vec3 vec31 = vec3.normalize().scale((double)0.1F);
                 this.setPosRaw(this.getX() - vec31.x, this.getY() - vec31.y, this.getZ() - vec31.z);
             }
-            this.setCritArrow(false);
-            this.setPierceLevel((byte)0);
-            this.setShotFromCrossbow(false);
-            this.resetPiercedEntities();
-
-//            this.discard();
         }
         else {
             this.hitBlockPos = result.getBlockPos();
@@ -372,13 +368,23 @@ public class BloodSprayEntity extends AbstractArrow {
             this.playSound(this.getHitGroundSoundEvent(), 0.75F, 1.8F / (this.random.nextFloat() * 0.2F + 0.9F));
 
             this.inGround = true;
-            this.setCritArrow(false);
-            this.setPierceLevel((byte)0);
-            this.setShotFromCrossbow(false);
-            this.resetPiercedEntities();
         }
+
+        this.setCritArrow(false);
+        this.setPierceLevel((byte)0);
+        this.setShotFromCrossbow(false);
+        this.resetPiercedEntities();
     }
 
+    /**
+     * Gets the maximum bounds that a blood spatter can expand to when hitting a block. This is determined by the block
+     * hit and the blocks in the direction of the spatter expansion.
+     *
+     * @param initialExpansionAmount The initial amount the blood spatter will try to expand.
+     * @param isYAxis If the hit position is on the y-axis.
+     * @param isMax Whether the point is a max or min val (e.x., xMax).
+     * @return
+     */
     private double determineSpatterExpansion(double initialExpansionAmount, boolean isYAxis, boolean isMax)  {
         boolean isNonExpandable;
         double modifiedExpansionAmount;
@@ -429,6 +435,15 @@ public class BloodSprayEntity extends AbstractArrow {
         }
     }
 
+    /**
+     * Gets the maximum bounds that a blood spatter can expand to when hitting a block. This is determined by the block
+     * hit and the blocks in the direction of the spatter expansion.
+     *
+     * @param blockPos Block hit.
+     * @param expansionAmount The initial amount the blood spatter will try to expand.
+     * @param isMax
+     * @return
+     */
     private double getMaxBlockBoundsExpAmount(int blockPos, double expansionAmount, boolean isMax) {
         if (isMax) {
             return (expansionAmount > blockPos + 1) ? blockPos + 1 : expansionAmount;
