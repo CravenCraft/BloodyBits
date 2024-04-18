@@ -10,12 +10,9 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EnderDragonRenderer;
-import net.minecraft.client.renderer.entity.EntityRenderer;
-import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
-import org.checkerframework.checker.units.qual.A;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -25,27 +22,29 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.awt.*;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 import java.util.List;
 
 @Mixin(EnderDragonRenderer.class)
-public class EnderDragonRendererMixin extends EntityRenderer<EnderDragon> {
+public abstract class EnderDragonRendererMixin {
     @Shadow @Final private static ResourceLocation DRAGON_LOCATION;
+
+    @Shadow public abstract ResourceLocation getTextureLocation(EnderDragon pEntity);
+
     private HashMap<UUID, List<ArrayList<Integer>>> patternMap = new HashMap<>();
     private EnderDragon entity;
     private MultiBufferSource buffer;
 
-    protected EnderDragonRendererMixin(EntityRendererProvider.Context pContext) {
-        super(pContext);
-    }
+//    protected EnderDragonRendererMixin(EntityRendererProvider.Context pContext) {
+//        super(pContext);
+//    }
 
-    @Override
-    public ResourceLocation getTextureLocation(EnderDragon entity) {
-        return DRAGON_LOCATION;
-    }
+//    @Override
+//    public ResourceLocation getTextureLocation(EnderDragon entity) {
+//        return DRAGON_LOCATION;
+//    }
 
     /**
      * Simple injection to acquire the entity and buffer for use in the below method.

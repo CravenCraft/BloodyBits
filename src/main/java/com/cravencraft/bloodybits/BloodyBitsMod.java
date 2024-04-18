@@ -5,6 +5,7 @@ import com.cravencraft.bloodybits.config.CommonConfig;
 import com.cravencraft.bloodybits.network.BloodyBitsPacketHandler;
 import com.cravencraft.bloodybits.registries.EntityRegistry;
 import com.cravencraft.bloodybits.sounds.BloodyBitsSounds;
+import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -13,6 +14,8 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.HashMap;
 
 @Mod(BloodyBitsMod.MODID)
 public class BloodyBitsMod
@@ -30,6 +33,7 @@ public class BloodyBitsMod
         BloodyBitsPacketHandler.register();
         EntityRegistry.ENTITY_TYPES.register(modEventBus);
         BloodyBitsSounds.register(modEventBus);
+        BloodyBitsUtils.PLAYER_SKINS = new HashMap<>();
     }
 
     public static ResourceLocation id(@NotNull String path) {

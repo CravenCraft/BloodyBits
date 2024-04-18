@@ -1,20 +1,31 @@
 package com.cravencraft.bloodybits.mixins;
 
 import com.cravencraft.bloodybits.BloodyBitsMod;
+import com.cravencraft.bloodybits.client.TextureMixinInterface;
 import com.cravencraft.bloodybits.config.ClientConfig;
 import com.cravencraft.bloodybits.config.CommonConfig;
+import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
+import net.minecraft.client.player.AbstractClientPlayer;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
+import net.minecraft.client.renderer.entity.player.PlayerRenderer;
 import net.minecraft.client.renderer.texture.*;
+import net.minecraft.client.resources.DefaultPlayerSkin;
+import net.minecraft.client.resources.SkinManager;
+import net.minecraft.core.UUIDUtil;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.util.StringUtil;
 import net.minecraft.world.entity.LivingEntity;
+import org.apache.commons.io.FileUtils;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -23,6 +34,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.awt.*;
 import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.*;
 import java.util.List;
 
@@ -30,6 +43,7 @@ import java.util.List;
 public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extends EntityModel<T>> extends EntityRenderer<T> {
     private LivingEntity entity;
     private MultiBufferSource buffer;
+    private File file;
     private HashMap<UUID, List<ArrayList<Integer>>> patternMap = new HashMap<>();
 
     protected LivingEntityRendererMixin(EntityRendererProvider.Context pContext) {
@@ -72,16 +86,68 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extend
     private void renderEntitiesDifferently(EntityModel<net.minecraft.world.entity.Entity> instance, PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, float red, float green, float blue, float alpha) throws IOException {
         VertexConsumer customVertexConsumer = vertexConsumer;
 
+//        try {
+//            InputStream fileInput;
+//            String entityName;
+//            ResourceManager textureResourceManager = Minecraft.getInstance().getResourceManager();
+//            //TODO: Will this work when looking at other players?
+//            if (this.entity instanceof LocalPlayer localPlayer && localPlayer.isSkinLoaded()) {
+//                localPlayer.getSkinTextureLocation();
+//                BloodyBitsMod.LOGGER.info("is local player name {} --- {}", localPlayer.getName().getString(), localPlayer.getSkinTextureLocation());
+//                fileInput = textureResourceManager.open(localPlayer.getSkinTextureLocation());
+//                entityName = "player";
+//            }
+//            else {
+//                BloodyBitsMod.LOGGER.info("is other entity {}", this.entity.getName().toString());
+//                fileInput = Minecraft.getInstance().getResourceManager().open(this.getTextureLocation((T) this.entity));
+//                entityName = this.entity.getEncodeId();
+//            }
+//
+//            NativeImage nativeImage = NativeImage.read(fileInput);
+//        }
+//        catch (FileNotFoundException e) {
+//
+//        }
+
+
         if (ClientConfig.showMobDamage() && !this.entity.isDeadOrDying() && this.entity.getHealth() < this.entity.getMaxHealth()) {
             try {
-                InputStream fileInput = Minecraft.getInstance().getResourceManager().open(this.getTextureLocation((T) this.entity));
-                NativeImage nativeImage = NativeImage.read(fileInput);
+                InputStream fileInput;
+                String entityName;
+                NativeImage nativeImage;
+                ResourceManager resourceManager = Minecraft.getInstance().getResourceManager();
+
+                //TODO: Will this work when looking at other players?
+                if (this.entity instanceof LocalPlayer localPlayer && localPlayer.isSkinLoaded()) {
+                    AbstractTexture abstractTexture = Minecraft.getInstance().getTextureManager().getTexture(localPlayer.getSkinTextureLocation());
+                    if (abstractTexture instanceof HttpTexture httpTexture) {
+//                        SkinManager.
+//                        nativeImage = BloodyBitsUtils.nativeImage;
+//                        nativeImage = NativeImage.read(((TextureMixinInterface) httpTexture).getTextureNativeImage().asByteArray());
+                        BloodyBitsMod.LOGGER.info("PLAYER {} IMAGE RGBA {}", localPlayer.getName().getString(), BloodyBitsUtils.PLAYER_SKINS.get(localPlayer.getName().getString()).getPixelsRGBA());
+//                        BloodyBitsMod.LOGGER.info("HTTP TEXTURE NATIVE IMAGE: {}", nativeImage.getPixelsRGBA());
+                    }
+//                    else {
+//                    AbstractTexture httptexture = new HttpTexture((File)null, String.format(Locale.ROOT, "http://skins.minecraft.net/MinecraftSkins/%s.png", StringUtil.stripColor(pName)), DefaultPlayerSkin.getDefaultSkin(UUIDUtil.createOfflinePlayerUUID(pName)), true, (Runnable)null);
+                        nativeImage = NativeImage.read(resourceManager.open(localPlayer.getSkinTextureLocation()));
+
+//                    }
+                    entityName = "player";
+//                    BloodyBitsMod.LOGGER.info("is local player name {} --- {}", localPlayer.getName().getString(), localPlayer.getSkinTextureLocation());
+                }
+                else {
+//                    BloodyBitsMod.LOGGER.info("is other entity {}", this.entity.getName().toString());
+                    nativeImage = NativeImage.read(resourceManager.open(this.getTextureLocation((T) this.entity)));
+                    entityName = this.entity.getEncodeId();
+                }
+//
+//                nativeImage = NativeImage.read(fileInput);
 
                 int redDamage = 200;
                 int greenDamage = 1;
                 int blueDamage = 1;
                 int alphaDamage = 255;
-                String entityName = (this.entity.toString().contains("Player")) ? "player" : this.entity.getEncodeId();
+//                BloodyBitsMod.LOGGER.info("TEXTURE LOCATION FOR {} IS: {}", entityName, this.getTextureLocation((T) this.entity));
 
                 if (CommonConfig.solidEntities().contains(entityName)) {
                     redDamage = 0;
@@ -136,12 +202,14 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extend
                     int randomChosenHeightStart = currentPattern.get(1);
                     int randomColorHue = currentPattern.get(2);
 
+//                    BloodyBitsMod.LOGGER.info("BEFORE GET PIXEL RGBA");
                     if (nativeImage.getPixelRGBA(randomChosenWidthStart, randomChosenHeightStart) != 0) {
 //                        if (CommonConfig.gasEntities().contains(entityName)) {
 //                            Color originalTempHolder = new Color(nativeImage.getPixelRGBA(randomChosenWidthStart, randomChosenHeightStart), true);
 //                            Color gasDamage = new Color(originalTempHolder.getBlue(), originalTempHolder.getGreen(), originalTempHolder.getRed(), 200);
 //                            nativeImage.setPixelRGBA(randomChosenWidthStart, randomChosenHeightStart, gasDamage.getRGB());
 //                        }
+//                        BloodyBitsMod.LOGGER.info("BEFORE SET PIXEL RGBA");
                         if (randomColorHue < 0 && !CommonConfig.solidEntities().contains(entityName)) {
                             nativeImage.setPixelRGBA(randomChosenWidthStart, randomChosenHeightStart, damageColor.darker().getRGB());
                         }
@@ -154,6 +222,8 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extend
                     }
                 }
 
+
+//                BloodyBitsMod.LOGGER.info("BEFORE DYNAMIC TEXTURE INSTANTIATION");
                 DynamicTexture dynamicTexture = new DynamicTexture(nativeImage);
                 customVertexConsumer = this.buffer.getBuffer(RenderType.entityTranslucent(Minecraft.getInstance().getTextureManager().register("test", dynamicTexture)));
             }
