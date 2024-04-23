@@ -10,7 +10,6 @@
   ],
   "client": [
     "EnderDragonRendererMixin",
-    "HttpTextureMixin",
     "LivingEntityRendererMixin"
   ],
   "injectors": {

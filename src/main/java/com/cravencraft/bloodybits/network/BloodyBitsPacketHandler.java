@@ -2,8 +2,6 @@ package com.cravencraft.bloodybits.network;
 
 import com.cravencraft.bloodybits.BloodyBitsMod;
 import com.cravencraft.bloodybits.network.messages.EntityMessage;
-import com.cravencraft.bloodybits.network.messages.PlayerSkinToServerMessage;
-import com.cravencraft.bloodybits.network.messages.PlayerSkinToClientMessage;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.simple.SimpleChannel;
@@ -24,7 +22,5 @@ public class BloodyBitsPacketHandler {
 
     public static void register() {
         INSTANCE.registerMessage(getId(), EntityMessage.class, EntityMessage::encode, EntityMessage::decode, EntityMessage::handle);
-        INSTANCE.registerMessage(getId(), PlayerSkinToServerMessage.class, PlayerSkinToServerMessage::encode, PlayerSkinToServerMessage::decode, PlayerSkinToServerMessage::handleClientToServer);
-        INSTANCE.registerMessage(getId(), PlayerSkinToClientMessage.class, PlayerSkinToClientMessage::encode, PlayerSkinToClientMessage::decode, PlayerSkinToClientMessage::handleServerToClient);
     }
 }

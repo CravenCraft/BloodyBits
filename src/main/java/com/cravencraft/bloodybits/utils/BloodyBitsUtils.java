@@ -3,32 +3,16 @@ package com.cravencraft.bloodybits.utils;
 import com.cravencraft.bloodybits.config.CommonConfig;
 import com.cravencraft.bloodybits.entity.custom.BloodChunkEntity;
 import com.cravencraft.bloodybits.entity.custom.BloodSprayEntity;
-import com.cravencraft.bloodybits.network.BloodyBitsPacketHandler;
-import com.cravencraft.bloodybits.network.messages.PlayerSkinToClientMessage;
-import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraftforge.network.PacketDistributor;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 public class BloodyBitsUtils {
     public static ArrayList<BloodSprayEntity> BLOOD_SPRAY_ENTITIES = new ArrayList<>();
     public static ArrayList<BloodChunkEntity> BLOOD_CHUNK_ENTITIES = new ArrayList<>();
-    public static HashMap<Integer, NativeImage> PLAYER_SKINS;
-
-
-    public static void sendPlayerSkinDataToAllClients(byte[] nativeImageByteArray, int hashedPlayerName) {
-        BloodyBitsPacketHandler.INSTANCE.send(PacketDistributor.ALL.noArg(), new PlayerSkinToClientMessage(nativeImageByteArray,hashedPlayerName));
-    }
-
-    public static void setNativeImage(byte[] nativeImageByteArray, int hashedPlayerName) throws IOException {
-        PLAYER_SKINS.put(hashedPlayerName, NativeImage.read(nativeImageByteArray));
-    }
 
     public static double getRandomAngle(double range) {
         return (Math.random() > 0.5) ? Math.random() * range : -(Math.random() * range);

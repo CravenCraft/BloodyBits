@@ -4,20 +4,27 @@ import com.cravencraft.bloodybits.BloodyBitsMod;
 import com.cravencraft.bloodybits.config.ClientConfig;
 import com.cravencraft.bloodybits.config.CommonConfig;
 import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
+import com.mojang.authlib.minecraft.MinecraftProfileTexture;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
+import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.player.RemotePlayer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.texture.*;
+import net.minecraft.client.resources.SkinManager;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -76,29 +83,10 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extend
     private void renderEntitiesDifferently(EntityModel<net.minecraft.world.entity.Entity> instance, PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, float red, float green, float blue, float alpha) throws IOException {
         VertexConsumer customVertexConsumer = vertexConsumer;
 
-        if (ClientConfig.showMobDamage() && !this.entity.isDeadOrDying() && this.entity.getHealth() < this.entity.getMaxHealth()) {
+        if (ClientConfig.showMobDamage() && !this.entity.isDeadOrDying() && this.entity.getHealth() < this.entity.getMaxHealth() && !(this.entity instanceof Player)) {
             try {
-                String entityName;
-                NativeImage nativeImage;
-                ResourceManager resourceManager = Minecraft.getInstance().getResourceManager();
-
-                //TODO: Will this work when looking at other players?
-                if (this.entity instanceof LocalPlayer localPlayer && localPlayer.isSkinLoaded()) {
-                    AbstractTexture abstractTexture = Minecraft.getInstance().getTextureManager().getTexture(localPlayer.getSkinTextureLocation());
-                    if (abstractTexture instanceof HttpTexture) {
-                        //TODO: Need to add a check for if the player hashcode for some reason doesn't match up.
-                        nativeImage = BloodyBitsUtils.PLAYER_SKINS.get(localPlayer.getName().hashCode());
-                    }
-                    else {
-                        nativeImage = NativeImage.read(resourceManager.open(localPlayer.getSkinTextureLocation()));
-
-                    }
-                    entityName = "player";
-                }
-                else {
-                    nativeImage = NativeImage.read(resourceManager.open(this.getTextureLocation((T) this.entity)));
-                    entityName = this.entity.getEncodeId();
-                }
+                NativeImage nativeImage = NativeImage.read(Minecraft.getInstance().getResourceManager().open(this.getTextureLocation((T) this.entity)));
+                String entityName = this.entity.getEncodeId();
 
                 int redDamage = 200;
                 int greenDamage = 1;
@@ -184,7 +172,7 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extend
                 customVertexConsumer = this.buffer.getBuffer(RenderType.entityTranslucent(Minecraft.getInstance().getTextureManager().register("test", dynamicTexture)));
             }
             catch (FileNotFoundException e) {
-                BloodyBitsMod.LOGGER.error("ERROR: File for {} not found at resource location {}!", this.entity, this.getTextureLocation((T) this.entity));
+//                BloodyBitsMod.LOGGER.error("ERROR: File for {} not found at resource location {}!", this.entity, this.getTextureLocation((T) this.entity));
             }
         }
         else {
