@@ -8,6 +8,7 @@ import com.cravencraft.bloodybits.network.messages.EntityMessage;
 import com.cravencraft.bloodybits.registries.EntityRegistry;
 import com.cravencraft.bloodybits.sounds.BloodyBitsSounds;
 import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -69,6 +70,8 @@ public abstract class LivingEntityMixin extends Entity {
      */
     private void createBloodChunk() {
         int maxChunks = (int) Math.min(20, this.getBoundingBox().getSize() * 10);
+        String ownerName = (this.toString().contains("Player")) ? "player" : this.getEncodeId();
+        boolean isSolid = CommonConfig.solidEntities().contains(ownerName);
         for (int i=0; i < maxChunks; i++) {
             // TODO: Setup Common Config for blood chunks as well.
             if (BloodyBitsUtils.BLOOD_CHUNK_ENTITIES.size() >= CommonConfig.maxChunks()) {
@@ -103,6 +106,11 @@ public abstract class LivingEntityMixin extends Entity {
             BloodyBitsPacketHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> bloodSprayEntity),
                     new EntityMessage(bloodSprayEntity.getId(), this.getId()));
         }
-        this.playSound(BloodyBitsSounds.BODY_EXPLOSION.get(), 1.0F, 1.0F / (this.random.nextFloat() * 0.2F + 0.9F));
+        if (CommonConfig.solidEntities().contains(ownerName)) {
+            this.playSound(SoundEvents.BONE_BLOCK_BREAK, 1.0F, 1.0F / (this.random.nextFloat() * 0.2F + 0.9F));
+        }
+        else {
+            this.playSound(BloodyBitsSounds.BODY_EXPLOSION.get(), 1.0F, 1.0F / (this.random.nextFloat() * 0.2F + 0.9F));
+        }
     }
 }

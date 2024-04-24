@@ -39,7 +39,7 @@ public class BloodChunkEntity extends AbstractArrow {
     public int currentLifeTime;
     public int randomTextureNumber;
     public float initialMinX, xMin;
-    public float initialMaxX, xMax; // TODO: I bet this needs to be at least 0.001 to not clip into blocks.
+    public float initialMaxX, xMax;
     public float initialMinY, yMin;
     public float initialMaxY, yMax;
     public float initialMinZ, zMin;
@@ -178,16 +178,44 @@ public class BloodChunkEntity extends AbstractArrow {
      */
     @Override
     protected void onHitBlock(BlockHitResult result) {
-        // All of this is boilerplate from AbstractArrow except the setSoundEvent now playing a slime sound.
-        BlockState blockstate = this.level().getBlockState(result.getBlockPos());
-        blockstate.onProjectileHit(this.level(), blockstate, result, this);
-        Vec3 vec3 = result.getLocation().subtract(this.getX(), this.getY(), this.getZ());
-        this.setDeltaMovement(vec3);
-        Vec3 vec31 = vec3.normalize().scale((double)0.05F);
-        this.setPosRaw(this.getX() - vec31.x, this.getY() - vec31.y, this.getZ() - vec31.z);
+        if (this.isSolid) {
+            // Modified sound to be a deeper pitch of Slime Block sounds.
+            this.setSoundEvent(SoundEvents.BONE_BLOCK_BREAK);
+//            this.playSound(this.getHitGroundSoundEvent(), 0.75F, 1.8F / (this.random.nextFloat() * 0.2F + 0.9F));
 
-        // Modified sound to be a deeper pitch of Slime Block sounds.
-        this.setSoundEvent((Math.random() > 0.5) ? SoundEvents.SLIME_BLOCK_HIT : SoundEvents.SLIME_BLOCK_STEP);
+            if (result.getDirection().equals(Direction.UP)) {
+                this.inGround = true;
+
+                Vec3 vec3 = result.getLocation().subtract(this.getX(), this.getY(), this.getZ());
+
+                this.setDeltaMovement(vec3);
+
+                Vec3 vec31 = vec3.normalize().scale(0.05F);
+                this.setPosRaw(this.getX() - vec31.x, this.getY() - vec31.y, this.getZ() - vec31.z);
+            }
+            else {
+
+                Vec3 vec3 = result.getLocation().subtract(this.getX(), this.getY(), this.getZ());
+
+                this.setDeltaMovement(0, -0.25, 0);
+                Vec3 vec31 = vec3.normalize().scale((double)0.1F);
+                this.setPosRaw(this.getX() - vec31.x, this.getY() - vec31.y, this.getZ() - vec31.z);
+            }
+        }
+        else {
+            // All of this is boilerplate from AbstractArrow except the setSoundEvent now playing a slime sound.
+            BlockState blockstate = this.level().getBlockState(result.getBlockPos());
+            blockstate.onProjectileHit(this.level(), blockstate, result, this);
+            Vec3 vec3 = result.getLocation().subtract(this.getX(), this.getY(), this.getZ());
+            this.setDeltaMovement(vec3);
+            Vec3 vec31 = vec3.normalize().scale((double)0.05F);
+            this.setPosRaw(this.getX() - vec31.x, this.getY() - vec31.y, this.getZ() - vec31.z);
+
+            // Modified sound to be a deeper pitch of Slime Block sounds.
+            this.setSoundEvent((Math.random() > 0.5) ? SoundEvents.SLIME_BLOCK_HIT : SoundEvents.SLIME_BLOCK_STEP);
+        }
+
+
         this.playSound(this.getHitGroundSoundEvent(), 0.75F, 1.8F / (this.random.nextFloat() * 0.2F + 0.9F));
 
         this.inGround = true;

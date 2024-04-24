@@ -246,7 +246,7 @@ public class BloodSprayEntity extends AbstractArrow {
     protected void onHitBlock(BlockHitResult result) {
         if (this.isSolid) {
             // Modified sound to be a deeper pitch of Slime Block sounds.
-            this.setSoundEvent((Math.random() > 0.5) ? SoundEvents.SLIME_BLOCK_HIT : SoundEvents.SLIME_BLOCK_STEP);
+            this.setSoundEvent((Math.random() > 0.5) ? SoundEvents.BONE_BLOCK_FALL : SoundEvents.BONE_BLOCK_HIT);
             this.playSound(this.getHitGroundSoundEvent(), 0.75F, 1.8F / (this.random.nextFloat() * 0.2F + 0.9F));
 
             if (result.getDirection().equals(Direction.UP)) {
@@ -263,7 +263,7 @@ public class BloodSprayEntity extends AbstractArrow {
 
                 Vec3 vec3 = result.getLocation().subtract(this.getX(), this.getY(), this.getZ());
 
-                this.setDeltaMovement(-this.getDeltaMovement().x, -this.getDeltaMovement().y, -this.getDeltaMovement().z);
+                this.setDeltaMovement(0, -0.25, 0);
                 Vec3 vec31 = vec3.normalize().scale((double)0.1F);
                 this.setPosRaw(this.getX() - vec31.x, this.getY() - vec31.y, this.getZ() - vec31.z);
             }
