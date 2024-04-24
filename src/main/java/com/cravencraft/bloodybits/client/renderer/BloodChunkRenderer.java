@@ -22,7 +22,7 @@ import org.joml.Matrix4f;
  * (xMin, xMax, etc.) to render a rectangle dynamically that will act as a blood chunk.
  */
 public class BloodChunkRenderer extends EntityRenderer<BloodChunkEntity> {
-    public static final ResourceLocation BLOOD_CHUNK_0 = new ResourceLocation(BloodyBitsMod.MODID, "textures/entity/blood_chunk_0.png");
+    public static final ResourceLocation BLOOD_CHUNK_0 = new ResourceLocation(BloodyBitsMod.MODID, "textures/entity/blood_chunk_1.png");
 
     public BloodChunkRenderer(EntityRendererProvider.Context context) {
         super(context);
@@ -51,6 +51,7 @@ public class BloodChunkRenderer extends EntityRenderer<BloodChunkEntity> {
 
         pPoseStack.scale(0.05625F, 0.05625F, 0.05625F);
         VertexConsumer vertexConsumer = pBuffer.getBuffer(RenderType.entityTranslucent(getTextureLocation(entity)));
+
         PoseStack.Pose posestack$pose = pPoseStack.last();
         Matrix4f matrix4f = posestack$pose.pose();
         Matrix3f matrix3f = posestack$pose.normal();
@@ -104,7 +105,7 @@ public class BloodChunkRenderer extends EntityRenderer<BloodChunkEntity> {
      */
     @Override
     public ResourceLocation getTextureLocation(BloodChunkEntity bloodChunkEntity) {
-        return BLOOD_CHUNK_0;
+        return this.getRandomChunkTexture(bloodChunkEntity.randomTextureNumber);
     }
 
     /**
@@ -115,12 +116,10 @@ public class BloodChunkRenderer extends EntityRenderer<BloodChunkEntity> {
      * @param randomInt
      * @return
      */
-    private ResourceLocation getRandomSpatterTexture(int randomInt) {
+    private ResourceLocation getRandomChunkTexture(int randomInt) {
         return switch (randomInt) {
-            case 1 -> new ResourceLocation(BloodyBitsMod.MODID, "textures/entity/spatter_1.png");
-            case 2 -> new ResourceLocation(BloodyBitsMod.MODID, "textures/entity/spatter_2.png");
-            case 3 -> new ResourceLocation(BloodyBitsMod.MODID, "textures/entity/spatter_3.png");
-            default -> new ResourceLocation(BloodyBitsMod.MODID, "textures/entity/spatter_0.png");
+            case 1 -> new ResourceLocation(BloodyBitsMod.MODID, "textures/entity/blood_chunk_1.png");
+            default -> new ResourceLocation(BloodyBitsMod.MODID, "textures/entity/blood_chunk_0.png");
         };
     }
 }

@@ -34,7 +34,7 @@ import java.util.Map;
  */
 public class BloodChunkEntity extends AbstractArrow {
 
-    private static final int BLOOD_SPATTER_TEXTURES = 4;
+    private static final int BLOOD_CHUNK_TEXTURES = 2;
 
     public int currentLifeTime;
     public int randomTextureNumber;
@@ -60,7 +60,7 @@ public class BloodChunkEntity extends AbstractArrow {
      */
     public BloodChunkEntity(EntityType<BloodChunkEntity> entityType, Level level) {
         super(entityType, level);
-        this.randomTextureNumber = new Random().nextInt(BLOOD_SPATTER_TEXTURES);
+        this.randomTextureNumber = new Random().nextInt(BLOOD_CHUNK_TEXTURES);
         if (this.level().isClientSide()) {
             this.initialMinX = this.xMin = -new Random().nextInt(3) - 1;
             this.initialMaxX = this.xMax = new Random().nextInt(3) + 1;
