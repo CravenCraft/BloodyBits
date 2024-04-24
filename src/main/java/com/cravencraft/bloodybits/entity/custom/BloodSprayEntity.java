@@ -62,7 +62,7 @@ public class BloodSprayEntity extends AbstractArrow {
     public Direction entityDirection;
     public BlockPos hitBlockPos;
     public Vec3 hitPosition;
-    public int red = 255;
+    public int red = 200;
     public int green = 1;
     public int blue = 1;
 
