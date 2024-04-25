@@ -20,6 +20,9 @@ public class BloodyBitsMod
     // Define mod id in a common place for everything to reference
     public static final String MODID = "bloodybits";
     // Directly reference a slf4j logger
+
+    // TODO: Before creating the mod page delete this and ensure those error logs are only printed ONCE
+    //       per error. Otherwise they'll fill up the log with spam about entities not being found.
     public static final Logger LOGGER = LogManager.getLogger("BloodyBitsMod");
 
     public BloodyBitsMod() {
