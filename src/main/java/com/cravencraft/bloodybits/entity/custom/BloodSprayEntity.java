@@ -116,16 +116,11 @@ public class BloodSprayEntity extends AbstractArrow {
      */
     @Override
     protected void tickDespawn() {
-
-//        if (this.level().isClientSide()) {
-            ++this.currentLifeTime;
-//        }
-        BloodyBitsMod.LOGGER.info("IS CLIENT SIDE: {} --- LIFETIME: {}", this.level().isClientSide(), this.currentLifeTime);
+        ++this.currentLifeTime;
 
         if (this.currentLifeTime >= CommonConfig.despawnTime()) {
             this.discard();
             BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.remove(this);
-            BloodyBitsMod.LOGGER.info("BLOOD SPRAY ENTITIES SIZE AFTER REMOVING: {}", BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.size());
         }
     }
 
@@ -175,8 +170,9 @@ public class BloodSprayEntity extends AbstractArrow {
                 this.xMin = this.xMax;
             }
 
-            if (!this.shouldFall()) {
-//                this.tickDespawn();
+            // Done to set the lifetime client side as well. It's done in the super class for server side.
+            if (!this.shouldFall() && this.level().isClientSide()) {
+                this.tickDespawn();
             }
 
             if (!this.isSolid && this.entityDirection != null) {

@@ -114,14 +114,12 @@ public class BloodChunkEntity extends AbstractArrow {
      */
     @Override
     protected void tickDespawn() {
-        if (this.level().isClientSide()) {
-            ++this.currentLifeTime;
+        ++this.currentLifeTime;
 
-            BloodyBitsUtils.shrinkBloodChunk(this);
-            if (this.currentLifeTime >= CommonConfig.despawnTime()) {
-                this.discard();
-                BloodyBitsUtils.BLOOD_CHUNK_ENTITIES.remove(this);
-            }
+        BloodyBitsUtils.shrinkBloodChunk(this);
+        if (this.currentLifeTime >= CommonConfig.despawnTime()) {
+            this.discard();
+            BloodyBitsUtils.BLOOD_CHUNK_ENTITIES.remove(this);
         }
     }
 
@@ -161,7 +159,7 @@ public class BloodChunkEntity extends AbstractArrow {
         super.tick();
 
         if (this.inGround) {
-            if (!this.shouldFall()) {
+            if (!this.shouldFall() && this.level().isClientSide()) {
                 this.tickDespawn();
             }
         }
