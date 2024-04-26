@@ -3,26 +3,17 @@ package com.cravencraft.bloodybits.mixins;
 import com.cravencraft.bloodybits.BloodyBitsMod;
 import com.cravencraft.bloodybits.config.ClientConfig;
 import com.cravencraft.bloodybits.config.CommonConfig;
-import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
-import com.mojang.authlib.minecraft.MinecraftProfileTexture;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
-import net.minecraft.client.player.AbstractClientPlayer;
-import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.client.player.RemotePlayer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.texture.*;
-import net.minecraft.client.resources.SkinManager;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import org.spongepowered.asm.mixin.Mixin;
@@ -38,9 +29,9 @@ import java.util.List;
 
 @Mixin(LivingEntityRenderer.class)
 public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extends EntityModel<T>> extends EntityRenderer<T> {
+    private boolean hasErrorMessageDisplayed;
     private LivingEntity entity;
     private MultiBufferSource buffer;
-    private File file;
     private HashMap<UUID, List<ArrayList<Integer>>> patternMap = new HashMap<>();
 
     protected LivingEntityRendererMixin(EntityRendererProvider.Context pContext) {
@@ -146,14 +137,7 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extend
                     int randomChosenHeightStart = currentPattern.get(1);
                     int randomColorHue = currentPattern.get(2);
 
-//                    BloodyBitsMod.LOGGER.info("BEFORE GET PIXEL RGBA");
                     if (nativeImage.getPixelRGBA(randomChosenWidthStart, randomChosenHeightStart) != 0) {
-//                        if (CommonConfig.gasEntities().contains(entityName)) {
-//                            Color originalTempHolder = new Color(nativeImage.getPixelRGBA(randomChosenWidthStart, randomChosenHeightStart), true);
-//                            Color gasDamage = new Color(originalTempHolder.getBlue(), originalTempHolder.getGreen(), originalTempHolder.getRed(), 200);
-//                            nativeImage.setPixelRGBA(randomChosenWidthStart, randomChosenHeightStart, gasDamage.getRGB());
-//                        }
-//                        BloodyBitsMod.LOGGER.info("BEFORE SET PIXEL RGBA");
                         if (randomColorHue < 0 && !CommonConfig.solidEntities().contains(entityName)) {
                             nativeImage.setPixelRGBA(randomChosenWidthStart, randomChosenHeightStart, damageColor.darker().getRGB());
                         }
@@ -167,12 +151,14 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extend
                 }
 
 
-//                BloodyBitsMod.LOGGER.info("BEFORE DYNAMIC TEXTURE INSTANTIATION");
                 DynamicTexture dynamicTexture = new DynamicTexture(nativeImage);
                 customVertexConsumer = this.buffer.getBuffer(RenderType.entityTranslucent(Minecraft.getInstance().getTextureManager().register("test", dynamicTexture)));
             }
             catch (FileNotFoundException e) {
-//                BloodyBitsMod.LOGGER.error("ERROR: File for {} not found at resource location {}!", this.entity, this.getTextureLocation((T) this.entity));
+                if (!this.hasErrorMessageDisplayed) {
+                    BloodyBitsMod.LOGGER.error("ERROR: File for {} not found at resource location {}!", this.entity, this.getTextureLocation((T) this.entity));
+                    this.hasErrorMessageDisplayed = true;
+                }
             }
         }
         else {

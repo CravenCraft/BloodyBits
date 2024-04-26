@@ -117,13 +117,15 @@ public class BloodSprayEntity extends AbstractArrow {
     @Override
     protected void tickDespawn() {
 
-        if (this.level().isClientSide()) {
+//        if (this.level().isClientSide()) {
             ++this.currentLifeTime;
-        }
+//        }
+        BloodyBitsMod.LOGGER.info("IS CLIENT SIDE: {} --- LIFETIME: {}", this.level().isClientSide(), this.currentLifeTime);
 
         if (this.currentLifeTime >= CommonConfig.despawnTime()) {
             this.discard();
             BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.remove(this);
+            BloodyBitsMod.LOGGER.info("BLOOD SPRAY ENTITIES SIZE AFTER REMOVING: {}", BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.size());
         }
     }
 
@@ -174,7 +176,7 @@ public class BloodSprayEntity extends AbstractArrow {
             }
 
             if (!this.shouldFall()) {
-                this.tickDespawn();
+//                this.tickDespawn();
             }
 
             if (!this.isSolid && this.entityDirection != null) {
