@@ -45,7 +45,7 @@ public class BloodyBitsEvents {
                 BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.get(0).discard();
                 BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.remove(0);
             }
-            BloodyBitsMod.LOGGER.info("BLOOD SPRAY ENTITIES SIZE AFTER ADDING: {}", BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.size());
+
             BloodSprayEntity bloodSprayEntity = new BloodSprayEntity(EntityRegistry.BLOOD_SPRAY.get(), event.getEntity(), event.getEntity().level());
             BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.add(bloodSprayEntity);
             Vec3 sourceAngle;
