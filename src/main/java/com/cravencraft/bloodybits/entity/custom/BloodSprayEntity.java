@@ -20,12 +20,12 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.*;
 import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.NotNull;
-import org.joml.Random;
 
 import javax.annotation.Nullable;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 public class BloodSprayEntity extends AbstractArrow {
 
@@ -362,7 +362,8 @@ public class BloodSprayEntity extends AbstractArrow {
             this.setPosRaw(this.getX() - vec31.x, this.getY() - vec31.y, this.getZ() - vec31.z);
 
             // Modified sound to be a deeper pitch of Slime Block sounds.
-            this.setSoundEvent((Math.random() > 0.5) ? SoundEvents.SLIME_BLOCK_HIT : SoundEvents.SLIME_BLOCK_STEP);
+            // TODO: Add custom spatter sounds here.
+            this.setSoundEvent(BloodyBitsUtils.getRandomSound(new Random().nextInt(4)));
             this.playSound(this.getHitGroundSoundEvent(), 0.75F, 1.8F / (this.random.nextFloat() * 0.2F + 0.9F));
 
             this.inGround = true;

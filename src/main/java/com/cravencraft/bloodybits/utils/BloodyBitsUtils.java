@@ -5,6 +5,8 @@ import com.cravencraft.bloodybits.entity.custom.BloodChunkEntity;
 import com.cravencraft.bloodybits.entity.custom.BloodSprayEntity;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 
@@ -40,5 +42,15 @@ public class BloodyBitsUtils {
                 .uv2(packedLight)
                 .normal(pNormal, (float)pNormalX, (float)pNormalY, (float)pNormalZ)
                 .endVertex();
+    }
+
+    public static SoundEvent getRandomSound(int randomNumber) {
+        return switch (randomNumber) {
+            case 0 -> SoundEvents.SLIME_BLOCK_STEP;
+            case 1 -> SoundEvents.MUD_STEP;
+            case 2 -> SoundEvents.MUD_HIT;
+            case 3 -> SoundEvents.WET_GRASS_HIT;
+            default -> SoundEvents.SLIME_BLOCK_HIT;
+        };
     }
 }

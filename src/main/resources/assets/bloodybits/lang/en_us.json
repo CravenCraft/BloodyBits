@@ -1,3 +1,5 @@
 {
-  "sounds.bloodybits.body_explosion": "A body explodes in a heap of gore"
+  "sounds.bloodybits.body_explosion": "A body explodes in a heap of gore",
+  "bloodybits.blood_spray": "Blood Spray",
+  "bloodybits.blood_chunk": "Blood Chunk"
 }

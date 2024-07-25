@@ -51,7 +51,6 @@ public abstract class LivingEntityMixin extends Entity {
      */
     @Inject(method = "tickDeath", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;broadcastEntityEvent(Lnet/minecraft/world/entity/Entity;B)V"))
     private void addBloodChunksToDeath(CallbackInfo ci) {
-        BloodyBitsMod.LOGGER.info("OUTSIDE OF BLOOD EXPLOSION");
         if (CommonConfig.deathBloodExplosion() && this.self != null) {
             this.createBloodExplosion();
         }
@@ -73,9 +72,7 @@ public abstract class LivingEntityMixin extends Entity {
     private void createBloodExplosion() {
         int maxChunks = (int) Math.min(20, this.getBoundingBox().getSize() * 10);
         String ownerName = (this.toString().contains("Player")) ? "player" : this.getEncodeId();
-        boolean isSolid = CommonConfig.solidEntities().contains(ownerName);
         for (int i=0; i < maxChunks; i++) {
-            BloodyBitsMod.LOGGER.info("IN BLOOD EXPLOSION");
             if (BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.size() >= CommonConfig.maxSpatters()) {
                 BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.get(0).discard();
                 BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.remove(0);
