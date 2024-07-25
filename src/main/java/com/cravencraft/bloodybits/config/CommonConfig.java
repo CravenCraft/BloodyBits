@@ -10,6 +10,7 @@ import java.util.List;
 public class CommonConfig {
     public static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
     private static ForgeConfigSpec.BooleanValue SHOW_BLOOD_CHUNKS;
+    private static ForgeConfigSpec.BooleanValue DEATH_BLOOD_EXPLOSION;
     private static ForgeConfigSpec.IntValue DESPAWN_TIME;
     private static ForgeConfigSpec.IntValue MAX_SPATTERS;
     private static ForgeConfigSpec.IntValue MAX_CHUNKS;
@@ -18,6 +19,7 @@ public class CommonConfig {
     private static ForgeConfigSpec.ConfigValue<List<? extends String>> SOLID_ENTITIES;
 
     public static boolean showBloodChunks() { return SHOW_BLOOD_CHUNKS.get(); }
+    public static boolean deathBloodExplosion() { return DEATH_BLOOD_EXPLOSION.get(); }
 
     public static int despawnTime() {
         return DESPAWN_TIME.get();
@@ -42,9 +44,10 @@ public class CommonConfig {
                 .defineInRange("despawn_time", 2000, 0, 100000);
         MAX_SPATTERS = BUILDER.comment("The maximum amount of blood spatters that can exist in the world at once.")
                 .defineInRange("max_spatters", 2000, 0, 10000);
-
-        SHOW_BLOOD_CHUNKS = BUILDER.comment("Whether or not blood chunks should replace the poof particles when an entity dies.")
-                .define("show_blood_chunks", true);
+        DEATH_BLOOD_EXPLOSION = BUILDER.comment("Whether or not a blood explosion should replace the death poof when an entity dies.")
+                .define("death_blood_explosion", true);
+        SHOW_BLOOD_CHUNKS = BUILDER.comment("Whether or not blood chunks should replace the poof particles when an entity dies (DEATH_BLOOD_EXPLOSION needs to be true for this to be true).")
+                .define("show_blood_chunks", false);
         MAX_CHUNKS = BUILDER.comment("The maximum amount of blood chunks that can exist in the world at once.")
                 .defineInRange("max_chunks", 1000, 0, 10000);
         DISTANCE_TO_PLAYERS = BUILDER.comment("The maximum amount of distance a player can be away from a damaged entity for blood to spray.")

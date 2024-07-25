@@ -52,7 +52,7 @@ public class ClientConfig {
         BUILDER.push("blood spray settings");
 
         SHOW_MOB_DAMAGE = BUILDER.comment("Whether or not an entity should show textured damage when hit.")
-                .define("show_mob_damage", true);
+                .define("show_mob_damage", false);
 
         ENTITY_DAMAGE_SHOWN_PERCENT = BUILDER.comment("What percentage of an entity should be covered in blood based on its current damage.")
                 .defineInRange("entity_damage_percent", 75, 0, 100);

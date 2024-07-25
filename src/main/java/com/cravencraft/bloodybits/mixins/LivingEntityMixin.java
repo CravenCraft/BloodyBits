@@ -1,5 +1,6 @@
 package com.cravencraft.bloodybits.mixins;
 
+import com.cravencraft.bloodybits.BloodyBitsMod;
 import com.cravencraft.bloodybits.config.CommonConfig;
 import com.cravencraft.bloodybits.entity.custom.BloodChunkEntity;
 import com.cravencraft.bloodybits.entity.custom.BloodSprayEntity;
@@ -50,8 +51,9 @@ public abstract class LivingEntityMixin extends Entity {
      */
     @Inject(method = "tickDeath", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;broadcastEntityEvent(Lnet/minecraft/world/entity/Entity;B)V"))
     private void addBloodChunksToDeath(CallbackInfo ci) {
-        if (CommonConfig.showBloodChunks() && this.self != null) {
-            this.createBloodChunk();
+        BloodyBitsMod.LOGGER.info("OUTSIDE OF BLOOD EXPLOSION");
+        if (CommonConfig.deathBloodExplosion() && this.self != null) {
+            this.createBloodExplosion();
         }
     }
 
@@ -60,7 +62,7 @@ public abstract class LivingEntityMixin extends Entity {
      */
     @Inject(method = "makePoofParticles", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;addParticle(Lnet/minecraft/core/particles/ParticleOptions;DDDDDD)V"), cancellable = true)
     private void removeDeathPoof(CallbackInfo ci) {
-        if (CommonConfig.showBloodChunks() && this.deathTime >= 18) {
+        if (CommonConfig.deathBloodExplosion() && this.deathTime >= 18) {
             ci.cancel();
         }
     }
@@ -68,24 +70,16 @@ public abstract class LivingEntityMixin extends Entity {
     /**
      * Creates blood chunks and sprays on an entity's death.
      */
-    private void createBloodChunk() {
+    private void createBloodExplosion() {
         int maxChunks = (int) Math.min(20, this.getBoundingBox().getSize() * 10);
         String ownerName = (this.toString().contains("Player")) ? "player" : this.getEncodeId();
         boolean isSolid = CommonConfig.solidEntities().contains(ownerName);
         for (int i=0; i < maxChunks; i++) {
-            // TODO: Setup Common Config for blood chunks as well.
-            if (BloodyBitsUtils.BLOOD_CHUNK_ENTITIES.size() >= CommonConfig.maxChunks()) {
-                BloodyBitsUtils.BLOOD_CHUNK_ENTITIES.get(0).discard();
-                BloodyBitsUtils.BLOOD_CHUNK_ENTITIES.remove(0);
-            }
-
+            BloodyBitsMod.LOGGER.info("IN BLOOD EXPLOSION");
             if (BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.size() >= CommonConfig.maxSpatters()) {
                 BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.get(0).discard();
                 BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.remove(0);
             }
-
-            BloodChunkEntity bloodChunkEntity = new BloodChunkEntity(EntityRegistry.BLOOD_CHUNK.get(), this.self, this.level(), 0);
-            BloodyBitsUtils.BLOOD_CHUNK_ENTITIES.add(bloodChunkEntity);
 
             BloodSprayEntity bloodSprayEntity = new BloodSprayEntity(EntityRegistry.BLOOD_SPRAY.get(), this.self, this.level());
             BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.add(bloodSprayEntity);
@@ -94,17 +88,28 @@ public abstract class LivingEntityMixin extends Entity {
             double yAngle = BloodyBitsUtils.getRandomAngle(0.5);
             double zAngle = BloodyBitsUtils.getRandomAngle(0.5);
 
-            bloodChunkEntity.setDeltaMovement(xAngle, yAngle, zAngle);
+
             bloodSprayEntity.setDeltaMovement(xAngle, yAngle, zAngle);
 
-            this.level().addFreshEntity(bloodChunkEntity);
             this.level().addFreshEntity(bloodSprayEntity);
 
-            BloodyBitsPacketHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> bloodChunkEntity),
-                    new EntityMessage(bloodChunkEntity.getId(), this.getId()));
 
             BloodyBitsPacketHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> bloodSprayEntity),
                     new EntityMessage(bloodSprayEntity.getId(), this.getId()));
+
+            if (CommonConfig.showBloodChunks()) {
+                if (BloodyBitsUtils.BLOOD_CHUNK_ENTITIES.size() >= CommonConfig.maxChunks()) {
+                    BloodyBitsUtils.BLOOD_CHUNK_ENTITIES.get(0).discard();
+                    BloodyBitsUtils.BLOOD_CHUNK_ENTITIES.remove(0);
+                }
+
+                BloodChunkEntity bloodChunkEntity = new BloodChunkEntity(EntityRegistry.BLOOD_CHUNK.get(), this.self, this.level(), 0);
+                BloodyBitsUtils.BLOOD_CHUNK_ENTITIES.add(bloodChunkEntity);
+                bloodChunkEntity.setDeltaMovement(xAngle, yAngle, zAngle);
+                this.level().addFreshEntity(bloodChunkEntity);
+                BloodyBitsPacketHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> bloodChunkEntity),
+                        new EntityMessage(bloodChunkEntity.getId(), this.getId()));
+            }
         }
         if (CommonConfig.solidEntities().contains(ownerName)) {
             this.playSound(SoundEvents.BONE_BLOCK_BREAK, 1.0F, 1.0F / (this.random.nextFloat() * 0.2F + 0.9F));
