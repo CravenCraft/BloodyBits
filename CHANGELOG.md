@@ -1,3 +1,9 @@
+## V1.1.1
+- Added a blacklist option to the config for any entities that may cause potential crashes with this mod. One known
+    entity so far is **alexsmobs:cachalot_whale**.
+- Updated the sounds for the blood spatters to be less slime-like.
+- Added a few checks to ensure that any blood spray entities are removed.
+
 ## V1.1.0
 - Added a config setting to still show blood explosions on an entity's death even if blood chunks are set to **false**.
 - **Blood chunks** & **show entity damage** are now **false** by default since they are still experimental, and not as polished as
@@ -8,7 +14,7 @@
 
 ## V1.0.1
 - Removed logger from blood spray event.
-- Switched to LivingDamageEvent to prevent undamaged entities such as creative playersfrom producing blood.
+- Switched to LivingDamageEvent to prevent undamaged entities such as creative players from producing blood.
 
 ## V1.0.0
 The initial creation of the mod's framework. 

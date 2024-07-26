@@ -17,6 +17,7 @@ import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.*;
 import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.NotNull;
@@ -59,9 +60,12 @@ public class BloodSprayEntity extends AbstractArrow {
 
     public boolean shouldDrip;
     public boolean isSolid;
+    public boolean wasInGround;
     public Direction entityDirection;
     public BlockPos hitBlockPos;
     public Vec3 hitPosition;
+    public Vec3 previousPosition;
+    public int samePositionTicks;
     public int red = 200;
     public int green = 1;
     public int blue = 1;
@@ -69,10 +73,12 @@ public class BloodSprayEntity extends AbstractArrow {
     public BloodSprayEntity(EntityType<BloodSprayEntity> entityType, Level level) {
         super(entityType, level);
         this.randomTextureNumber = new Random().nextInt(BLOOD_SPATTER_TEXTURES);
+        this.previousPosition = this.position();
     }
 
     public BloodSprayEntity(EntityType<BloodSprayEntity> entityType, LivingEntity shooter, Level level) {
         super(entityType, shooter, level);
+        this.previousPosition = this.position();
 
     }
 
@@ -160,79 +166,91 @@ public class BloodSprayEntity extends AbstractArrow {
      */
     @Override
     public void tick() {
-        // Removes any blood spray entity that has a null owner. This usually happens whenever the game closes & opens back up.
-        if (this.ownerName == null) {
-            this.discard();
-        }
         super.tick();
-        if (this.inGround) {
-            if (!this.isSolid && this.xMin < this.xMax) {
-                this.xMin = this.xMax;
-            }
+        if (this.isRemoved()) {
+            return;
+        }
 
-            // Done to set the lifetime client side as well. It's done in the super class for server side.
-            if (!this.shouldFall() && this.level().isClientSide()) {
-                this.tickDespawn();
-            }
+        // Removes any blood spray entity that has a null owner. This usually happens whenever the game closes & opens back up.
+        if (!this.level().isClientSide() && (this.ownerName == null || (this.wasInGround && !this.inGround))) {
+            this.discard();
+            BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.remove(this);
+        }
+        else {
+            if (this.inGround) {
+                if (!this.isSolid && this.xMin < this.xMax) {
+                    this.xMin = this.xMax;
+                }
 
-            if (!this.isSolid && this.entityDirection != null) {
-                setYMin();
-                setYMax();
-                setZMin();
-                setZMax();
-                setDrip();
-            }
+                if (!this.isSolid && this.entityDirection != null) {
+                    setYMin();
+                    setYMax();
+                    setZMin();
+                    setZMax();
+                    setDrip();
+                }
 
-            // Rapidly decrease life if the blood entity is in rain or water.
-            if (!this.isSolid && this.isInWaterOrRain()) {
+                // Rapidly decrease life if the blood entity is in rain or water.
+                if (!this.isSolid && this.isInWaterOrRain()) {
+                    this.yMin -= 0.1F;
+                    this.yMax += 0.1F;
+                    this.zMin -= 0.1F;
+                    this.zMax += 0.1F;
+
+                    this.currentLifeTime += (CommonConfig.despawnTime() / 50);
+                }
+
+                // Done to set the lifetime client side as well. Needed to properly fade the rendered blood.
+                if (!this.shouldFall() && this.level().isClientSide()) {
+                    ++this.currentLifeTime;
+                }
+            }
+            else if (this.isSolid) {
+                double velocity = this.getDeltaMovement().length();
+                float length = 2;
+                this.xMin = -(length);
+
+                float widthAndHeight = (10 - length) / 4;
+                this.yMin = -(widthAndHeight / 2);
+                this.yMax = (widthAndHeight / 2);
+                this.zMin = -(widthAndHeight / 2);
+                this.zMax = (widthAndHeight / 2);
+
+                if (this.isInWater()) {
+                    this.discard();
+                }
+            }
+            else if (!this.isInWater()) {
+                double velocity = this.getDeltaMovement().length();
+                float length = (float) (velocity * 10);
+                this.xMin = -(length);
+
+                float widthAndHeight = (length > 10) ? (length - 10) / 4 : (10 - length) / 4;
+                this.yMin = -(widthAndHeight / 2);
+                this.yMax = (widthAndHeight / 2);
+                this.zMin = -(widthAndHeight / 2);
+                this.zMax = (widthAndHeight / 2);
+            }
+            else {
+                // TODO: Put all if statement logic in their one private methods to better organize.
                 this.yMin -= 0.1F;
                 this.yMax += 0.1F;
+                this.xMin -= 0.01F;
+                this.xMax += 0.01F;
                 this.zMin -= 0.1F;
                 this.zMax += 0.1F;
 
+                // Rapidly decrease the life of the entity in water.
                 this.currentLifeTime += (CommonConfig.despawnTime() / 50);
+
+                if (this.previousPosition.equals(this.position())) {
+                    this.samePositionTicks++;
+                    if (this.samePositionTicks >= 4) {
+                        this.discard();
+                        BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.remove(this);
+                    }
+                }
             }
-        }
-        else if (this.isSolid) {
-            this.currentLifeTime = 0;
-            double velocity = this.getDeltaMovement().length();
-            float length = 2;
-            this.xMin = -(length);
-
-            float widthAndHeight = (10 - length) / 4;
-            this.yMin = -(widthAndHeight / 2);
-            this.yMax = (widthAndHeight / 2);
-            this.zMin = -(widthAndHeight / 2);
-            this.zMax = (widthAndHeight / 2);
-
-            if (this.isInWater()) {
-                this.discard();
-            }
-        }
-        else if (!this.isInWater()) {
-            this.currentLifeTime = 0;
-            double velocity = this.getDeltaMovement().length();
-            float length = (float) (velocity * 10);
-            this.xMin = -(length);
-
-            float widthAndHeight = (length > 10) ? (length - 10) / 4 : (10 - length) / 4;
-            this.yMin = -(widthAndHeight / 2);
-            this.yMax = (widthAndHeight / 2);
-            this.zMin = -(widthAndHeight / 2);
-            this.zMax = (widthAndHeight / 2);
-        }
-        else {
-            // TODO: Put all if statement logic in their one private methods to better organize.
-            this.yMin -= 0.1F;
-            this.yMax += 0.1F;
-            this.xMin -= 0.01F;
-            this.xMax += 0.01F;
-            this.zMin -= 0.1F;
-            this.zMax += 0.1F;
-
-            // Rapidly decrease the life of the entity in water.
-            this.currentLifeTime += (CommonConfig.despawnTime() / 50);
-            this.tickDespawn();
         }
     }
 
@@ -249,6 +267,7 @@ public class BloodSprayEntity extends AbstractArrow {
 
             if (result.getDirection().equals(Direction.UP)) {
                 this.inGround = true;
+                this.wasInGround = true;
 
                 Vec3 vec3 = result.getLocation().subtract(this.getX(), this.getY(), this.getZ());
 
@@ -363,10 +382,11 @@ public class BloodSprayEntity extends AbstractArrow {
 
             // Modified sound to be a deeper pitch of Slime Block sounds.
             // TODO: Add custom spatter sounds here.
-            this.setSoundEvent(BloodyBitsUtils.getRandomSound(new Random().nextInt(4)));
+            this.setSoundEvent(BloodyBitsUtils.getRandomSound(new Random().nextInt(3)));
             this.playSound(this.getHitGroundSoundEvent(), 0.75F, 1.8F / (this.random.nextFloat() * 0.2F + 0.9F));
 
             this.inGround = true;
+            this.wasInGround = true;
         }
 
         this.setCritArrow(false);
@@ -455,6 +475,23 @@ public class BloodSprayEntity extends AbstractArrow {
     private double getBlockBoundsExpAmount(int blockPos, boolean isMax) {
 
         return (isMax) ? blockPos + 1 : blockPos;
+    }
+
+    @Override
+    protected void onHit(HitResult hitResult) {
+//        BloodyBitsMod.LOGGER.info("ON HIT OVERRIDE");
+        if (hitResult.getType() == HitResult.Type.BLOCK) {
+//            BloodyBitsMod.LOGGER.info("ON HIT OVERRIDE ----- HIT BLOCK");
+            BlockHitResult blockhitresult = (BlockHitResult)hitResult;
+            this.onHitBlock(blockhitresult);
+            BlockPos blockpos = blockhitresult.getBlockPos();
+            this.level().gameEvent(GameEvent.PROJECTILE_LAND, blockpos, GameEvent.Context.of(this, this.level().getBlockState(blockpos)));
+        }
+    }
+
+    @Override
+    protected boolean canHitEntity(Entity entity) {
+        return false;
     }
 
     @Override

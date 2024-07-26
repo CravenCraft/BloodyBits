@@ -44,13 +44,12 @@ public class BloodyBitsUtils {
                 .endVertex();
     }
 
+    // TODO: One of these sounds isn't being properly found. Find out which one and remove it.
     public static SoundEvent getRandomSound(int randomNumber) {
         return switch (randomNumber) {
-            case 0 -> SoundEvents.SLIME_BLOCK_STEP;
-            case 1 -> SoundEvents.MUD_STEP;
-            case 2 -> SoundEvents.MUD_HIT;
-            case 3 -> SoundEvents.WET_GRASS_HIT;
-            default -> SoundEvents.SLIME_BLOCK_HIT;
+            case 1 -> SoundEvents.MUD_HIT;
+            case 2 -> SoundEvents.WET_GRASS_HIT;
+            default -> SoundEvents.MUD_STEP;
         };
     }
 }

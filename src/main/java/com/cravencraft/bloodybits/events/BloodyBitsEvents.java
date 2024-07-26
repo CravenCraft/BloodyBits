@@ -26,7 +26,7 @@ public class BloodyBitsEvents {
      */
     @SubscribeEvent
     public static void bloodOnEntityDamage(LivingDamageEvent event) {
-        if (!event.getEntity().level().isClientSide()) {
+        if (!event.getEntity().level().isClientSide() && !CommonConfig.blackListEntities().contains(event.getEntity().getEncodeId())) {
             for (Player player : Objects.requireNonNull(event.getEntity().level().getServer()).getPlayerList().getPlayers()) {
                 if (event.getEntity().distanceTo(player) < CommonConfig.distanceToPlayers()) {
                     createBloodSpray(event);
