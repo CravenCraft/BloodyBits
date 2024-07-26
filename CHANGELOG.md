@@ -1,5 +1,7 @@
 ## V1.2.0
 - Added a config option to set the volume for both the blood spatters and explosions.
+- Added a blacklist for damage sources. By default, I've included all vanilla sources that wouldn't make sense.
+- Removed the common config check for **player radius**. This should automatically be done by Minecraft.
 
 ## V1.1.1
 - Added a blacklist option to the config for any entities that may cause potential crashes with this mod. One known
@@ -20,4 +22,4 @@
 - Switched to LivingDamageEvent to prevent undamaged entities such as creative players from producing blood.
 
 ## V1.0.0
-The initial creation of the mod's framework. 
+The initial creation of the mod's framework.

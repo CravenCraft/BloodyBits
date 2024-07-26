@@ -24,11 +24,15 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import javax.annotation.Nullable;
+
 @Mixin(LivingEntity.class)
 public abstract class LivingEntityMixin extends Entity {
     private LivingEntity self;
 
     @Shadow public int deathTime;
+
+    @Shadow @Nullable private DamageSource lastDamageSource;
 
     public LivingEntityMixin(EntityType<?> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
@@ -53,7 +57,10 @@ public abstract class LivingEntityMixin extends Entity {
     @Inject(method = "tickDeath", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;broadcastEntityEvent(Lnet/minecraft/world/entity/Entity;B)V"))
     private void addBloodChunksToDeath(CallbackInfo ci) {
         if (CommonConfig.deathBloodExplosion() && this.self != null && !CommonConfig.blackListEntities().contains(this.getEncodeId())) {
-            this.createBloodExplosion();
+            assert this.lastDamageSource != null;
+            if (!CommonConfig.blackListDamageSources().contains(this.lastDamageSource.type().msgId())) {
+                this.createBloodExplosion();
+            }
         }
     }
 
@@ -71,9 +78,9 @@ public abstract class LivingEntityMixin extends Entity {
      * Creates blood chunks and sprays on an entity's death.
      */
     private void createBloodExplosion() {
-        int maxChunks = (int) Math.min(20, this.getBoundingBox().getSize() * 10);
+        int maxBloodChunks = (int) Math.min(20, this.getBoundingBox().getSize() * 10);
         String ownerName = (this.toString().contains("Player")) ? "player" : this.getEncodeId();
-        for (int i=0; i < maxChunks; i++) {
+        for (int i=0; i < maxBloodChunks; i++) {
             if (BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.size() >= CommonConfig.maxSpatters()) {
                 BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.get(0).discard();
                 BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.remove(0);

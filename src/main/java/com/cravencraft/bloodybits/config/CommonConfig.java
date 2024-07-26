@@ -14,12 +14,12 @@ public class CommonConfig {
     private static ForgeConfigSpec.IntValue DESPAWN_TIME;
     private static ForgeConfigSpec.IntValue MAX_SPATTERS;
     private static ForgeConfigSpec.IntValue MAX_CHUNKS;
-    private static ForgeConfigSpec.IntValue DISTANCE_TO_PLAYERS;
     private static ForgeConfigSpec.DoubleValue BLOOD_SPATTER_VOLUME;
     private static ForgeConfigSpec.DoubleValue BLOOD_EXPLOSION_VOLUME;
 
     private static ForgeConfigSpec.ConfigValue<List<? extends String>> SOLID_ENTITIES;
     private static ForgeConfigSpec.ConfigValue<List<? extends String>> BLACKLIST_ENTITIES;
+    private static ForgeConfigSpec.ConfigValue<List<? extends String>> BLACKLIST_DAMAGE_SOURCES;
 
     public static boolean showBloodChunks() { return SHOW_BLOOD_CHUNKS.get(); }
     public static boolean deathBloodExplosion() { return DEATH_BLOOD_EXPLOSION.get(); }
@@ -35,13 +35,12 @@ public class CommonConfig {
     public static int maxChunks() {
         return MAX_CHUNKS.get();
     }
-
-    public static int distanceToPlayers() { return DISTANCE_TO_PLAYERS.get(); }
     public static double bloodSpatterVolume() { return BLOOD_SPATTER_VOLUME.get(); }
     public static double bloodExplosionVolume() { return BLOOD_EXPLOSION_VOLUME.get(); }
 
     public static List<? extends String> solidEntities() { return SOLID_ENTITIES.get(); }
     public static List<? extends String> blackListEntities() { return BLACKLIST_ENTITIES.get(); }
+    public static List<? extends String> blackListDamageSources() { return BLACKLIST_DAMAGE_SOURCES.get(); }
 
     public static void loadCommonConfig() {
         BUILDER.push("blood spray settings");
@@ -56,8 +55,6 @@ public class CommonConfig {
                 .define("show_blood_chunks", false);
         MAX_CHUNKS = BUILDER.comment("The maximum amount of blood chunks that can exist in the world at once.")
                 .defineInRange("max_chunks", 100, 0, 10000);
-        DISTANCE_TO_PLAYERS = BUILDER.comment("The maximum amount of distance a player can be away from a damaged entity for blood to spray.")
-                .defineInRange("distance_to_players", 100, 0, 1000);
         BLOOD_SPATTER_VOLUME = BUILDER.comment("The volume of a blood spatter.")
                 .defineInRange("blood_spatter_volume", 0.75, 0, 1.0);
         BLOOD_EXPLOSION_VOLUME = BUILDER.comment("The volume of a blood explosion whenever an entity dies.")
@@ -70,6 +67,10 @@ public class CommonConfig {
         BLACKLIST_ENTITIES = BUILDER.comment("Some mobs don't play nice with this mod, and may cause crashes. Define which mobs you want to blacklist here.")
                 .defineListAllowEmpty("blacklist_entities",
                         List.of("alexsmobs:cachalot_whale"),
+                        it -> it instanceof String);
+        BLACKLIST_DAMAGE_SOURCES = BUILDER.comment("Define what damage sources will be blacklisted from producing blood sprays or explosions.")
+                .defineListAllowEmpty("blacklist_damage_sources",
+                        List.of("onFire", "inFire", "starve", "drown", "hotFloor", "dragonBreath", "dryOut", "freeze", "lava"),
                         it -> it instanceof String);
 
         BUILDER.pop();
