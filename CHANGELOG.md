@@ -2,7 +2,7 @@
 - Added a blacklist option to the config for any entities that may cause potential crashes with this mod. One known
     entity so far is **alexsmobs:cachalot_whale**.
 - Updated the sounds for the blood spatters to be less slime-like.
-- Added a few checks to ensure that any blood spray entities are removed.
+- Added a few checks to ensure that any blood spray entities are removed if left hanging in the air too long.
 
 ## V1.1.0
 - Added a config setting to still show blood explosions on an entity's death even if blood chunks are set to **false**.
