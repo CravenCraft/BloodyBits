@@ -261,9 +261,9 @@ public class BloodSprayEntity extends AbstractArrow {
     @Override
     protected void onHitBlock(BlockHitResult result) {
         if (this.isSolid) {
-            // Modified sound to be a deeper pitch of Slime Block sounds.
             this.setSoundEvent((Math.random() > 0.5) ? SoundEvents.BONE_BLOCK_FALL : SoundEvents.BONE_BLOCK_HIT);
-            this.playSound(this.getHitGroundSoundEvent(), 0.75F, 1.8F / (this.random.nextFloat() * 0.2F + 0.9F));
+            float volume = (float) CommonConfig.bloodExplosionVolume();
+            this.playSound(this.getHitGroundSoundEvent(), volume, 1.8F / (this.random.nextFloat() * 0.2F + 0.9F));
 
             if (result.getDirection().equals(Direction.UP)) {
                 this.inGround = true;
@@ -383,7 +383,8 @@ public class BloodSprayEntity extends AbstractArrow {
             // Modified sound to be a deeper pitch of Slime Block sounds.
             // TODO: Add custom spatter sounds here.
             this.setSoundEvent(BloodyBitsUtils.getRandomSound(new Random().nextInt(3)));
-            this.playSound(this.getHitGroundSoundEvent(), 0.75F, 1.8F / (this.random.nextFloat() * 0.2F + 0.9F));
+            float volume = (float) CommonConfig.bloodExplosionVolume();
+            this.playSound(this.getHitGroundSoundEvent(), volume, 1.8F / (this.random.nextFloat() * 0.2F + 0.9F));
 
             this.inGround = true;
             this.wasInGround = true;

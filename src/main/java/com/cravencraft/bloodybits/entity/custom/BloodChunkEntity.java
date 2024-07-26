@@ -214,7 +214,8 @@ public class BloodChunkEntity extends AbstractArrow {
         }
 
 
-        this.playSound(this.getHitGroundSoundEvent(), 0.75F, 1.8F / (this.random.nextFloat() * 0.2F + 0.9F));
+        float volume = (float) CommonConfig.bloodExplosionVolume();
+        this.playSound(this.getHitGroundSoundEvent(), volume, 1.8F / (this.random.nextFloat() * 0.2F + 0.9F));
 
         this.inGround = true;
         this.setCritArrow(false);

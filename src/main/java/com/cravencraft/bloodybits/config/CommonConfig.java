@@ -15,6 +15,8 @@ public class CommonConfig {
     private static ForgeConfigSpec.IntValue MAX_SPATTERS;
     private static ForgeConfigSpec.IntValue MAX_CHUNKS;
     private static ForgeConfigSpec.IntValue DISTANCE_TO_PLAYERS;
+    private static ForgeConfigSpec.DoubleValue BLOOD_SPATTER_VOLUME;
+    private static ForgeConfigSpec.DoubleValue BLOOD_EXPLOSION_VOLUME;
 
     private static ForgeConfigSpec.ConfigValue<List<? extends String>> SOLID_ENTITIES;
     private static ForgeConfigSpec.ConfigValue<List<? extends String>> BLACKLIST_ENTITIES;
@@ -35,6 +37,8 @@ public class CommonConfig {
     }
 
     public static int distanceToPlayers() { return DISTANCE_TO_PLAYERS.get(); }
+    public static double bloodSpatterVolume() { return BLOOD_SPATTER_VOLUME.get(); }
+    public static double bloodExplosionVolume() { return BLOOD_EXPLOSION_VOLUME.get(); }
 
     public static List<? extends String> solidEntities() { return SOLID_ENTITIES.get(); }
     public static List<? extends String> blackListEntities() { return BLACKLIST_ENTITIES.get(); }
@@ -54,6 +58,10 @@ public class CommonConfig {
                 .defineInRange("max_chunks", 100, 0, 10000);
         DISTANCE_TO_PLAYERS = BUILDER.comment("The maximum amount of distance a player can be away from a damaged entity for blood to spray.")
                 .defineInRange("distance_to_players", 100, 0, 1000);
+        BLOOD_SPATTER_VOLUME = BUILDER.comment("The volume of a blood spatter.")
+                .defineInRange("blood_spatter_volume", 0.75, 0, 1.0);
+        BLOOD_EXPLOSION_VOLUME = BUILDER.comment("The volume of a blood explosion whenever an entity dies.")
+                .defineInRange("blood_explosion_volume", 0.75, 0, 1.0);
         SOLID_ENTITIES = BUILDER.comment("Define what mobs 'bleed' solid bits. This is mainly skeletons. Instead of bleeding they will just shoot out colored bits," +
                         "and instead of getting bloodier when damaged, they will lose pixels.")
                 .defineListAllowEmpty("solid_entities",

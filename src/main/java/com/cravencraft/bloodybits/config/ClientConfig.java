@@ -21,6 +21,8 @@ import java.util.List;
 
 
 public class ClientConfig {
+
+    // TODO: Either here or in the common config add an option for blood explosion and spatter volume sounds.
     public static final Gson GSON = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).setPrettyPrinting().create();
 
     private static final String BLOOD_BLACK = "#323232";

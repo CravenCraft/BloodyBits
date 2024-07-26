@@ -1,3 +1,6 @@
+## V1.2.0
+- Added a config option to set the volume for both the blood spatters and explosions.
+
 ## V1.1.1
 - Added a blacklist option to the config for any entities that may cause potential crashes with this mod. One known
     entity so far is **alexsmobs:cachalot_whale**.

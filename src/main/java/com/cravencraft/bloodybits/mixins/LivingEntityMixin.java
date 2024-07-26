@@ -1,6 +1,7 @@
 package com.cravencraft.bloodybits.mixins;
 
 import com.cravencraft.bloodybits.BloodyBitsMod;
+import com.cravencraft.bloodybits.config.ClientConfig;
 import com.cravencraft.bloodybits.config.CommonConfig;
 import com.cravencraft.bloodybits.entity.custom.BloodChunkEntity;
 import com.cravencraft.bloodybits.entity.custom.BloodSprayEntity;
@@ -108,11 +109,12 @@ public abstract class LivingEntityMixin extends Entity {
                         new EntityMessage(bloodChunkEntity.getId(), this.getId()));
             }
         }
+        float volume = (float) CommonConfig.bloodExplosionVolume();
         if (CommonConfig.solidEntities().contains(ownerName)) {
-            this.playSound(SoundEvents.BONE_BLOCK_BREAK, 1.0F, 1.0F / (this.random.nextFloat() * 0.2F + 0.9F));
+            this.playSound(SoundEvents.BONE_BLOCK_BREAK, volume, 1.0F / (this.random.nextFloat() * 0.2F + 0.9F));
         }
         else {
-            this.playSound(BloodyBitsSounds.BODY_EXPLOSION.get(), 1.0F, 1.0F / (this.random.nextFloat() * 0.2F + 0.9F));
+            this.playSound(BloodyBitsSounds.BODY_EXPLOSION.get(), volume, 1.0F / (this.random.nextFloat() * 0.2F + 0.9F));
         }
     }
 }
