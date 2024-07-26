@@ -65,7 +65,7 @@ public class BloodSprayEntity extends AbstractArrow {
     public BlockPos hitBlockPos;
     public Vec3 hitPosition;
     public Vec3 previousPosition;
-    public int samePositionTicks;
+    public int inAirTicks;
     public int red = 200;
     public int green = 1;
     public int blue = 1;
@@ -172,7 +172,7 @@ public class BloodSprayEntity extends AbstractArrow {
         }
 
         // Removes any blood spray entity that has a null owner. This usually happens whenever the game closes & opens back up.
-        if (!this.level().isClientSide() && (this.ownerName == null || (this.wasInGround && !this.inGround))) {
+        if (!this.level().isClientSide() && this.ownerName == null) {
             this.discard();
             BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.remove(this);
         }
@@ -230,6 +230,14 @@ public class BloodSprayEntity extends AbstractArrow {
                 this.yMax = (widthAndHeight / 2);
                 this.zMin = -(widthAndHeight / 2);
                 this.zMax = (widthAndHeight / 2);
+
+                if (this.inAirTicks > 100) {
+                    this.discard();
+                    BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.remove(this);
+                }
+                else {
+                    this.inAirTicks++;
+                }
             }
             else {
                 // TODO: Put all if statement logic in their one private methods to better organize.
@@ -242,14 +250,6 @@ public class BloodSprayEntity extends AbstractArrow {
 
                 // Rapidly decrease the life of the entity in water.
                 this.currentLifeTime += (CommonConfig.despawnTime() / 50);
-
-                if (this.previousPosition.equals(this.position())) {
-                    this.samePositionTicks++;
-                    if (this.samePositionTicks >= 4) {
-                        this.discard();
-                        BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.remove(this);
-                    }
-                }
             }
         }
     }
@@ -377,7 +377,7 @@ public class BloodSprayEntity extends AbstractArrow {
             blockstate.onProjectileHit(this.level(), blockstate, result, this);
             Vec3 vec3 = result.getLocation().subtract(this.getX(), this.getY(), this.getZ());
             this.setDeltaMovement(vec3);
-            Vec3 vec31 = vec3.normalize().scale((double)0.05F);
+            Vec3 vec31 = vec3.normalize().scale(0.05F);
             this.setPosRaw(this.getX() - vec31.x, this.getY() - vec31.y, this.getZ() - vec31.z);
 
             // Modified sound to be a deeper pitch of Slime Block sounds.
