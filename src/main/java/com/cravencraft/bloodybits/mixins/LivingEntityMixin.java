@@ -19,6 +19,7 @@ import net.minecraft.world.level.Level;
 import net.minecraftforge.network.PacketDistributor;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
@@ -28,6 +29,7 @@ import javax.annotation.Nullable;
 
 @Mixin(LivingEntity.class)
 public abstract class LivingEntityMixin extends Entity {
+    @Unique
     private LivingEntity self;
 
     @Shadow public int deathTime;
@@ -56,10 +58,9 @@ public abstract class LivingEntityMixin extends Entity {
      */
     @Inject(method = "tickDeath", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;broadcastEntityEvent(Lnet/minecraft/world/entity/Entity;B)V"))
     private void addBloodChunksToDeath(CallbackInfo ci) {
-        
         if (this.self != null) {
             String entityId = (this.toString().contains("Player")) ? "player" : this.getEncodeId();
-            if (CommonConfig.deathBloodExplosion() && !CommonConfig.blackListEntities().contains(this.getEncodeId())) {
+            if (CommonConfig.deathBloodExplosion() && !CommonConfig.blackListEntities().contains(entityId)) {
                 assert this.lastDamageSource != null;
                 if (!CommonConfig.blackListDamageSources().contains(this.lastDamageSource.msgId)) {
                     this.createBloodExplosion();
