@@ -250,6 +250,7 @@ public class BloodSprayEntity extends AbstractArrow {
 
                 // Rapidly decrease the life of the entity in water.
                 this.currentLifeTime += (CommonConfig.despawnTime() / 50);
+                this.tickDespawn();
             }
         }
     }
