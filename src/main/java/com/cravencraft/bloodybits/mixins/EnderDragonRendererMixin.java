@@ -55,7 +55,7 @@ public abstract class EnderDragonRendererMixin {
 
         if (ClientConfig.showMobDamage() && !this.entity.isDeadOrDying() && this.entity.getHealth() < this.entity.getMaxHealth()) {
             try {
-                InputStream fileInput = Minecraft.getInstance().getResourceManager().open(this.getTextureLocation(this.entity));
+                InputStream fileInput = Minecraft.getInstance().getResourceManager().getResource(this.getTextureLocation(this.entity)).getInputStream();
                 NativeImage nativeImage = NativeImage.read(fileInput);
 
                 int redDamage = 200;

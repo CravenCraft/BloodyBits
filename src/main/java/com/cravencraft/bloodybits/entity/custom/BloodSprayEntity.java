@@ -481,13 +481,14 @@ public class BloodSprayEntity extends AbstractArrow {
 
     @Override
     protected void onHit(HitResult hitResult) {
-//        BloodyBitsMod.LOGGER.info("ON HIT OVERRIDE");
-        if (hitResult.getType() == HitResult.Type.BLOCK) {
-//            BloodyBitsMod.LOGGER.info("ON HIT OVERRIDE ----- HIT BLOCK");
-            BlockHitResult blockhitresult = (BlockHitResult)hitResult;
-            this.onHitBlock(blockhitresult);
-            BlockPos blockpos = blockhitresult.getBlockPos();
-            this.level.gameEvent(GameEvent.PROJECTILE_LAND, blockpos, GameEvent.Context.of(this, this.level.getBlockState(blockpos)));
+        HitResult.Type hitResultType = hitResult.getType();
+
+        if (hitResultType == HitResult.Type.BLOCK) {
+            this.onHitBlock((BlockHitResult)hitResult);
+        }
+
+        if (hitResultType != HitResult.Type.MISS) {
+            this.gameEvent(GameEvent.PROJECTILE_LAND, this.getOwner());
         }
     }
 

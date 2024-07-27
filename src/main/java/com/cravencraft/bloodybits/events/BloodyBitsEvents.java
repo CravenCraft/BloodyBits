@@ -44,7 +44,7 @@ public class BloodyBitsEvents {
                 BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.remove(0);
             }
 
-            BloodSprayEntity bloodSprayEntity = new BloodSprayEntity(EntityRegistry.BLOOD_SPRAY.get(), event.getEntity(), event.getEntity().level);
+            BloodSprayEntity bloodSprayEntity = new BloodSprayEntity(EntityRegistry.BLOOD_SPRAY.get(), event.getEntityLiving(), event.getEntity().level);
             BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.add(bloodSprayEntity);
             Vec3 sourceAngle;
             if (event.getSource().getEntity() != null) {

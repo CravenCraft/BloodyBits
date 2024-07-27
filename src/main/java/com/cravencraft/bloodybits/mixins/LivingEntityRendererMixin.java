@@ -76,7 +76,7 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extend
 
         if (ClientConfig.showMobDamage() && !this.entity.isDeadOrDying() && this.entity.getHealth() < this.entity.getMaxHealth() && !(this.entity instanceof Player)) {
             try {
-                NativeImage nativeImage = NativeImage.read(Minecraft.getInstance().getResourceManager().open(this.getTextureLocation((T) this.entity)));
+                NativeImage nativeImage = NativeImage.read(Minecraft.getInstance().getResourceManager().getResource(this.getTextureLocation((T) this.entity)).getInputStream());
                 String entityName = this.entity.getEncodeId();
 
                 int redDamage = 200;

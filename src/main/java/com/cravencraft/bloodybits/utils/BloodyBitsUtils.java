@@ -47,9 +47,9 @@ public class BloodyBitsUtils {
     // TODO: One of these sounds isn't being properly found. Find out which one and remove it.
     public static SoundEvent getRandomSound(int randomNumber) {
         return switch (randomNumber) {
-            case 1 -> SoundEvents.MUD_HIT;
+            case 1 -> SoundEvents.WET_GRASS_STEP;
             case 2 -> SoundEvents.WET_GRASS_HIT;
-            default -> SoundEvents.MUD_STEP;
+            default -> SoundEvents.WET_GRASS_FALL;
         };
     }
 }
