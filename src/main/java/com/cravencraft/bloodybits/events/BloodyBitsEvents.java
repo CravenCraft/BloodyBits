@@ -26,8 +26,11 @@ public class BloodyBitsEvents {
      */
     @SubscribeEvent
     public static void bloodOnEntityDamage(LivingDamageEvent event) {
-        if (!event.getEntity().level().isClientSide() && !CommonConfig.blackListEntities().contains(event.getEntity().getEncodeId()) && !CommonConfig.blackListDamageSources().contains(event.getSource().type().msgId())) {
-            createBloodSpray(event);
+        if (event.getEntity() != null) {
+            String entityId = (event.getEntity().toString().contains("Player")) ? "player" : event.getEntity().getEncodeId();
+            if (!event.getEntity().level().isClientSide() && !CommonConfig.blackListEntities().contains(entityId) && !CommonConfig.blackListDamageSources().contains(event.getSource().type().msgId())) {
+                createBloodSpray(event);
+            }
         }
     }
 

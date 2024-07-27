@@ -48,13 +48,13 @@ public class CommonConfig {
         DESPAWN_TIME = BUILDER.comment("How long in ticks (20 ticks = 1 second) until a blood spatter despawns.")
                 .defineInRange("despawn_time", 2000, 0, 100000);
         MAX_SPATTERS = BUILDER.comment("The maximum amount of blood spatters that can exist in the world at once.")
-                .defineInRange("max_spatters", 200, 0, 10000);
+                .defineInRange("max_spatters", 500, 0, 10000);
         DEATH_BLOOD_EXPLOSION = BUILDER.comment("Whether or not a blood explosion should replace the death poof when an entity dies.")
                 .define("death_blood_explosion", true);
         SHOW_BLOOD_CHUNKS = BUILDER.comment("Whether or not blood chunks should replace the poof particles when an entity dies (DEATH_BLOOD_EXPLOSION needs to be true for this to be true).")
                 .define("show_blood_chunks", false);
         MAX_CHUNKS = BUILDER.comment("The maximum amount of blood chunks that can exist in the world at once.")
-                .defineInRange("max_chunks", 100, 0, 10000);
+                .defineInRange("max_chunks", 250, 0, 10000);
         BLOOD_SPATTER_VOLUME = BUILDER.comment("The volume of a blood spatter.")
                 .defineInRange("blood_spatter_volume", 0.75, 0, 1.0);
         BLOOD_EXPLOSION_VOLUME = BUILDER.comment("The volume of a blood explosion whenever an entity dies.")
