@@ -18,7 +18,7 @@ public class BloodyBitsSounds {
     public static final RegistryObject<SoundEvent> BODY_EXPLOSION = registerSoundEvents("body_explosion");
 
     private static RegistryObject<SoundEvent> registerSoundEvents(String name) {
-        return SOUND_EVENTS.register(name, () -> SoundEvent.createVariableRangeEvent(new ResourceLocation(BloodyBitsMod.MODID, name)));
+        return SOUND_EVENTS.register(name, () -> new SoundEvent(new ResourceLocation(BloodyBitsMod.MODID, name)));
     }
 
     public static void register(IEventBus eventBus) {

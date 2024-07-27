@@ -58,7 +58,7 @@ public abstract class LivingEntityMixin extends Entity {
     private void addBloodChunksToDeath(CallbackInfo ci) {
         if (CommonConfig.deathBloodExplosion() && this.self != null && !CommonConfig.blackListEntities().contains(this.getEncodeId())) {
             assert this.lastDamageSource != null;
-            if (!CommonConfig.blackListDamageSources().contains(this.lastDamageSource.type().msgId())) {
+            if (!CommonConfig.blackListDamageSources().contains(this.lastDamageSource.msgId)) {
                 this.createBloodExplosion();
             }
         }
@@ -86,7 +86,7 @@ public abstract class LivingEntityMixin extends Entity {
                 BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.remove(0);
             }
 
-            BloodSprayEntity bloodSprayEntity = new BloodSprayEntity(EntityRegistry.BLOOD_SPRAY.get(), this.self, this.level());
+            BloodSprayEntity bloodSprayEntity = new BloodSprayEntity(EntityRegistry.BLOOD_SPRAY.get(), this.self, this.level);
             BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.add(bloodSprayEntity);
 
             double xAngle = BloodyBitsUtils.getRandomAngle(0.5);
@@ -96,7 +96,7 @@ public abstract class LivingEntityMixin extends Entity {
 
             bloodSprayEntity.setDeltaMovement(xAngle, yAngle, zAngle);
 
-            this.level().addFreshEntity(bloodSprayEntity);
+            this.level.addFreshEntity(bloodSprayEntity);
 
 
             BloodyBitsPacketHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> bloodSprayEntity),
@@ -108,10 +108,10 @@ public abstract class LivingEntityMixin extends Entity {
                     BloodyBitsUtils.BLOOD_CHUNK_ENTITIES.remove(0);
                 }
 
-                BloodChunkEntity bloodChunkEntity = new BloodChunkEntity(EntityRegistry.BLOOD_CHUNK.get(), this.self, this.level(), 0);
+                BloodChunkEntity bloodChunkEntity = new BloodChunkEntity(EntityRegistry.BLOOD_CHUNK.get(), this.self, this.level, 0);
                 BloodyBitsUtils.BLOOD_CHUNK_ENTITIES.add(bloodChunkEntity);
                 bloodChunkEntity.setDeltaMovement(xAngle, yAngle, zAngle);
-                this.level().addFreshEntity(bloodChunkEntity);
+                this.level.addFreshEntity(bloodChunkEntity);
                 BloodyBitsPacketHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> bloodChunkEntity),
                         new EntityMessage(bloodChunkEntity.getId(), this.getId()));
             }

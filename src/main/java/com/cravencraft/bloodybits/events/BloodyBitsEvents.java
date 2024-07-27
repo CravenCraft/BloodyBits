@@ -26,7 +26,8 @@ public class BloodyBitsEvents {
      */
     @SubscribeEvent
     public static void bloodOnEntityDamage(LivingDamageEvent event) {
-        if (!event.getEntity().level().isClientSide() && !CommonConfig.blackListEntities().contains(event.getEntity().getEncodeId()) && !CommonConfig.blackListDamageSources().contains(event.getSource().type().msgId())) {
+        String entityId = (event.getEntity().toString().contains("Player")) ? "player" : event.getEntity().getEncodeId();
+        if (!event.getEntity().level.isClientSide() && !CommonConfig.blackListEntities().contains(entityId) && !CommonConfig.blackListDamageSources().contains(event.getSource().msgId)) {
             createBloodSpray(event);
         }
     }
@@ -41,7 +42,7 @@ public class BloodyBitsEvents {
                 BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.remove(0);
             }
 
-            BloodSprayEntity bloodSprayEntity = new BloodSprayEntity(EntityRegistry.BLOOD_SPRAY.get(), event.getEntity(), event.getEntity().level());
+            BloodSprayEntity bloodSprayEntity = new BloodSprayEntity(EntityRegistry.BLOOD_SPRAY.get(), event.getEntity(), event.getEntity().level);
             BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.add(bloodSprayEntity);
             Vec3 sourceAngle;
             if (event.getSource().getEntity() != null) {
@@ -61,7 +62,7 @@ public class BloodyBitsEvents {
             zAngle = (zAngle > 0) ? (zAngle - Math.random()) : (zAngle + Math.random()) - adjustedDamage;
 
             bloodSprayEntity.setDeltaMovement(xAngle * 0.25, yAngle * 0.35, zAngle * 0.25);
-            event.getEntity().level().addFreshEntity(bloodSprayEntity);
+            event.getEntity().level.addFreshEntity(bloodSprayEntity);
 
             BloodyBitsPacketHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> bloodSprayEntity),
                     new EntityMessage(bloodSprayEntity.getId(), event.getEntity().getId()));

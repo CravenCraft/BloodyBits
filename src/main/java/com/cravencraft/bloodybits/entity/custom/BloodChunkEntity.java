@@ -20,12 +20,12 @@ import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.NotNull;
-import org.joml.Random;
 
 import javax.annotation.Nullable;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 /**
  * This class will create a blood chunk whenever an entity dies (if specified in the Common Config).
@@ -61,7 +61,7 @@ public class BloodChunkEntity extends AbstractArrow {
     public BloodChunkEntity(EntityType<BloodChunkEntity> entityType, Level level) {
         super(entityType, level);
         this.randomTextureNumber = new Random().nextInt(BLOOD_CHUNK_TEXTURES);
-        if (this.level().isClientSide()) {
+        if (this.level.isClientSide()) {
             this.initialMinX = this.xMin = -new Random().nextInt(3) - 1;
             this.initialMaxX = this.xMax = new Random().nextInt(3) + 1;
             this.initialMinY = this.yMin = -new Random().nextInt(3) - 1;
@@ -93,7 +93,7 @@ public class BloodChunkEntity extends AbstractArrow {
         if (ownerEntity != null) {
             this.ownerName = (ownerEntity.toString().contains("Player")) ? "player" : ownerEntity.getEncodeId();
             this.isSolid = CommonConfig.solidEntities().contains(this.ownerName);
-            if (this.level().isClientSide()) {
+            if (this.level.isClientSide()) {
                 for (Map.Entry<String, List<String>> mapElement : ClientConfig.mobBloodColors().entrySet()) {
                     if (mapElement.getValue().contains(this.ownerName)) {
                         String bloodColorHexVal = mapElement.getKey();
@@ -159,7 +159,7 @@ public class BloodChunkEntity extends AbstractArrow {
         super.tick();
 
         if (this.inGround) {
-            if (!this.shouldFall() && this.level().isClientSide()) {
+            if (!this.shouldFall() && this.level.isClientSide()) {
                 this.tickDespawn();
             }
         }
@@ -202,8 +202,8 @@ public class BloodChunkEntity extends AbstractArrow {
         }
         else {
             // All of this is boilerplate from AbstractArrow except the setSoundEvent now playing a slime sound.
-            BlockState blockstate = this.level().getBlockState(result.getBlockPos());
-            blockstate.onProjectileHit(this.level(), blockstate, result, this);
+            BlockState blockstate = this.level.getBlockState(result.getBlockPos());
+            blockstate.onProjectileHit(this.level, blockstate, result, this);
             Vec3 vec3 = result.getLocation().subtract(this.getX(), this.getY(), this.getZ());
             this.setDeltaMovement(vec3);
             Vec3 vec31 = vec3.normalize().scale((double)0.05F);
@@ -233,7 +233,7 @@ public class BloodChunkEntity extends AbstractArrow {
     protected void onHitEntity(EntityHitResult pResult) {}
 
     @Override
-    public Packet<ClientGamePacketListener> getAddEntityPacket() {
+    public Packet<?> getAddEntityPacket() {
         return NetworkHooks.getEntitySpawningPacket(this);
     }
 }

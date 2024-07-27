@@ -5,7 +5,9 @@ import com.cravencraft.bloodybits.entity.custom.BloodChunkEntity;
 import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.math.Axis;
+import com.mojang.math.Matrix3f;
+import com.mojang.math.Matrix4f;
+import com.mojang.math.Vector3f;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderer;
@@ -14,8 +16,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import org.jetbrains.annotations.NotNull;
-import org.joml.Matrix3f;
-import org.joml.Matrix4f;
 
 /**
  * This class will render the BloodChunkEntity on the client. It will use values defined within the BloodChunkEntity
@@ -39,14 +39,14 @@ public class BloodChunkRenderer extends EntityRenderer<BloodChunkEntity> {
         pPoseStack.pushPose();
 
         if (entity.entityDirection == null) {
-            pPoseStack.mulPose(Axis.YP.rotationDegrees(Mth.lerp(pPartialTicks, entity.yRotO, entity.getYRot()) - 90.0F));
-            pPoseStack.mulPose(Axis.ZP.rotationDegrees(Mth.lerp(pPartialTicks, entity.xRotO, entity.getXRot())));
+            pPoseStack.mulPose(Vector3f.YP.rotationDegrees(Mth.lerp(pPartialTicks, entity.yRotO, entity.getYRot()) - 90.0F));
+            pPoseStack.mulPose(Vector3f.ZP.rotationDegrees(Mth.lerp(pPartialTicks, entity.xRotO, entity.getXRot())));
         }
         else if (entity.entityDirection.equals(Direction.NORTH) || entity.entityDirection.equals(Direction.SOUTH)) {
-            pPoseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            pPoseStack.mulPose(Vector3f.YP.rotationDegrees(90.0F));
         }
         else if (entity.entityDirection.equals(Direction.UP) || entity.entityDirection.equals(Direction.DOWN)) {
-            pPoseStack.mulPose(Axis.ZP.rotationDegrees(90.0F));
+            pPoseStack.mulPose(Vector3f.ZP.rotationDegrees(90.0F));
         }
 
         pPoseStack.scale(0.05625F, 0.05625F, 0.05625F);

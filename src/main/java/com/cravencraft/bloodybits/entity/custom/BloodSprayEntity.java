@@ -100,7 +100,7 @@ public class BloodSprayEntity extends AbstractArrow {
         if (ownerEntity != null) {
             this.ownerName = (ownerEntity.toString().contains("Player")) ? "player" : ownerEntity.getEncodeId();
             this.isSolid = CommonConfig.solidEntities().contains(this.ownerName);
-            if (this.level().isClientSide()) {
+            if (this.level.isClientSide()) {
                 for (Map.Entry<String, List<String>> mapElement : ClientConfig.mobBloodColors().entrySet()) {
                     if (mapElement.getValue().contains(this.ownerName)) {
                         String bloodColorHexVal = mapElement.getKey();
@@ -172,7 +172,7 @@ public class BloodSprayEntity extends AbstractArrow {
         }
 
         // Removes any blood spray entity that has a null owner. This usually happens whenever the game closes & opens back up.
-        if (!this.level().isClientSide() && this.ownerName == null) {
+        if (!this.level.isClientSide() && this.ownerName == null) {
             this.discard();
             BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.remove(this);
         }
@@ -201,7 +201,7 @@ public class BloodSprayEntity extends AbstractArrow {
                 }
 
                 // Done to set the lifetime client side as well. Needed to properly fade the rendered blood.
-                if (!this.shouldFall() && this.level().isClientSide()) {
+                if (!this.shouldFall() && this.level.isClientSide()) {
                     ++this.currentLifeTime;
                 }
             }
@@ -289,7 +289,7 @@ public class BloodSprayEntity extends AbstractArrow {
             this.hitBlockPos = result.getBlockPos();
             this.entityDirection = result.getDirection();
             this.hitPosition = result.getLocation();
-            this.lastState = this.level().getBlockState(result.getBlockPos());
+            this.lastState = this.level.getBlockState(result.getBlockPos());
             this.xHitAngle = -this.getLookAngle().x;
             this.yHitAngle = -this.getLookAngle().y;
             this.zHitAngle = this.getLookAngle().z;
@@ -373,8 +373,8 @@ public class BloodSprayEntity extends AbstractArrow {
             this.zMaxLimit = (float) determineSpatterExpansion(initialZMaxVal, false, true) * 10; // Z MAX
 
             // All of this is boilerplate from AbstractArrow except the setSoundEvent now playing a slime sound.
-            BlockState blockstate = this.level().getBlockState(result.getBlockPos());
-            blockstate.onProjectileHit(this.level(), blockstate, result, this);
+            BlockState blockstate = this.level.getBlockState(result.getBlockPos());
+            blockstate.onProjectileHit(this.level, blockstate, result, this);
             Vec3 vec3 = result.getLocation().subtract(this.getX(), this.getY(), this.getZ());
             this.setDeltaMovement(vec3);
             Vec3 vec31 = vec3.normalize().scale(0.05F);
@@ -412,13 +412,13 @@ public class BloodSprayEntity extends AbstractArrow {
         if (this.entityDirection.equals(Direction.EAST) || entityDirection.equals(Direction.WEST)) {
             if (isYAxis) {
                 modifiedExpansionAmount = getMaxBlockBoundsExpAmount(this.hitBlockPos.getY(), initialExpansionAmount, isMax);
-                isNonExpandable = nonExpandableBlocks(this.level().getBlockState(BlockPos.containing(this.hitBlockPos.getX(), modifiedExpansionAmount, hitPosition.z)).getBlock().toString());
+                isNonExpandable = nonExpandableBlocks(this.level.getBlockState(new BlockPos(this.hitBlockPos.getX(), modifiedExpansionAmount, hitPosition.z)).getBlock().toString());
                 modifiedExpansionAmount = (isNonExpandable) ? getBlockBoundsExpAmount(this.hitBlockPos.getY(), isMax) : modifiedExpansionAmount;
                 return modifiedExpansionAmount - this.hitPosition.y;
             }
             else {
                 modifiedExpansionAmount = getMaxBlockBoundsExpAmount(this.hitBlockPos.getZ(), initialExpansionAmount, isMax);
-                isNonExpandable = nonExpandableBlocks(this.level().getBlockState(BlockPos.containing(this.hitBlockPos.getX(), hitPosition.y, modifiedExpansionAmount)).getBlock().toString());
+                isNonExpandable = nonExpandableBlocks(this.level.getBlockState(new BlockPos(this.hitBlockPos.getX(), hitPosition.y, modifiedExpansionAmount)).getBlock().toString());
                 modifiedExpansionAmount = (isNonExpandable) ? getBlockBoundsExpAmount(this.hitBlockPos.getZ(), isMax) : modifiedExpansionAmount;
                 return modifiedExpansionAmount - this.hitPosition.z;
             }
@@ -427,13 +427,13 @@ public class BloodSprayEntity extends AbstractArrow {
 
             if (isYAxis) {
                 modifiedExpansionAmount = getMaxBlockBoundsExpAmount(this.hitBlockPos.getY(), initialExpansionAmount, isMax);
-                isNonExpandable = nonExpandableBlocks(this.level().getBlockState(BlockPos.containing(hitPosition.x, modifiedExpansionAmount, this.hitBlockPos.getZ())).getBlock().toString());
+                isNonExpandable = nonExpandableBlocks(this.level.getBlockState(new BlockPos(hitPosition.x, modifiedExpansionAmount, this.hitBlockPos.getZ())).getBlock().toString());
                 modifiedExpansionAmount = (isNonExpandable) ? getBlockBoundsExpAmount(this.hitBlockPos.getY(), isMax) : modifiedExpansionAmount;
                 return modifiedExpansionAmount - this.hitPosition.y;
             }
             else {
                 modifiedExpansionAmount = getMaxBlockBoundsExpAmount(this.hitBlockPos.getX(), initialExpansionAmount, isMax);
-                isNonExpandable = nonExpandableBlocks(this.level().getBlockState(BlockPos.containing(modifiedExpansionAmount, hitPosition.y, this.hitBlockPos.getZ())).getBlock().toString());
+                isNonExpandable = nonExpandableBlocks(this.level.getBlockState(new BlockPos(modifiedExpansionAmount, hitPosition.y, this.hitBlockPos.getZ())).getBlock().toString());
                 modifiedExpansionAmount = (isNonExpandable) ? getBlockBoundsExpAmount(this.hitBlockPos.getX(), isMax) : modifiedExpansionAmount;
                 return modifiedExpansionAmount - this.hitPosition.x;
             }
@@ -442,13 +442,13 @@ public class BloodSprayEntity extends AbstractArrow {
 
             if (isYAxis) {
                 modifiedExpansionAmount = getMaxBlockBoundsExpAmount(this.hitBlockPos.getX(), initialExpansionAmount, isMax);
-                isNonExpandable = nonExpandableBlocks(this.level().getBlockState(BlockPos.containing(modifiedExpansionAmount, this.hitBlockPos.getY(), hitPosition.z)).getBlock().toString());
+                isNonExpandable = nonExpandableBlocks(this.level.getBlockState(new BlockPos(modifiedExpansionAmount, this.hitBlockPos.getY(), hitPosition.z)).getBlock().toString());
                 modifiedExpansionAmount = (isNonExpandable) ? getBlockBoundsExpAmount(this.hitBlockPos.getX(), isMax) : modifiedExpansionAmount;
                 return modifiedExpansionAmount - this.hitPosition.x;
             }
             else {
                 modifiedExpansionAmount = getMaxBlockBoundsExpAmount(this.hitBlockPos.getZ(), initialExpansionAmount, isMax);
-                isNonExpandable = nonExpandableBlocks(this.level().getBlockState(BlockPos.containing(hitPosition.x, this.hitBlockPos.getY(), modifiedExpansionAmount)).getBlock().toString());
+                isNonExpandable = nonExpandableBlocks(this.level.getBlockState(new BlockPos(hitPosition.x, this.hitBlockPos.getY(), modifiedExpansionAmount)).getBlock().toString());
                 modifiedExpansionAmount = (isNonExpandable) ? getBlockBoundsExpAmount(this.hitBlockPos.getZ(), isMax) : modifiedExpansionAmount;
                 return modifiedExpansionAmount - this.hitPosition.z;
             }
@@ -486,7 +486,7 @@ public class BloodSprayEntity extends AbstractArrow {
             BlockHitResult blockhitresult = (BlockHitResult)hitResult;
             this.onHitBlock(blockhitresult);
             BlockPos blockpos = blockhitresult.getBlockPos();
-            this.level().gameEvent(GameEvent.PROJECTILE_LAND, blockpos, GameEvent.Context.of(this, this.level().getBlockState(blockpos)));
+            this.level.gameEvent(GameEvent.PROJECTILE_LAND, blockpos, GameEvent.Context.of(this, this.level.getBlockState(blockpos)));
         }
     }
 
@@ -501,7 +501,7 @@ public class BloodSprayEntity extends AbstractArrow {
     }
 
     @Override
-    public Packet<ClientGamePacketListener> getAddEntityPacket() {
+    public Packet<?> getAddEntityPacket() {
         return NetworkHooks.getEntitySpawningPacket(this);
     }
 
@@ -528,13 +528,13 @@ public class BloodSprayEntity extends AbstractArrow {
     }
 
     public void setYMin() {
-        BlockState blockExpandingTo = this.level().getBlockState(this.blockPosition());
+        BlockState blockExpandingTo = this.level.getBlockState(this.blockPosition());
 
         if (this.entityDirection.equals(Direction.EAST) || this.entityDirection.equals(Direction.WEST)) {
-            blockExpandingTo = this.level().getBlockState(BlockPos.containing(this.hitBlockPos.getX(), this.hitPosition.y + (this.yMin * 0.1) - 0.025F, this.hitPosition.z));
+            blockExpandingTo = this.level.getBlockState(new BlockPos(this.hitBlockPos.getX(), this.hitPosition.y + (this.yMin * 0.1) - 0.025F, this.hitPosition.z));
         }
         else if (this.entityDirection.equals(Direction.NORTH) || this.entityDirection.equals(Direction.SOUTH)) {
-            blockExpandingTo = this.level().getBlockState(BlockPos.containing(this.hitPosition.x, this.hitPosition.y + (this.yMin * 0.1) - 0.025F, this.hitBlockPos.getZ()));
+            blockExpandingTo = this.level.getBlockState(new BlockPos(this.hitPosition.x, this.hitPosition.y + (this.yMin * 0.1) - 0.025F, this.hitBlockPos.getZ()));
         }
 
         if (!this.entityDirection.equals(Direction.UP) && !this.entityDirection.equals(Direction.DOWN)) {

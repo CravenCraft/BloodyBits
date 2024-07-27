@@ -29,7 +29,7 @@ public abstract class AbstractArrowMixin extends Projectile {
     @Redirect(method = "tick",at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;addParticle(Lnet/minecraft/core/particles/ParticleOptions;DDDDDD)V", ordinal = 1))
     private void removeBubbleParticles(Level instance, ParticleOptions pParticleData, double x, double y, double z, double xSpeed, double ySpeed, double zSpeed) {
         if (this.getWaterInertia() > 0) {
-            this.level().addParticle(ParticleTypes.BUBBLE, x - xSpeed * 0.25D, y - ySpeed * 0.25D, z - zSpeed * 0.25D, xSpeed, ySpeed, zSpeed);
+            this.level.addParticle(ParticleTypes.BUBBLE, x - xSpeed * 0.25D, y - ySpeed * 0.25D, z - zSpeed * 0.25D, xSpeed, ySpeed, zSpeed);
         }
     }
 
