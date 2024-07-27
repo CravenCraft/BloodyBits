@@ -56,10 +56,14 @@ public abstract class LivingEntityMixin extends Entity {
      */
     @Inject(method = "tickDeath", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;broadcastEntityEvent(Lnet/minecraft/world/entity/Entity;B)V"))
     private void addBloodChunksToDeath(CallbackInfo ci) {
-        if (CommonConfig.deathBloodExplosion() && this.self != null && !CommonConfig.blackListEntities().contains(this.getEncodeId())) {
-            assert this.lastDamageSource != null;
-            if (!CommonConfig.blackListDamageSources().contains(this.lastDamageSource.msgId)) {
-                this.createBloodExplosion();
+        
+        if (this.self != null) {
+            String entityId = (this.toString().contains("Player")) ? "player" : this.getEncodeId();
+            if (CommonConfig.deathBloodExplosion() && !CommonConfig.blackListEntities().contains(this.getEncodeId())) {
+                assert this.lastDamageSource != null;
+                if (!CommonConfig.blackListDamageSources().contains(this.lastDamageSource.msgId)) {
+                    this.createBloodExplosion();
+                }
             }
         }
     }
