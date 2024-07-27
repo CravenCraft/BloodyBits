@@ -1,6 +1,7 @@
 ## V1.2.1
 - Added a quick fix for a potential crash whenever the player takes damage.
 - Set the default blood spatter amount to 500 and blood chunk amount to 250.
+- Fixed a bug causing blood bits to not despawn in water sometimes.
 
 ## V1.2.0
 - Added a config option to set the volume for both the blood spatters and explosions.
