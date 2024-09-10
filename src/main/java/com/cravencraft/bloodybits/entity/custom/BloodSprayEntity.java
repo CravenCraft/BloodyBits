@@ -577,4 +577,8 @@ public class BloodSprayEntity extends AbstractArrow {
     public boolean isInGround() {
         return this.inGround;
     }
+
+    public void setInGround(boolean isInGround) {
+        this.inGround = isInGround;
+    }
 }

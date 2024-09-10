@@ -9,6 +9,8 @@ import com.cravencraft.bloodybits.registries.EntityRegistry;
 import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.event.entity.living.LivingDamageEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -70,4 +72,10 @@ public class BloodyBitsEvents {
                     new EntityMessage(bloodSprayEntity.getId(), event.getEntity().getId()));
         }
     }
+
+//    @OnlyIn(Dist.CLIENT)
+//    @SubscribeEvent
+//    public static void addBloodLayer(LivingDamageEvent event) {
+//
+//    }
 }

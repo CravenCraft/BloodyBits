@@ -1,3 +1,7 @@
+## V1.3.0
+- Major rework to how entities show damage. Still in progress. Will update this changelog message with more details
+    whenever I progress more with this method.
+
 ## V1.2.1
 - Added a quick fix for a potential crash whenever the player takes damage.
 - Set the default blood spatter amount to 500 and blood chunk amount to 250.
