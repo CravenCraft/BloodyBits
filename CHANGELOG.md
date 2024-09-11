@@ -1,6 +1,12 @@
 ## V1.3.0
 - Major rework to how entities show damage. Still in progress. Will update this changelog message with more details
     whenever I progress more with this method.
+- TODO: Fix bug that causes a blood fountain whenever the player dies, but does not respawn.
+- TODO: Add an option to blacklist the player (all players) from being an entity that can bleed.
+- TODO: Fix bug that allows blood spatters to catch on fire.
+- TODO: Fix bug that causes a crash when blood chunks are emitted for certain entities.
+- TODO: Blacklist armor stands from bleeding/showing damage.
+- TODO: Add config option to modify the blood spatter/explosion radius.
 
 ## V1.2.1
 - Added a quick fix for a potential crash whenever the player takes damage.

@@ -7,19 +7,36 @@ import com.cravencraft.bloodybits.network.BloodyBitsPacketHandler;
 import com.cravencraft.bloodybits.network.messages.EntityMessage;
 import com.cravencraft.bloodybits.registries.EntityRegistry;
 import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
+import net.minecraft.core.MappedRegistry;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.event.entity.living.LivingDamageEvent;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.network.PacketDistributor;
+import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.Objects;
 
 @Mod.EventBusSubscriber(modid = BloodyBitsMod.MODID)
 public class BloodyBitsEvents {
+
+    @SubscribeEvent
+    public static void getRegisteredResources(PlayerInteractEvent.RightClickEmpty event) {
+        BloodyBitsMod.LOGGER.info("LOGGING REGISTRY SET");
+//        BloodyBitsMod.LOGGER.info(MappedRegistry.getKnownRegistries());
+
+        for (ResourceLocation resourceLocation : ForgeRegistries.ENTITY_TYPES.getKeys()) {
+//            resourceLocation.
+            BloodyBitsMod.LOGGER.info("PATH: {}", resourceLocation.getPath());
+            BloodyBitsMod.LOGGER.info("NAMESPACE: {}", resourceLocation.getNamespace());
+            BloodyBitsMod.LOGGER.info("DEBUG FILE NAME: {}", resourceLocation.toDebugFileName());
+        }
+    }
 
     /**
      * Looks for all the players on a given server and creates blood sprays if the damage event is

@@ -1,7 +1,6 @@
 package com.cravencraft.bloodybits.mixins;
 
 import com.cravencraft.bloodybits.BloodyBitsMod;
-import com.cravencraft.bloodybits.client.renderer.entity.BloodyEntityLayer;
 import com.cravencraft.bloodybits.config.ClientConfig;
 import com.cravencraft.bloodybits.config.CommonConfig;
 import com.mojang.blaze3d.platform.NativeImage;
@@ -16,15 +15,13 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.texture.*;
-import net.minecraft.core.Direction;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.player.Player;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import javax.annotation.Nullable;
@@ -50,7 +47,9 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extend
     private boolean hasErrorMessageDisplayed;
     private LivingEntity entity;
     private MultiBufferSource buffer;
-    private HashMap<UUID, List<ArrayList<Integer>>> patternMap = new HashMap<>();
+    private HashMap<UUID, List<ArrayList<Integer>>> pixelDamageMap = new HashMap<>();
+    private HashMap<UUID, NativeImage> entityTextureDamageMap = new HashMap<>();
+    private HashMap<UUID, List<List<ArrayList<Integer>>>> entityInjuriesMap = new HashMap<>();
 
     protected LivingEntityRendererMixin(EntityRendererProvider.Context pContext) {
         super(pContext);
@@ -71,133 +70,9 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extend
         this.buffer = pBuffer;
     }
 
-    @Inject(method = "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
-              at = @At(value = "INVOKE", shift = At.Shift.BEFORE, target = "Lcom/mojang/blaze3d/vertex/PoseStack;popPose()V")
-    )
-    private void renderBloodLayer(T pEntity, float pEntityYaw, float pPartialTicks, PoseStack poseStack, MultiBufferSource pBuffer, int pPackedLight, CallbackInfo ci) {
-//        PoseStack customPoseStack = poseStack.last();
-//        poseStack.pushPose();
-//        poseStack.last();
-
-        if (ClientConfig.showMobDamage() && !this.entity.isDeadOrDying() && this.entity.getHealth() < this.entity.getMaxHealth() && !(this.entity instanceof Player)) {
-//            poseStack.pushPose();
-            VertexConsumer customVertexConsumer;
-            //                NativeImage nativeImage = NativeImage.read(Minecraft.getInstance().getResourceManager().open(this.getTextureLocation((T) this.entity)));
-            NativeImage nativeImage = new NativeImage(64, 64, false);
-            String entityName = this.entity.getEncodeId();
-
-            int redDamage = 200;
-            int greenDamage = 1;
-            int blueDamage = 1;
-            int alphaDamage = 255;
-
-            if (CommonConfig.solidEntities().contains(entityName)) {
-                redDamage = 0;
-                greenDamage = 0;
-                blueDamage = 0;
-                alphaDamage = 0;
-            }
-            else {
-                for (Map.Entry<String, List<String>> mapElement : ClientConfig.mobBloodColors().entrySet()) {
-                    if (mapElement.getValue().contains(Objects.requireNonNull(entityName))) {
-                        String bloodColorHexVal = mapElement.getKey();
-                        redDamage = HexFormat.fromHexDigits(bloodColorHexVal, 1, 3);
-                        greenDamage = HexFormat.fromHexDigits(bloodColorHexVal, 3, 5);
-                        blueDamage = HexFormat.fromHexDigits(bloodColorHexVal.substring(5));
-                        break;
-                    }
-                }
-            }
-
-            Color damageColor = new Color(blueDamage, greenDamage, redDamage, alphaDamage);
-
-            int pixelsToModifyPerHealthPoint = (int) (((nativeImage.getHeight() * nativeImage.getWidth()) / this.entity.getMaxHealth()) * (ClientConfig.entityDamageShownPercent() * 0.01));
-            int currentPatterns = (int) Math.ceil((this.entity.getMaxHealth() - this.entity.getHealth())) * pixelsToModifyPerHealthPoint;
-
-            if (!patternMap.containsKey(this.entity.getUUID())) {
-                patternMap.put(this.entity.getUUID(), new ArrayList<>());
-            }
-
-            if (patternMap.get(this.entity.getUUID()).size() < currentPatterns) {
-                int amountToAdd = currentPatterns - patternMap.get(this.entity.getUUID()).size();
-
-                for (int i = 0; i < amountToAdd; i++){
-                    List<ArrayList<Integer>> updatedPatternList = patternMap.get(this.entity.getUUID());
-
-                    ArrayList<Integer> patternToAdd = new ArrayList<>(3);
-                    patternToAdd.add(new Random().nextInt(nativeImage.getWidth() - 1));
-                    patternToAdd.add(new Random().nextInt(nativeImage.getHeight() - 1));
-                    patternToAdd.add(new Random().ints(-1, 1).findFirst().getAsInt());
-                    updatedPatternList.add(patternToAdd);
-
-                    patternMap.put(this.entity.getUUID(), updatedPatternList);
-                }
-            }
-            else {
-                for (int i = patternMap.get(this.entity.getUUID()).size() - 1; i > currentPatterns; i--) {
-                    patternMap.get(this.entity.getUUID()).remove(i);
-                }
-            }
-
-            for (ArrayList<Integer> currentPattern : patternMap.get(this.entity.getUUID())) {
-                int randomChosenWidthStart = currentPattern.get(0);
-                int randomChosenHeightStart = currentPattern.get(1);
-                int randomColorHue = currentPattern.get(2);
-
-//                if (nativeImage.getPixelRGBA(randomChosenWidthStart, randomChosenHeightStart) != 0) {
-                    if (randomColorHue < 0 && !CommonConfig.solidEntities().contains(entityName)) {
-                        nativeImage.setPixelRGBA(randomChosenWidthStart, randomChosenHeightStart, damageColor.darker().getRGB());
-                    }
-                    else if (randomColorHue > 0 && !CommonConfig.solidEntities().contains(entityName)) {
-                        nativeImage.setPixelRGBA(randomChosenWidthStart, randomChosenHeightStart, damageColor.brighter().getRGB());
-                    }
-                    else {
-                        nativeImage.setPixelRGBA(randomChosenWidthStart, randomChosenHeightStart, damageColor.getRGB());
-                    }
-//                }
-//                else {
-//                    BloodyBitsMod.LOGGER.info("THE RANDOMLY CHOSEN PIXEL IS 0");
-//                }
-            }
-
-
-            DynamicTexture dynamicTexture = new DynamicTexture(nativeImage);
-            customVertexConsumer = this.buffer.getBuffer(RenderType.entityTranslucent(Minecraft.getInstance().getTextureManager().register("test", dynamicTexture)));
-
-            // TODO: New code. Remove this line when everything else is reworked.
-            Minecraft minecraft = Minecraft.getInstance();
-            boolean flag = this.isBodyVisible(pEntity);
-            boolean flag1 = !flag && !pEntity.isInvisibleTo(minecraft.player);
-            boolean flag2 = minecraft.shouldEntityAppearGlowing(pEntity);
-
-//                poseStack.scale(-1.0F, -1.0F, 1.0F);
-//                this.scale(pEntity, poseStack, pPartialTicks);
-//                poseStack.translate(0.0F, -1.501F, 0.0F);
-//                if (pEntity.hasPose(Pose.SLEEPING)) {
-//                    Direction direction = pEntity.getBedOrientation();
-//                    if (direction != null) {
-//                        float f4 = pEntity.getEyeHeight(Pose.STANDING) - 0.1F;
-//                        poseStack.translate((float)(-direction.getStepX()) * f4, 0.0F, (float)(-direction.getStepZ()) * f4);
-//                    }
-//                }
-
-            RenderType rendertype = this.getRenderType(pEntity, flag, flag1, flag2);
-            if (rendertype != null) {
-//                    VertexConsumer vertexconsumer = pBuffer.getBuffer(rendertype);
-                int i = LivingEntityRenderer.getOverlayCoords(pEntity, this.getWhiteOverlayProgress(pEntity, pPartialTicks));
-                this.model.renderToBuffer(poseStack, customVertexConsumer, pPackedLight, i, 1.0F, 1.0F, 1.0F, flag1 ? 0.15F : 1.0F);
-            }
-
-//            poseStack.popPose();
-        }
-        else {
-            patternMap.remove(this.entity.getUUID());
-        }
-
-        /****************** BELOW COPIED CODE ******************/
-    }
-
     /**
+     * TODO: Update this method javadoc.
+     *
      * A monumental redirect method that I didn't think was possible. If the Client Config is set to show mob damage,
      * then this method will retrieve native image (texture) of an entity via its resource location.
      * <p>
@@ -220,101 +95,300 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extend
      * incredible animations. This is incompatible with this feature. So, for now it will be incompatible until I add in
      * optional support later down the line.
      */
-//    @Redirect(method = "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/model/EntityModel;renderToBuffer(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;IIFFFF)V"))
-//    private void renderEntitiesDifferently(EntityModel<net.minecraft.world.entity.Entity> instance, PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, float red, float green, float blue, float alpha) throws IOException {
-////        VertexConsumer customVertexConsumer = vertexConsumer;
-////
-////        if (ClientConfig.showMobDamage() && !this.entity.isDeadOrDying() && this.entity.getHealth() < this.entity.getMaxHealth() && !(this.entity instanceof Player)) {
-////            try {
-////                NativeImage nativeImage = NativeImage.read(Minecraft.getInstance().getResourceManager().open(this.getTextureLocation((T) this.entity)));
-////                String entityName = this.entity.getEncodeId();
-////
-////                int redDamage = 200;
-////                int greenDamage = 1;
-////                int blueDamage = 1;
-////                int alphaDamage = 255;
-////
-////                if (CommonConfig.solidEntities().contains(entityName)) {
-////                    redDamage = 0;
-////                    greenDamage = 0;
-////                    blueDamage = 0;
-////                    alphaDamage = 0;
-////                }
-////                else {
-////                    for (Map.Entry<String, List<String>> mapElement : ClientConfig.mobBloodColors().entrySet()) {
-////                        if (mapElement.getValue().contains(Objects.requireNonNull(entityName))) {
-////                            String bloodColorHexVal = mapElement.getKey();
-////                            redDamage = HexFormat.fromHexDigits(bloodColorHexVal, 1, 3);
-////                            greenDamage = HexFormat.fromHexDigits(bloodColorHexVal, 3, 5);
-////                            blueDamage = HexFormat.fromHexDigits(bloodColorHexVal.substring(5));
-////                            break;
-////                        }
-////                    }
-////                }
-////
-////                Color damageColor = new Color(blueDamage, greenDamage, redDamage, alphaDamage);
-////
-////                int pixelsToModifyPerHealthPoint = (int) (((nativeImage.getHeight() * nativeImage.getWidth()) / this.entity.getMaxHealth()) * (ClientConfig.entityDamageShownPercent() * 0.01));
-////                int currentPatterns = (int) Math.ceil((this.entity.getMaxHealth() - this.entity.getHealth())) * pixelsToModifyPerHealthPoint;
-////
-////                if (!patternMap.containsKey(this.entity.getUUID())) {
-////                    patternMap.put(this.entity.getUUID(), new ArrayList<>());
-////                }
-////
-////                if (patternMap.get(this.entity.getUUID()).size() < currentPatterns) {
-////                    int amountToAdd = currentPatterns - patternMap.get(this.entity.getUUID()).size();
-////
-////                    for (int i = 0; i < amountToAdd; i++){
-////                        List<ArrayList<Integer>> updatedPatternList = patternMap.get(this.entity.getUUID());
-////
-////                        ArrayList<Integer> patternToAdd = new ArrayList<>(3);
-////                        patternToAdd.add(new Random().nextInt(nativeImage.getWidth() - 1));
-////                        patternToAdd.add(new Random().nextInt(nativeImage.getHeight() - 1));
-////                        patternToAdd.add(new Random().ints(-1, 1).findFirst().getAsInt());
-////                        updatedPatternList.add(patternToAdd);
-////
-////                        patternMap.put(this.entity.getUUID(), updatedPatternList);
-////                    }
-////                }
-////                else {
-////                    for (int i = patternMap.get(this.entity.getUUID()).size() - 1; i > currentPatterns; i--) {
-////                        patternMap.get(this.entity.getUUID()).remove(i);
-////                    }
-////                }
-////
-////                for (ArrayList<Integer> currentPattern : patternMap.get(this.entity.getUUID())) {
-////                    int randomChosenWidthStart = currentPattern.get(0);
-////                    int randomChosenHeightStart = currentPattern.get(1);
-////                    int randomColorHue = currentPattern.get(2);
-////
-////                    if (nativeImage.getPixelRGBA(randomChosenWidthStart, randomChosenHeightStart) != 0) {
-////                        if (randomColorHue < 0 && !CommonConfig.solidEntities().contains(entityName)) {
-////                            nativeImage.setPixelRGBA(randomChosenWidthStart, randomChosenHeightStart, damageColor.darker().getRGB());
-////                        }
-////                        else if (randomColorHue > 0 && !CommonConfig.solidEntities().contains(entityName)) {
-////                            nativeImage.setPixelRGBA(randomChosenWidthStart, randomChosenHeightStart, damageColor.brighter().getRGB());
-////                        }
-////                        else {
-////                            nativeImage.setPixelRGBA(randomChosenWidthStart, randomChosenHeightStart, damageColor.getRGB());
-////                        }
-////                    }
-////                }
-////
-////
-////                DynamicTexture dynamicTexture = new DynamicTexture(nativeImage);
-////                customVertexConsumer = this.buffer.getBuffer(RenderType.entityTranslucent(Minecraft.getInstance().getTextureManager().register("test", dynamicTexture)));
-////            }
-////            catch (FileNotFoundException e) {
-////                if (!this.hasErrorMessageDisplayed) {
-////                    BloodyBitsMod.LOGGER.error("ERROR: File for {} not found at resource location {}!", this.entity, this.getTextureLocation((T) this.entity));
-////                    this.hasErrorMessageDisplayed = true;
-////                }
-////            }
-////        }
-////        else {
-////            patternMap.remove(this.entity.getUUID());
-////        }
-////
-////        instance.renderToBuffer(poseStack, customVertexConsumer, packedLight, packedOverlay, red, 0, 0, alpha);
-//    }
+    @Inject(method = "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
+              at = @At(value = "INVOKE", shift = At.Shift.BEFORE, target = "Lcom/mojang/blaze3d/vertex/PoseStack;popPose()V")
+    )
+    private void renderBloodLayer(T pEntity, float pEntityYaw, float pPartialTicks, PoseStack poseStack, MultiBufferSource pBuffer, int pPackedLight, CallbackInfo ci) {
+        // TODO: Need to rework this if statement. Probably don't want the 'deadOrDying' one. Probably want to add a blacklist for entities. Maybe even a mod blacklist in the namespace too.
+        if (ClientConfig.showMobDamage() && this.entity.isAlive() && this.entity.getHealth() < this.entity.getMaxHealth() && !(this.entity instanceof Player)) {
+            String entityName = this.entity.getEncodeId();
+
+            // Retrieve the damage layer to overlay onto the current entity.
+            this.mapEntityDamageLayer();
+            NativeImage damageLayerTexture = this.entityTextureDamageMap.get(this.entity.getUUID());
+
+            // Retrieve the damage color for the given entity.
+            Color damageColor = this.getMobDamageColor(entityName);
+
+            // Define the pixelDamageMap that holds the pixel damage coordinates to paint
+            // onto the damage texture layer.
+//            this.setPixelDamageMap(damageLayerTexture);
+            this.setInjuriesMap(damageLayerTexture);
+
+            // Paints the damage pixels from the pixelDamageMap onto the new damage texture layer.
+//            this.paintDamageToNativeImage(entityName, damageLayerTexture, damageColor);
+            this.paintInjuriesToNativeImage(entityName, damageLayerTexture, damageColor);
+
+            // Renders the new damage layer over the entity's existing texture layer.
+            this.renderDamageLayerToBuffer(damageLayerTexture, pEntity, poseStack, pPartialTicks, pPackedLight);
+        }
+        else {
+            pixelDamageMap.remove(this.entity.getUUID());
+            entityTextureDamageMap.remove(this.entity.getUUID());
+        }
+    }
+
+    /**
+     * All the code needed to render the new entity damage layer.
+     */
+    private void renderDamageLayerToBuffer(NativeImage damageLayerTexture, T pEntity, PoseStack poseStack, float pPartialTicks,  int pPackedLight) {
+        DynamicTexture dynamicTexture = new DynamicTexture(damageLayerTexture);
+        VertexConsumer customVertexConsumer = this.buffer.getBuffer(RenderType.entityTranslucent(Minecraft.getInstance().getTextureManager().register("test", dynamicTexture)));
+
+        // TODO: New code. Remove this line when everything else is reworked.
+        Minecraft minecraft = Minecraft.getInstance();
+        boolean flag = this.isBodyVisible(pEntity);
+        boolean flag1 = !flag && !pEntity.isInvisibleTo(minecraft.player);
+        boolean flag2 = minecraft.shouldEntityAppearGlowing(pEntity);
+
+        RenderType rendertype = this.getRenderType(pEntity, flag, flag1, flag2);
+        if (rendertype != null) {
+            int i = LivingEntityRenderer.getOverlayCoords(pEntity, this.getWhiteOverlayProgress(pEntity, pPartialTicks));
+            this.model.renderToBuffer(poseStack, customVertexConsumer, pPackedLight, i, 1.0F, 1.0F, 1.0F, flag1 ? 0.15F : 1.0F);
+        }
+    }
+
+    private void paintDamageToNativeImage(String entityName, NativeImage damageLayerTexture, Color damageColor) {
+        for (ArrayList<Integer> currentPattern : pixelDamageMap.get(this.entity.getUUID())) {
+            int randomChosenWidthStart = currentPattern.get(0);
+            int randomChosenHeightStart = currentPattern.get(1);
+            int randomColorHue = currentPattern.get(2);
+
+            if (randomColorHue < 0 && !CommonConfig.solidEntities().contains(entityName)) {
+                damageLayerTexture.setPixelRGBA(randomChosenWidthStart, randomChosenHeightStart, damageColor.darker().getRGB());
+            }
+            else if (randomColorHue > 0 && !CommonConfig.solidEntities().contains(entityName)) {
+                damageLayerTexture.setPixelRGBA(randomChosenWidthStart, randomChosenHeightStart, damageColor.brighter().getRGB());
+            }
+            else {
+                damageLayerTexture.setPixelRGBA(randomChosenWidthStart, randomChosenHeightStart, damageColor.getRGB());
+            }
+        }
+    }
+
+    private void paintInjuriesToNativeImage(String entityName, NativeImage damageLayerTexture, Color damageColor) {
+        for (List<ArrayList<Integer>> injuryCoords : this.entityInjuriesMap.get(this.entity.getUUID())) {
+            for (ArrayList<Integer> pixelDamageLocation : injuryCoords) {
+                int width = pixelDamageLocation.get(0);
+                int height = pixelDamageLocation.get(1);
+                int hue = pixelDamageLocation.get(2);
+
+                if (hue < 0 && !CommonConfig.solidEntities().contains(entityName)) {
+                    damageLayerTexture.setPixelRGBA(width, height, damageColor.darker().getRGB());
+                }
+                else if (hue > 0 && !CommonConfig.solidEntities().contains(entityName)) {
+                    damageLayerTexture.setPixelRGBA(width, height, damageColor.darker().getRGB());
+                }
+                else {
+                    damageLayerTexture.setPixelRGBA(width, height, damageColor.getRGB());
+                }
+
+                int width2 = pixelDamageLocation.get(3);
+                int height2 = pixelDamageLocation.get(4);
+                int hue2 = pixelDamageLocation.get(5);
+
+                if (hue2 < 0 && !CommonConfig.solidEntities().contains(entityName)) {
+                    damageLayerTexture.setPixelRGBA(width2, height2, damageColor.brighter().getRGB());
+                }
+                else if (hue2 > 0 && !CommonConfig.solidEntities().contains(entityName)) {
+                    damageLayerTexture.setPixelRGBA(width2, height2, damageColor.darker().getRGB());
+                }
+                else {
+                    damageLayerTexture.setPixelRGBA(width2, height2, damageColor.getRGB());
+                }
+
+                int width3 = pixelDamageLocation.get(6);
+                int height3 = pixelDamageLocation.get(7);
+                int hue3 = pixelDamageLocation.get(8);
+
+                if (hue3 < 0 && !CommonConfig.solidEntities().contains(entityName)) {
+                    damageLayerTexture.setPixelRGBA(width3, height3, damageColor.brighter().getRGB());
+                }
+                else if (hue3 > 0 && !CommonConfig.solidEntities().contains(entityName)) {
+                    damageLayerTexture.setPixelRGBA(width3, height3, damageColor.brighter().getRGB());
+                }
+                else {
+                    damageLayerTexture.setPixelRGBA(width3, height3, damageColor.getRGB());
+                }
+            }
+        }
+    }
+
+    private void setInjuriesMap(NativeImage damageLayerTexture) {
+        int totalPixels = damageLayerTexture.getWidth() * damageLayerTexture.getHeight();
+        int maxNumberOfInjuries = (int) (this.entity.getMaxHealth() * (ClientConfig.entityDamageShownPercent() * 0.01));
+        int currentNumberOfInjuries = (int) Math.ceil((this.entity.getMaxHealth() - this.entity.getHealth()) * (ClientConfig.entityDamageShownPercent() * 0.01));
+//        entityInjuriesMap.putIfAbsent()
+        if (!entityInjuriesMap.containsKey(this.entity.getUUID())) {
+            entityInjuriesMap.put(this.entity.getUUID(), new ArrayList<>());
+        }
+
+        List<List<ArrayList<Integer>>> injuries = entityInjuriesMap.get(this.entity.getUUID());
+        if (injuries.size() < currentNumberOfInjuries) {
+            boolean isDamageLocationSet = false;
+            int width;
+            int height;
+//            int hue;
+            int injuryLengthLimit = 12;
+            int injuriesToAdd = currentNumberOfInjuries - injuries.size();
+            BloodyBitsMod.LOGGER.info("INJURIES TO ADD: {}", injuriesToAdd);
+
+            for (int i = 0; i < injuriesToAdd; i++) {
+                List<ArrayList<Integer>> injuryCoords = new ArrayList<>();
+
+                do {
+                    width = new Random().nextInt(damageLayerTexture.getWidth() - 1);
+                    height = new Random().nextInt(damageLayerTexture.getHeight() - 1);
+//                    hue = new Random().ints(-1, 1).findFirst().getAsInt();
+
+                    BloodyBitsMod.LOGGER.info("NEW INJURY CHOSEN STARTING COORDS: WIDTH {} HEIGHT {}", width, height);
+                }
+                while (damageLayerTexture.getPixelRGBA(width, height) != 65280);
+
+                // TODO: Can rework this more to make detailed injury types.
+                for (int j = 0; j < injuryLengthLimit; j++) {
+                    ArrayList<Integer> pixelDamageLocationToAdd = new ArrayList<>(9);
+                    pixelDamageLocationToAdd.add(width + j);
+                    pixelDamageLocationToAdd.add(height - j);
+                    pixelDamageLocationToAdd.add(new Random().ints(-1, 1).findFirst().getAsInt());
+
+                    pixelDamageLocationToAdd.add(width + j);
+                    pixelDamageLocationToAdd.add(height - (j + 1));
+                    pixelDamageLocationToAdd.add(new Random().ints(-1, 1).findFirst().getAsInt());
+
+                    pixelDamageLocationToAdd.add(width + j);
+                    pixelDamageLocationToAdd.add(height - (j - 1));
+                    pixelDamageLocationToAdd.add(new Random().ints(-1, 1).findFirst().getAsInt());
+//                    BloodyBitsMod.LOGGER.info("PIXEL DAMAGE LOCATION WIDTH: {} HEIGHT: {}", width + j, height - j);
+
+                    if (pixelDamageLocationToAdd.get(0) < damageLayerTexture.getWidth() - 1 &&
+                        pixelDamageLocationToAdd.get(1) < damageLayerTexture.getHeight() - 1 &&
+                        pixelDamageLocationToAdd.get(0) > 0 &&
+                        pixelDamageLocationToAdd.get(1) > 0) {
+                        injuryCoords.add(pixelDamageLocationToAdd);
+                    }
+//                    pixelDamageLocationToAdd.clear();
+                }
+                injuries.add(injuryCoords);
+            }
+            this.entityInjuriesMap.put(this.entity.getUUID(), injuries);
+        }
+    }
+
+    private void setPixelDamageMap(NativeImage damageLayerTexture) {
+        int pixelsToModifyPerHealthPoint = (int) (((damageLayerTexture.getHeight() * damageLayerTexture.getWidth()) / this.entity.getMaxHealth()) * (ClientConfig.entityDamageShownPercent() * 0.01));
+        int currentDamagePixels = (int) Math.ceil((this.entity.getMaxHealth() - this.entity.getHealth())) * pixelsToModifyPerHealthPoint;
+
+        // Sets up the initial map for pixel damage.
+        if (!pixelDamageMap.containsKey(this.entity.getUUID())) {
+            pixelDamageMap.put(this.entity.getUUID(), new ArrayList<>());
+        }
+
+
+        if (pixelDamageMap.get(this.entity.getUUID()).size() < currentDamagePixels) {
+            int amountToAdd = currentDamagePixels - pixelDamageMap.get(this.entity.getUUID()).size();
+
+            List<ArrayList<Integer>> updatedPixelDamageList = pixelDamageMap.get(this.entity.getUUID());
+            for (int i = 0; i < amountToAdd; i++) {
+
+                // The array list here is for setting the height, width, and hue of the pixel in the image
+                // to add a damage texture to.
+                ArrayList<Integer> pixelDamageLocationToAdd = new ArrayList<>(3);
+                int width = new Random().nextInt(damageLayerTexture.getWidth() - 1);
+                int height = new Random().nextInt(damageLayerTexture.getHeight() - 1);
+                int hue = new Random().ints(-1, 1).findFirst().getAsInt();
+
+                // Only change the pixels that we have marked for change (65280).
+                if (damageLayerTexture.getPixelRGBA(width, height) == 65280) {
+                    pixelDamageLocationToAdd.add(width);
+                    pixelDamageLocationToAdd.add(height);
+                    pixelDamageLocationToAdd.add(hue);
+                    updatedPixelDamageList.add(pixelDamageLocationToAdd);
+                }
+            }
+            pixelDamageMap.put(this.entity.getUUID(), updatedPixelDamageList);
+        }
+        else {
+            for (int i = pixelDamageMap.get(this.entity.getUUID()).size() - 1; i > currentDamagePixels; i--) {
+                pixelDamageMap.get(this.entity.getUUID()).remove(i);
+            }
+        }
+    }
+
+    private void upwardAngleCut() {
+
+    }
+
+    private void mapEntityDamageLayer() {
+
+        if (!this.entityTextureDamageMap.containsKey(this.entity.getUUID())) {
+            BloodyBitsMod.LOGGER.info("ENTITY {} BOUNDING BOX: {}", this.entity.getName(), this.entity.getBoundingBox().getSize());
+            NativeImage entityDamageTexture;
+            try {
+                NativeImage originalImage = NativeImage.read(Minecraft.getInstance().getResourceManager().open(this.getTextureLocation((T) this.entity)));
+                entityDamageTexture = new NativeImage(originalImage.getWidth(), originalImage.getHeight(), false);
+                for (int x = 0; x < originalImage.getWidth() - 1; x++) {
+                    for (int y = 0; y < originalImage.getHeight() - 1; y++) {
+
+//                        BloodyBitsMod.LOGGER.info("ENTITY {} HAS AN RGB VALUE OF {} AT POS X: {} Y: {}", this.entity.getName(), originalImage.getPixelRGBA(x, y), x, y);
+                        // We want to ensure that no blank values or "white" values are mapped. Essentially no values that are already 0 on the alpha channel.
+                        if (originalImage.getPixelRGBA(x, y) == 0 || originalImage.getPixelRGBA(x, y) == 16777215) {
+//                            BloodyBitsMod.LOGGER.info("ENTITY {} HAS BLANK PIXELS HERE: X: {} Y: {}", this.entity.getName(), x, y);
+                            Color invisibleLayer = new Color(255, 255, 255, 0);
+                            entityDamageTexture.setPixelRGBA(x, y, invisibleLayer.getRGB());
+                        }
+                        else {
+//                            if (x < 64 && y < 16) {
+//                                BloodyBitsMod.LOGGER.info("ENTITY {} HAS AN RGB VALUE OF {} AT POS X: {} Y: {}", this.entity.getName(), originalImage.getPixelRGBA(x, y), x, y);
+//                            }
+//                            originalImage.getPixelRGBA()
+                            entityDamageTexture.setPixelRGBA(x, y, new Color(0, 255, 0,0).getRGB());
+                            BloodyBitsMod.LOGGER.info("RGBA VALUE TO FIND: {}", entityDamageTexture.getPixelRGBA(x, y));
+                        }
+                    }
+                }
+
+                BloodyBitsMod.LOGGER.info("ENTITY {} WIDTH {} HEIGHT {}", this.entity.getName(), originalImage.getWidth(), originalImage.getHeight());
+            }
+            catch (IOException e) {
+                if (!this.hasErrorMessageDisplayed) {
+                    BloodyBitsMod.LOGGER.error("ERROR: File for {} not found at resource location {}!", this.entity, this.getTextureLocation((T) this.entity));
+                    this.hasErrorMessageDisplayed = true;
+
+                }
+                // TODO: do we want to set a config for the default size of this to create more detailed damage bits.
+                //       Also, maybe we can get the current entity's size and base it off of that.
+                entityDamageTexture = new NativeImage(64, 64, false);
+            }
+
+            this.entityTextureDamageMap.put(this.entity.getUUID(), entityDamageTexture);
+        }
+    }
+
+    private Color getMobDamageColor(String entityName) {
+        int redDamage = 200;
+        int greenDamage = 1;
+        int blueDamage = 1;
+        int alphaDamage = 255;
+
+        if (CommonConfig.solidEntities().contains(entityName)) {
+            redDamage = 0;
+            greenDamage = 0;
+            blueDamage = 0;
+            alphaDamage = 0;
+        }
+        else {
+            for (Map.Entry<String, List<String>> mapElement : ClientConfig.mobBloodColors().entrySet()) {
+                if (mapElement.getValue().contains(Objects.requireNonNull(entityName))) {
+                    String bloodColorHexVal = mapElement.getKey();
+                    redDamage = HexFormat.fromHexDigits(bloodColorHexVal, 1, 3);
+                    greenDamage = HexFormat.fromHexDigits(bloodColorHexVal, 3, 5);
+                    blueDamage = HexFormat.fromHexDigits(bloodColorHexVal.substring(5));
+                    break;
+                }
+            }
+        }
+
+        return new Color(blueDamage, greenDamage, redDamage, alphaDamage);
+    }
 }
