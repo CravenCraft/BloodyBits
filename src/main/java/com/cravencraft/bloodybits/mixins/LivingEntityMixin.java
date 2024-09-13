@@ -42,7 +42,7 @@ public abstract class LivingEntityMixin extends Entity {
      * Mixin method solely created as a sneaky way to get the instance of the LivingEntity class. This method will always
      * be called before a living entity dies. So, this is a safe way to acquire it for what I want to use it for.
      */
-    @Redirect(method = "hurt", at = @At(value = "INVOKE", target = "Lnet/minecraftforge/common/ForgeHooks;onLivingAttack(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/damagesource/DamageSource;F)Z"))
+    @Redirect(method = "hurt", at = @At(value = "INVOKE", target = "Lnet/minecraftforge/common/ForgeHooks;onLivingAttack(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/damagesource/DamageSource;F)Z"), remap = false)
     private boolean getSelf(LivingEntity entity, DamageSource src, float amount) {
         this.self = entity;
         return net.minecraftforge.common.ForgeHooks.onLivingAttack(entity, src, amount);

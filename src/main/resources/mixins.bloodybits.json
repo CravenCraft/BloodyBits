@@ -9,7 +9,6 @@
     "LivingEntityMixin"
   ],
   "client": [
-    "EnderDragonRendererMixin",
     "LivingEntityRendererMixin"
   ],
   "injectors": {

@@ -1,6 +1,5 @@
 package com.cravencraft.bloodybits.entity.custom;
 
-import com.cravencraft.bloodybits.BloodyBitsMod;
 import com.cravencraft.bloodybits.config.ClientConfig;
 import com.cravencraft.bloodybits.config.CommonConfig;
 import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
@@ -101,7 +100,7 @@ public class BloodSprayEntity extends AbstractArrow {
             this.ownerName = (ownerEntity.toString().contains("Player")) ? "player" : ownerEntity.getEncodeId();
             this.isSolid = CommonConfig.solidEntities().contains(this.ownerName);
             if (this.level().isClientSide()) {
-                for (Map.Entry<String, List<String>> mapElement : ClientConfig.mobBloodColors().entrySet()) {
+                for (Map.Entry<String, List<String>> mapElement : ClientConfig.entityBloodColors().entrySet()) {
                     if (mapElement.getValue().contains(this.ownerName)) {
                         String bloodColorHexVal = mapElement.getKey();
                         this.red = HexFormat.fromHexDigits(bloodColorHexVal, 1, 3);

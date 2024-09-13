@@ -23,7 +23,7 @@ import org.joml.Matrix4f;
  * (xMin, xMax, etc.) to render a rectangle dynamically that will act as a blood chunk.
  */
 public class BloodSprayRenderer extends EntityRenderer<BloodSprayEntity> {
-    public static final ResourceLocation SPRAY = new ResourceLocation(BloodyBitsMod.MODID, "textures/entity/spray.png");
+    public static final ResourceLocation SPRAY = new ResourceLocation(BloodyBitsMod.MODID, "textures/entity/blood_projectile/spray.png");
 
     public BloodSprayRenderer(EntityRendererProvider.Context context) {
         super(context);
@@ -167,13 +167,13 @@ public class BloodSprayRenderer extends EntityRenderer<BloodSprayEntity> {
      */
     private ResourceLocation getRandomSpatterTexture(int randomInt) {
         return switch (randomInt) {
-            case 1 -> new ResourceLocation(BloodyBitsMod.MODID, "textures/entity/spatter_1.png");
-            case 2 -> new ResourceLocation(BloodyBitsMod.MODID, "textures/entity/spatter_2.png");
-            case 3 -> new ResourceLocation(BloodyBitsMod.MODID, "textures/entity/spatter_3.png");
-            case 4 -> new ResourceLocation(BloodyBitsMod.MODID, "textures/entity/spatter_4.png");
-            case 5 -> new ResourceLocation(BloodyBitsMod.MODID, "textures/entity/spatter_5.png");
-            case 6 -> new ResourceLocation(BloodyBitsMod.MODID, "textures/entity/spatter_6.png");
-            default -> new ResourceLocation(BloodyBitsMod.MODID, "textures/entity/spatter_0.png");
+            case 1 -> new ResourceLocation(BloodyBitsMod.MODID, "textures/entity/blood_spatter/spatter_1.png");
+            case 2 -> new ResourceLocation(BloodyBitsMod.MODID, "textures/entity/blood_spatter/spatter_2.png");
+            case 3 -> new ResourceLocation(BloodyBitsMod.MODID, "textures/entity/blood_spatter/spatter_3.png");
+            case 4 -> new ResourceLocation(BloodyBitsMod.MODID, "textures/entity/blood_spatter/spatter_4.png");
+            case 5 -> new ResourceLocation(BloodyBitsMod.MODID, "textures/entity/blood_spatter/spatter_5.png");
+            case 6 -> new ResourceLocation(BloodyBitsMod.MODID, "textures/entity/blood_spatter/spatter_6.png");
+            default -> new ResourceLocation(BloodyBitsMod.MODID, "textures/entity/blood_spatter/spatter_0.png");
         };
     }
 }

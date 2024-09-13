@@ -22,7 +22,7 @@ import org.joml.Matrix4f;
  * (xMin, xMax, etc.) to render a rectangle dynamically that will act as a blood chunk.
  */
 public class BloodChunkRenderer extends EntityRenderer<BloodChunkEntity> {
-    public static final ResourceLocation BLOOD_CHUNK_0 = new ResourceLocation(BloodyBitsMod.MODID, "textures/entity/blood_chunk_1.png");
+    public static final ResourceLocation BLOOD_CHUNK_0 = new ResourceLocation(BloodyBitsMod.MODID, "textures/entity/blood_chunk/blood_chunk_1.png");
 
     public BloodChunkRenderer(EntityRendererProvider.Context context) {
         super(context);

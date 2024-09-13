@@ -14,6 +14,7 @@ import org.apache.commons.io.FileUtils;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
@@ -38,47 +39,59 @@ public class ClientConfig {
     private static final List<String> BLOOD_GREY_MOBS = List.of("minecraft:skeleton", "minecraft:skeleton_horse", "minecraft:snow_golem", "minecraft:shulker");
     private static final List<String> BLOOD_PURPLE_MOBS = List.of("minecraft:enderman", "minecraft:shulker", "minecraft:ender_dragon", "minecraft:endermite");
     private static final List<String> BLOOD_ORANGE_MOBS = List.of("minecraft:magma_cube", "minecraft:blaze");
-    private static final HashMap<String, List<String>> DEFAULT_MOB_BLOOD_COLORS = new HashMap<>();
-    private static HashMap<String, List<String>> MOB_BLOOD_COLORS;
+    private static final HashMap<String, List<String>> DEFAULT_ENTITY_BLOOD_COLORS = new HashMap<>();
+    private static HashMap<String, List<String>> ENTITY_BLOOD_COLORS;
 
     public static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
 
     private static ForgeConfigSpec.BooleanValue SHOW_MOB_DAMAGE;
-    private static ForgeConfigSpec.IntValue ENTITY_DAMAGE_SHOWN_PERCENT;
+    private static ForgeConfigSpec.IntValue MAX_ENTITY_INJURIES;
+    private static ForgeConfigSpec.IntValue AVAILABLE_TEXTURES_PER_ENTITY;
 
-    public static boolean showMobDamage() { return SHOW_MOB_DAMAGE.get(); }
-    public static int entityDamageShownPercent() { return ENTITY_DAMAGE_SHOWN_PERCENT.get(); }
-    public static HashMap<String, List<String>> mobBloodColors() { return MOB_BLOOD_COLORS; }
+    public static boolean showEntityDamage() { return SHOW_MOB_DAMAGE.get(); }
+
+    public static int maxEntityInjuries() { return MAX_ENTITY_INJURIES.get(); }
+
+    public static int availableTexturesPerEntity() { return AVAILABLE_TEXTURES_PER_ENTITY.get(); }
+    public static HashMap<String, List<String>> entityBloodColors() { return ENTITY_BLOOD_COLORS; }
 
     public static void loadClientConfig() {
         BUILDER.push("blood spray settings");
 
-        SHOW_MOB_DAMAGE = BUILDER.comment("Whether or not an entity should show textured damage when hit.")
-                .define("show_mob_damage", false);
+        SHOW_MOB_DAMAGE = BUILDER.comment("Whether or not an entity should show injury textures when damaged.")
+                .define("show_entity_damage", true);
 
-        ENTITY_DAMAGE_SHOWN_PERCENT = BUILDER.comment("What percentage of an entity should be covered in blood based on its current damage.")
-                .defineInRange("entity_damage_percent", 75, 0, 100);
+        MAX_ENTITY_INJURIES = BUILDER.comment("The maximum amount of injuries allowed to display on an entity.")
+                .defineInRange("max_entity_injuries", 10, 0, 100);
+
+        AVAILABLE_TEXTURES_PER_ENTITY = BUILDER.comment("The maximum amount of available injury textures permitted per entity.\n" +
+                        "Resource packs can be created to add additional textures for entities, override existing textures, or to\n" +
+                        "even create textures for entities that have none.")
+                .defineInRange("max_entity_injuries", 25, 0, 100);
 
         BUILDER.pop();
 
-        DEFAULT_MOB_BLOOD_COLORS.put(BLOOD_BLACK, BLOOD_BLACK_MOBS);
-        DEFAULT_MOB_BLOOD_COLORS.put(BLOOD_BLUE, BLOOD_BLUE_MOBS);
-        DEFAULT_MOB_BLOOD_COLORS.put(BLOOD_GREEN, BLOOD_GREEN_MOBS);
-        DEFAULT_MOB_BLOOD_COLORS.put(BLOOD_GREY, BLOOD_GREY_MOBS);
-        DEFAULT_MOB_BLOOD_COLORS.put(BLOOD_PURPLE, BLOOD_PURPLE_MOBS);
-        DEFAULT_MOB_BLOOD_COLORS.put(BLOOD_ORANGE, BLOOD_ORANGE_MOBS);
-
-        MOB_BLOOD_COLORS = getConfigData(DEFAULT_MOB_BLOOD_COLORS);
+        ENTITY_BLOOD_COLORS = getConfigData();
 
         ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, BUILDER.build());
     }
 
-    private static <T> T getOrCreateConfigFile(File configDir, String configName, T defaults, Type type) {
-        File configFile = new File(configDir, configName + ".json");
+    private static HashMap<String, List<String>> getOrCreateConfigFile(File configDir, Type type) {
+        File configFile = new File(configDir, "entity_blood_colors" + ".json");
 
         if (!configFile.exists()) {
             try {
-                FileUtils.write(configFile, GSON.toJson(defaults));
+
+                // Populates the default entity blood colors map. This is what will be populated by default in the
+                // entity_blood_colors.json file.
+                DEFAULT_ENTITY_BLOOD_COLORS.put(BLOOD_BLACK, BLOOD_BLACK_MOBS);
+                DEFAULT_ENTITY_BLOOD_COLORS.put(BLOOD_BLUE, BLOOD_BLUE_MOBS);
+                DEFAULT_ENTITY_BLOOD_COLORS.put(BLOOD_GREEN, BLOOD_GREEN_MOBS);
+                DEFAULT_ENTITY_BLOOD_COLORS.put(BLOOD_GREY, BLOOD_GREY_MOBS);
+                DEFAULT_ENTITY_BLOOD_COLORS.put(BLOOD_PURPLE, BLOOD_PURPLE_MOBS);
+                DEFAULT_ENTITY_BLOOD_COLORS.put(BLOOD_ORANGE, BLOOD_ORANGE_MOBS);
+
+                FileUtils.write(configFile, GSON.toJson(ClientConfig.DEFAULT_ENTITY_BLOOD_COLORS), Charset.defaultCharset());
             }
             catch (IOException e) {
                 BloodyBitsMod.LOGGER.error("Bloody Bits color config file could not be written.");
@@ -86,26 +99,11 @@ public class ClientConfig {
         }
 
         try {
-            T found = GSON.fromJson(FileUtils.readFileToString(configFile), type);
-
-//            if (isInvalid.test(found)) {
-//                BloodyBitsMod.LOGGER.error("Old blood colors found for {}, replacing with new one.", configName);
-//                try {
-//                    FileUtils.write(configFile, GSON.toJson(defaults));
-//                }
-//                catch (IOException e) {
-//                    BloodyBitsMod.LOGGER.error("Bloody Bits color config file could not be written.");
-//                }
-//            }
-//            else {
-                return found;
-//            }
+            return GSON.fromJson(FileUtils.readFileToString(configFile, Charset.defaultCharset()), type);
         }
         catch (IOException e) {
             throw new RuntimeException(e);
         }
-
-//        return defaults;
     }
 
     private static File getConfigDirectory() {
@@ -114,7 +112,7 @@ public class ClientConfig {
         return jsonPath.toFile();
     }
 
-    private static HashMap<String, List<String>> getConfigData(HashMap<String, List<String>> defaultConfigData) {
-        return getOrCreateConfigFile(getConfigDirectory(), "test_blood_mobs", defaultConfigData, new TypeToken<HashMap<String, List<String>>>(){}.getType());
+    private static HashMap<String, List<String>> getConfigData() {
+        return getOrCreateConfigFile(getConfigDirectory(), new TypeToken<HashMap<String, List<String>>>(){}.getType());
     }
 }
