@@ -94,11 +94,17 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extend
             // Will render a random assortment of injury textures on the given entity
             // if it is contained within the map.
             if (this.damagedEntities.containsKey(entityUUID)) {
+                if (entity.getLastDamageSource() != null) {
+//                    BloodyBitsMod.LOGGER.info("ENTITY LAST DAMAGE SOURCE INFO: {}", entity.getLastDamageSource().type().msgId());
+                }
+
+                String damageType = (entity.getLastDamageSource() != null) ? entity.getLastDamageSource().type().msgId() : "generic";
+
                 EntityDamage entityDamage = this.damagedEntities.get(entityUUID);
 
-                entityDamage.modifyInjuryTextures((entity.getMaxHealth() - entity.getHealth()) / entity.getMaxHealth());
+                entityDamage.modifyInjuryTextures(damageType, (entity.getMaxHealth() - entity.getHealth()) / entity.getMaxHealth());
 
-                for (NativeImage damageLayerTexture : entityDamage.getAppliedInjuryTextures()) {
+                for (NativeImage damageLayerTexture : entityDamage.getPaintedAppliedInjuryTextures().keySet()) {
                     this.renderDamageLayerToBuffer(damageLayerTexture, entity, buffer, poseStack, pPartialTicks, pPackedLight);
                 }
             }
