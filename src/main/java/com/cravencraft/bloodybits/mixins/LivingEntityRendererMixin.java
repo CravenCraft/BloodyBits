@@ -18,6 +18,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -32,7 +33,9 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extend
     @Shadow protected abstract boolean isBodyVisible(T pLivingEntity);
     @Shadow @Nullable protected abstract RenderType getRenderType(T pLivingEntity, boolean pBodyVisible, boolean pTranslucent, boolean pGlowing);
     @Shadow protected abstract float getWhiteOverlayProgress(T pLivingEntity, float pPartialTicks);
+    @Unique
     private HashMap<UUID, EntityDamage> damagedEntities = new HashMap<>();
+    @Unique
     private List<String> noInjuryTextureEntities = new ArrayList<>();
 
     protected LivingEntityRendererMixin(EntityRendererProvider.Context pContext) {
@@ -102,9 +105,9 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extend
 
                 EntityDamage entityDamage = this.damagedEntities.get(entityUUID);
 
-                entityDamage.modifyInjuryTextures(damageType, (entity.getMaxHealth() - entity.getHealth()) / entity.getMaxHealth());
+                entityDamage.modifyInjuryTextures(damageType, (entity.getMaxHealth() - entity.getHealth()) / entity.getMaxHealth(), entity.getHealth());
 
-                for (NativeImage damageLayerTexture : entityDamage.getPaintedAppliedInjuryTextures().keySet()) {
+                for (NativeImage damageLayerTexture : entityDamage.getPaintedAppliedInjuryTextures().values()) {
                     this.renderDamageLayerToBuffer(damageLayerTexture, entity, buffer, poseStack, pPartialTicks, pPackedLight);
                 }
             }

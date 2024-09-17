@@ -16,11 +16,12 @@ public class EntityDamage {
     private final String entityName;
     private final List<NativeImage> availableInjuryTextures = new ArrayList<>();
     private final List<NativeImage> unpaintedAppliedInjuryTextures = new ArrayList<>();
-    private final HashMap<NativeImage, String> paintedAppliedInjuryTextures = new HashMap<>(10); // TODO: Make the maximum allowed applied textures a client config.
-//    private int entityInjuries;
+//    private final List<NativeImage> paintedInjuryTextures = new ArrayList<>();
+    private final HashMap<Integer, NativeImage> paintedAppliedInjuryTextures = new HashMap<>(10); // TODO: Make the maximum allowed applied textures a client config.
+    private int entityInjuries;
 
     public EntityDamage(String entityName) {
-//        this.entityInjuries = 0;
+        this.entityInjuries = 0;
         this.entityName = entityName;
 //        this.entityDamageColor = this.getMobDamageColor(entityName);
         try {
@@ -44,81 +45,99 @@ public class EntityDamage {
         return availableInjuryTextures;
     }
 
-    public HashMap<NativeImage, String> getPaintedAppliedInjuryTextures() {
+//    public List<NativeImage> getPaintedInjuryTextures() {
+//        return paintedInjuryTextures;
+//    }
+
+    public HashMap<Integer, NativeImage> getPaintedAppliedInjuryTextures() {
         return paintedAppliedInjuryTextures;
     }
 
     /**
      * Adds or removes injury texture images to the applied list depending on the entity's current
      * health percentage.
-     *
-     * @param entityHealthPercentage
      */
-    public void modifyInjuryTextures(String damageType, float entityHealthPercentage) {
+    public void modifyInjuryTextures(String damageType, float entityMissingHealthPercentage, float entityHealth) {
 
         // Only do the texture work if the entity has available or applied textures.
         if (!this.availableInjuryTextures.isEmpty() || !this.paintedAppliedInjuryTextures.isEmpty()) {
 
-            int injuries = (int) (entityHealthPercentage * 10); // TODO: Make the 10 here a client config for max available injuries and apply where needed.
+            int injuries = (int) (entityMissingHealthPercentage * 10); // TODO: Make the 10 here a client config for max available injuries and apply where needed.
 
-            if (this.paintedAppliedInjuryTextures.size() != injuries) {
+            if (this.entityInjuries != injuries) {
+                BloodyBitsMod.LOGGER.info("ENTITY INJURIES: {} CURRENT INJURIES: {}", this.entityInjuries, injuries);
                 // TODO: Client config value to be added here too.
-                if (this.paintedAppliedInjuryTextures.size() < 10 && injuries > this.paintedAppliedInjuryTextures.size()) {
-                    int injuriesToAdd = injuries - this.paintedAppliedInjuryTextures.size();
+                if (this.entityInjuries < 10 && injuries > this.entityInjuries) {
+                    int injuriesToAdd = injuries - this.entityInjuries;
                     for (int i = 0; i < injuriesToAdd; i++) {
                         if (this.availableInjuryTextures.isEmpty()) {
                             break;
                         }
-                        BloodyBitsMod.LOGGER.info("INDEX: {}", i);
-                        BloodyBitsMod.LOGGER.info("AVAILABLE INJURY TEXTURE SIZE: {}", this.availableInjuryTextures.size());
-                        int chosenTextureIndex = (this.availableInjuryTextures.size() > 1) ? new Random().nextInt(this.availableInjuryTextures.size() - 1) : 0;
-                        BloodyBitsMod.LOGGER.info("RANDOM TEXTURE TO BE APPLIED: {}", chosenTextureIndex);
 
-                        NativeImage availableInjuryImage = this.availableInjuryTextures.get(chosenTextureIndex);
+                        if (!damageType.equals("arrow")) {
+//                            BloodyBitsMod.LOGGER.info("INDEX: {}", i);
+//                            BloodyBitsMod.LOGGER.info("AVAILABLE INJURY TEXTURE SIZE: {}", this.availableInjuryTextures.size());
+                            int chosenTextureIndex = (this.availableInjuryTextures.size() > 1) ? new Random().nextInt(this.availableInjuryTextures.size() - 1) : 0;
+//                            BloodyBitsMod.LOGGER.info("RANDOM TEXTURE TO BE APPLIED: {}", chosenTextureIndex);
 
-                        // TODO: Remember to only do this adding/subtracting if the damage source allows it.
-                        //       Which probably means that we should for loop through the size of the painted textures?
-                        this.unpaintedAppliedInjuryTextures.add(availableInjuryImage);
-                        this.availableInjuryTextures.remove(availableInjuryImage);
-                        int entityDamageColor = this.getMobDamageColor(entityName); // TODO: Flesh out to account for damage types as well.
-                        BloodyBitsMod.LOGGER.info("ENTITY DAMAGE COLOR: {}", entityDamageColor);
-                        this.paintDamageToNativeImage(availableInjuryImage, entityDamageColor);
-                        // TODO: IDK adding and removing things from the hashmap feels inconsistent. Was basically flawless as a list.
-                        //       Need to revisit why I wanted a hashmap and what the benefit of storing the damage type there is worth
-                        //       if I'm just going to use the buffer list anyway.
-                        this.paintedAppliedInjuryTextures.put(availableInjuryImage, damageType);
-                        BloodyBitsMod.LOGGER.info("INJURY OF TYPE {} ADDED.", damageType);
+                            NativeImage availableInjuryImage = this.availableInjuryTextures.get(chosenTextureIndex);
 
-//                        this.entityInjuries++;
+                            // TODO: Remember to only do this adding/subtracting if the damage source allows it.
+                            //       Which probably means that we should for loop through the size of the painted textures?
+                            this.unpaintedAppliedInjuryTextures.add(availableInjuryImage);
+                            this.availableInjuryTextures.remove(availableInjuryImage);
+                            int entityDamageColor = this.getMobDamageColor(this.entityName); // TODO: Flesh out to account for damage types as well.
+                            BloodyBitsMod.LOGGER.info("ENTITY DAMAGE COLOR: {}", entityDamageColor);
+                            this.paintDamageToNativeImage(availableInjuryImage, entityDamageColor);
+//                            this.paintedInjuryTextures.add(availableInjuryImage);
+                            this.paintedAppliedInjuryTextures.put(this.entityInjuries, availableInjuryImage);
+                            BloodyBitsMod.LOGGER.info("----- INJURY TEXTURE {} ADDED.", this.entityInjuries);
+                        }
+
+//                        BloodyBitsMod.LOGGER.info("INJURY OF TYPE {} ADDED.", damageType);
+                        BloodyBitsMod.LOGGER.info("INJURY {} ADDED. MISSING ENTITY HEALTH OF {}.", this.entityInjuries, entityMissingHealthPercentage);
+                        this.entityInjuries++;
 
 //                        BloodyBitsMod.LOGGER.info("INJURY ADDED. INJURIES LIST SIZE: {}", this.paintedAppliedInjuryTextures.size());
-                        BloodyBitsMod.LOGGER.info("INJURY ADDED. AVAILABLE INJURIES AFTER: {} APPLIED INJURIES AFTER: {}", this.availableInjuryTextures.size(), this.paintedAppliedInjuryTextures.size());
+//                        BloodyBitsMod.LOGGER.info("INJURY ADDED. AVAILABLE INJURIES AFTER: {} APPLIED INJURIES AFTER: {}", this.availableInjuryTextures.size(), this.paintedAppliedInjuryTextures.size());
+//                        BloodyBitsMod.LOGGER.info("INJURIES AFTER: {}", this.entityInjuries);
                     }
                 }
-                else if (injuries < this.paintedAppliedInjuryTextures.size()) {
-                    int injuriesToRemove = this.paintedAppliedInjuryTextures.size() - injuries;
+                else if (injuries < this.entityInjuries) {
+                    int injuriesToRemove = this.entityInjuries - injuries;
+                    BloodyBitsMod.LOGGER.info("INJURIES TO REMOVE: {}", injuriesToRemove);
 
                     for (int i = 0; i < injuriesToRemove; i++) {
-                        BloodyBitsMod.LOGGER.info("AVAILABLE INJURY TEXTURE SIZE: {}", this.availableInjuryTextures.size());
-//                        int index = this.paintedAppliedInjuryTextures.size() - 1;
-                        NativeImage injuryImageToRemove = this.unpaintedAppliedInjuryTextures.get(this.paintedAppliedInjuryTextures.size() - 1);
+//                        BloodyBitsMod.LOGGER.info("AVAILABLE INJURY TEXTURE SIZE: {}", this.availableInjuryTextures.size());
 
-                        this.availableInjuryTextures.add(injuryImageToRemove);
-                        this.unpaintedAppliedInjuryTextures.remove(injuryImageToRemove);
+//                        HashMap<Integer, String> testMap = new HashMap<>();
+//                        testMap.
+
+                        if (this.paintedAppliedInjuryTextures.containsKey(this.entityInjuries)) {
+                            BloodyBitsMod.LOGGER.info("REMOVING ENTITY TEXTURE AT KEY {}.", this.entityInjuries);
+
+//                        int index = this.paintedAppliedInjuryTextures.size() - 1;
+                            NativeImage injuryImageToRemove = this.unpaintedAppliedInjuryTextures.remove(this.unpaintedAppliedInjuryTextures.size() - 1);
+
+                            this.availableInjuryTextures.add(injuryImageToRemove);
+//                        this.unpaintedAppliedInjuryTextures.remove(injuryImageToRemove);
 
 //                        injuryImageToRemove = this.paintedAppliedInjuryTextures.get(index);
 //                        this.paintedAppliedInjuryTextures.remove(injuryImageToRemove);
-                        List<NativeImage> paintedTextures = this.paintedAppliedInjuryTextures.keySet().stream().toList();
+//                        List<NativeImage> paintedTextures = this.paintedAppliedInjuryTextures.keySet().stream().toList();
 
-                        NativeImage paintedTextureToRemove = paintedTextures.get(paintedTextures.size() - 1);
-                        this.paintedAppliedInjuryTextures.remove(paintedTextureToRemove);
+//                        NativeImage paintedTextureToRemove = paintedTextures.get(paintedTextures.size() - 1);
+                            this.paintedAppliedInjuryTextures.remove(this.entityInjuries);
+//                            BloodyBitsMod.LOGGER.info("INJURIES PRIOR TO REMOVAL: {}", this.entityInjuries);
+                        }
 
 //                        ArrayList<> paintedInjuriesArray = this.paintedAppliedInjuryTextures.entrySet().toArray();
-                        BloodyBitsMod.LOGGER.info("INJURY OF TYPE {} REMOVED.", damageType);
-//                        this.entityInjuries--;
+//                        BloodyBitsMod.LOGGER.info("INJURY OF TYPE {} REMOVED.", damageType);
+                        this.entityInjuries--;
 
 //                        BloodyBitsMod.LOGGER.info("INJURY REMOVED. INJURY LIST SIZE: {}", this.paintedAppliedInjuryTextures.size());
-                        BloodyBitsMod.LOGGER.info("INJURY REMOVED. AVAILABLE INJURIES AFTER: {} APPLIED INJURIES AFTER: {}", this.availableInjuryTextures.size(), this.paintedAppliedInjuryTextures.size());
+                        BloodyBitsMod.LOGGER.info("REMOVING INJURY {} ENTITY MISSING HEALTH PERCENTAGE: {} AT {}", this.entityInjuries, entityMissingHealthPercentage, entityHealth);
+//                        BloodyBitsMod.LOGGER.info("INJURY REMOVED. AVAILABLE INJURIES AFTER: {} APPLIED INJURIES AFTER: {}", this.availableInjuryTextures.size(), this.paintedAppliedInjuryTextures.size());
                     }
                 }
 
