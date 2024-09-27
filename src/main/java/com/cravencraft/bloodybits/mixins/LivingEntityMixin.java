@@ -1,7 +1,5 @@
 package com.cravencraft.bloodybits.mixins;
 
-import com.cravencraft.bloodybits.BloodyBitsMod;
-import com.cravencraft.bloodybits.config.ClientConfig;
 import com.cravencraft.bloodybits.config.CommonConfig;
 import com.cravencraft.bloodybits.entity.custom.BloodChunkEntity;
 import com.cravencraft.bloodybits.entity.custom.BloodSprayEntity;
@@ -21,14 +19,12 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import javax.annotation.Nullable;
 
 @Mixin(LivingEntity.class)
 public abstract class LivingEntityMixin extends Entity {
-    private LivingEntity self;
 
     @Shadow public int deathTime;
 
@@ -39,16 +35,6 @@ public abstract class LivingEntityMixin extends Entity {
     }
 
     /**
-     * Mixin method solely created as a sneaky way to get the instance of the LivingEntity class. This method will always
-     * be called before a living entity dies. So, this is a safe way to acquire it for what I want to use it for.
-     */
-    @Redirect(method = "hurt", at = @At(value = "INVOKE", target = "Lnet/minecraftforge/common/ForgeHooks;onLivingAttack(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/damagesource/DamageSource;F)Z"), remap = false)
-    private boolean getSelf(LivingEntity entity, DamageSource src, float amount) {
-        this.self = entity;
-        return net.minecraftforge.common.ForgeHooks.onLivingAttack(entity, src, amount);
-    }
-
-    /**
      * If the Common Config is set to allow blood chunks, then this mixin adds blood chunks at the final tick of the
      * entity's death.
      *
@@ -56,12 +42,13 @@ public abstract class LivingEntityMixin extends Entity {
      */
     @Inject(method = "tickDeath", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;broadcastEntityEvent(Lnet/minecraft/world/entity/Entity;B)V"))
     private void addBloodChunksToDeath(CallbackInfo ci) {
-        if (this.self != null) {
+        LivingEntity self = (LivingEntity) (Object) this;
+        if (self != null) {
             String entityId = (this.toString().contains("Player")) ? "player" : this.getEncodeId();
             if (CommonConfig.deathBloodExplosion() && !CommonConfig.blackListEntities().contains(entityId)) {
                 assert this.lastDamageSource != null;
                 if (!CommonConfig.blackListDamageSources().contains(this.lastDamageSource.type().msgId())) {
-                    this.createBloodExplosion();
+                    this.createBloodExplosion(self);
                 }
             }
         }
@@ -80,7 +67,7 @@ public abstract class LivingEntityMixin extends Entity {
     /**
      * Creates blood chunks and sprays on an entity's death.
      */
-    private void createBloodExplosion() {
+    private void createBloodExplosion(LivingEntity self) {
         int maxBloodChunks = (int) Math.min(20, this.getBoundingBox().getSize() * 10);
         String ownerName = (this.toString().contains("Player")) ? "player" : this.getEncodeId();
         for (int i=0; i < maxBloodChunks; i++) {
@@ -89,7 +76,7 @@ public abstract class LivingEntityMixin extends Entity {
                 BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.remove(0);
             }
 
-            BloodSprayEntity bloodSprayEntity = new BloodSprayEntity(EntityRegistry.BLOOD_SPRAY.get(), this.self, this.level());
+            BloodSprayEntity bloodSprayEntity = new BloodSprayEntity(EntityRegistry.BLOOD_SPRAY.get(), self, this.level());
             BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.add(bloodSprayEntity);
 
             double xAngle = BloodyBitsUtils.getRandomAngle(0.5);
@@ -111,7 +98,7 @@ public abstract class LivingEntityMixin extends Entity {
                     BloodyBitsUtils.BLOOD_CHUNK_ENTITIES.remove(0);
                 }
 
-                BloodChunkEntity bloodChunkEntity = new BloodChunkEntity(EntityRegistry.BLOOD_CHUNK.get(), this.self, this.level(), 0);
+                BloodChunkEntity bloodChunkEntity = new BloodChunkEntity(EntityRegistry.BLOOD_CHUNK.get(), self, this.level(), 0);
                 BloodyBitsUtils.BLOOD_CHUNK_ENTITIES.add(bloodChunkEntity);
                 bloodChunkEntity.setDeltaMovement(xAngle, yAngle, zAngle);
                 this.level().addFreshEntity(bloodChunkEntity);
