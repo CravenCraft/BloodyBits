@@ -1,5 +1,6 @@
 package com.cravencraft.bloodybits.utils;
 
+import com.cravencraft.bloodybits.client.model.EntityDamage;
 import com.cravencraft.bloodybits.config.CommonConfig;
 import com.cravencraft.bloodybits.entity.custom.BloodChunkEntity;
 import com.cravencraft.bloodybits.entity.custom.BloodSprayEntity;
@@ -11,10 +12,14 @@ import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 public class BloodyBitsUtils {
     public static ArrayList<BloodSprayEntity> BLOOD_SPRAY_ENTITIES = new ArrayList<>();
     public static ArrayList<BloodChunkEntity> BLOOD_CHUNK_ENTITIES = new ArrayList<>();
+    public static final HashMap<Integer, EntityDamage> DAMAGED_ENTITIES = new HashMap<>();
+    public static final List<String> NO_INJURY_TEXTURE_ENTITIES = new ArrayList<>();
 
     public static double getRandomAngle(double range) {
         return (Math.random() > 0.5) ? Math.random() * range : -(Math.random() * range);

@@ -4,17 +4,32 @@ import com.cravencraft.bloodybits.BloodyBitsMod;
 import com.cravencraft.bloodybits.config.CommonConfig;
 import com.cravencraft.bloodybits.entity.custom.BloodSprayEntity;
 import com.cravencraft.bloodybits.network.BloodyBitsPacketHandler;
+import com.cravencraft.bloodybits.network.messages.EntityHealthMessage;
 import com.cravencraft.bloodybits.network.messages.EntityMessage;
 import com.cravencraft.bloodybits.registries.EntityRegistry;
 import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.entity.living.LivingDamageEvent;
+import net.minecraftforge.event.entity.living.LivingHealEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.network.PacketDistributor;
 
 @Mod.EventBusSubscriber(modid = BloodyBitsMod.MODID)
 public class BloodyBitsEvents {
+
+    @SubscribeEvent
+    public static void entityHealEvent(LivingHealEvent event) {
+        BloodyBitsMod.LOGGER.info("ENTITY HEALING EVENT AMOUNT: {}", event.getAmount());
+        LivingEntity entity = event.getEntity();
+
+        if (entity != null) {
+            BloodyBitsPacketHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> entity),
+                    new EntityHealthMessage(false, entity.getId()));
+        }
+    }
 
     /**
      * Looks for all the players on a given server and creates blood sprays if the damage event is
@@ -23,11 +38,18 @@ public class BloodyBitsEvents {
      */
     @SubscribeEvent
     public static void bloodOnEntityDamage(LivingDamageEvent event) {
-        if (event.getEntity() != null) {
-            String entityId = (event.getEntity().toString().contains("Player")) ? "player" : event.getEntity().getEncodeId();
-            if (!event.getEntity().level().isClientSide() && !CommonConfig.blackListEntities().contains(entityId) && !CommonConfig.blackListDamageSources().contains(event.getSource().type().msgId())) {
+        LivingEntity entity = event.getEntity();
+        if (entity != null) {
+            BloodyBitsMod.LOGGER.info("ENTITY {} ID: {}", entity.getEncodeId(), event.getEntity().getId());
+            String entityName = (entity instanceof Player) ? "player" : entity.getEncodeId();
+            entityName = (entityName == null) ? "" : entityName;
+
+            if (!event.getEntity().level().isClientSide() && !CommonConfig.blackListEntities().contains(entityName) && !CommonConfig.blackListDamageSources().contains(event.getSource().type().msgId())) {
                 createBloodSpray(event);
             }
+
+            BloodyBitsPacketHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> entity),
+                    new EntityHealthMessage(true, entity.getId()));
         }
     }
 

@@ -30,7 +30,7 @@ public class EntityMessage {
     public static void handle(EntityMessage message, Supplier<NetworkEvent.Context> contextSupplier) {
         NetworkEvent.Context context = contextSupplier.get();
         context.enqueueWork(() -> {
-            if (context.getDirection().getReceptionSide().isClient()) {
+            if (Minecraft.getInstance().level != null && context.getDirection().getReceptionSide().isClient()) {
                 Entity entity = Minecraft.getInstance().level.getEntity(message.entityId);
                 if (entity instanceof BloodSprayEntity bloodSprayEntity) {
                     bloodSprayEntity.setOwner(Minecraft.getInstance().level.getEntity(message.entityOwnerid));

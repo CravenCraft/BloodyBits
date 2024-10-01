@@ -1,8 +1,8 @@
 package com.cravencraft.bloodybits.mixins;
 
-import com.cravencraft.bloodybits.BloodyBitsMod;
 import com.cravencraft.bloodybits.client.model.EntityDamage;
 import com.cravencraft.bloodybits.config.ClientConfig;
+import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -15,16 +15,13 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import javax.annotation.Nullable;
-import java.util.*;
 
 @Mixin(LivingEntityRenderer.class)
 public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extends EntityModel<T>> extends EntityRenderer<T> {
@@ -33,10 +30,6 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extend
     @Shadow protected abstract boolean isBodyVisible(T pLivingEntity);
     @Shadow @Nullable protected abstract RenderType getRenderType(T pLivingEntity, boolean pBodyVisible, boolean pTranslucent, boolean pGlowing);
     @Shadow protected abstract float getWhiteOverlayProgress(T pLivingEntity, float pPartialTicks);
-    @Unique
-    private HashMap<UUID, EntityDamage> damagedEntities = new HashMap<>();
-    @Unique
-    private List<String> noInjuryTextureEntities = new ArrayList<>();
 
     protected LivingEntityRendererMixin(EntityRendererProvider.Context pContext) {
         super(pContext);
@@ -72,48 +65,18 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extend
     )
     private void renderBloodLayer(T entity, float pEntityYaw, float pPartialTicks, PoseStack poseStack, MultiBufferSource buffer, int pPackedLight, CallbackInfo ci) {
         if (ClientConfig.showEntityDamage() && entity.isAlive() && entity.getHealth() < entity.getMaxHealth()) {
-            UUID entityUUID = entity.getUUID();
-            String entityName = (entity instanceof Player) ? "player" : entity.getEncodeId();
-            // Don't know all the entities other than the player that could have an empty entity name.
-            entityName = (entityName == null) ? "" : entityName;
-
-            // Determines if the entity has any damage textures associated with it, then places that
-            // entity within a blacklist or a map with its available textures. The blacklist is made
-            // solely so this conditional is only ever accessed once per entity since this method is
-            // executed every tick. Want to keep things as efficient as possible.
-            if (!this.damagedEntities.containsKey(entityUUID) && !this.noInjuryTextureEntities.contains(entityName)) {
-                // Best to add this check to avoid unexpected crashes.
-                BloodyBitsMod.LOGGER.info("ENTITY NAME: {} ENTITY UUID: {}", entityName, entityUUID);
-                EntityDamage entityDamage = new EntityDamage(entityName);
-                BloodyBitsMod.LOGGER.info("ENTITY DAMAGE AVAILABLE TEXTURES SIZE: {}", entityDamage.getAvailableInjuryTextures().size());
-                if (entityDamage.getAvailableInjuryTextures().isEmpty()) {
-                    this.noInjuryTextureEntities.add(entityName);
-                }
-                else {
-                    this.damagedEntities.put(entityUUID, new EntityDamage(entityName));
-                }
-            }
+            int entityId = entity.getId();
 
             // Will render a random assortment of injury textures on the given entity
             // if it is contained within the map.
-            if (this.damagedEntities.containsKey(entityUUID)) {
-                if (entity.getLastDamageSource() != null) {
-//                    BloodyBitsMod.LOGGER.info("ENTITY LAST DAMAGE SOURCE INFO: {}", entity.getLastDamageSource().type().msgId());
-                }
+            if (BloodyBitsUtils.DAMAGED_ENTITIES.containsKey(entityId)) {
 
-                String damageType = (entity.getLastDamageSource() != null) ? entity.getLastDamageSource().type().msgId() : "generic";
-
-                EntityDamage entityDamage = this.damagedEntities.get(entityUUID);
-
-                entityDamage.modifyInjuryTextures(damageType, (entity.getMaxHealth() - entity.getHealth()) / entity.getMaxHealth(), entity.getHealth());
+                EntityDamage entityDamage = BloodyBitsUtils.DAMAGED_ENTITIES.get(entityId);
 
                 for (NativeImage damageLayerTexture : entityDamage.getPaintedAppliedInjuryTextures().values()) {
                     this.renderDamageLayerToBuffer(damageLayerTexture, entity, buffer, poseStack, pPartialTicks, pPackedLight);
                 }
             }
-        }
-        else {
-            this.damagedEntities.remove(entity.getUUID());
         }
     }
 

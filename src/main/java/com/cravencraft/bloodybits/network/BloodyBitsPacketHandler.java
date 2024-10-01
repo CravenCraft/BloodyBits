@@ -1,6 +1,7 @@
 package com.cravencraft.bloodybits.network;
 
 import com.cravencraft.bloodybits.BloodyBitsMod;
+import com.cravencraft.bloodybits.network.messages.EntityHealthMessage;
 import com.cravencraft.bloodybits.network.messages.EntityMessage;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.network.NetworkRegistry;
@@ -22,5 +23,6 @@ public class BloodyBitsPacketHandler {
 
     public static void register() {
         INSTANCE.registerMessage(getId(), EntityMessage.class, EntityMessage::encode, EntityMessage::decode, EntityMessage::handle);
+        INSTANCE.registerMessage(getId(), EntityHealthMessage.class, EntityHealthMessage::encode, EntityHealthMessage::decode, EntityHealthMessage::handle);
     }
 }

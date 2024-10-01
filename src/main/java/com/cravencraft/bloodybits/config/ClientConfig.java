@@ -42,12 +42,10 @@ public class ClientConfig {
     private static final HashMap<String, List<String>> DEFAULT_ENTITY_BLOOD_COLORS = new HashMap<>();
     private static HashMap<String, List<String>> ENTITY_BLOOD_COLORS;
 
-    private static final String DARK_GRAY_DAMAGE_OVERLAY = "#323232";
+    private static final String BURN_DAMAGE_COLOR = "#323232";
 
-    private static final List<String> DARK_GRAY_DAMAGE_OVERLAY_SOURCES = List.of("burn", "fireball", "fireworks", "lava", "hotFloor", "onFire", "inFire", "lightningBolt");
-    private static final HashMap<String, List<String>> DEFAULT_DAMAGE_OVERLAY_SOURCES = new HashMap<>();
-    private static HashMap<String, List<String>> DAMAGE_OVERLAY_SOURCES;
-
+    private static ForgeConfigSpec.ConfigValue<List<? extends String>> BURN_DAMAGE_SOURCE;
+    private static ForgeConfigSpec.ConfigValue<List<? extends String>> BLACKLIST_INJURY_SOURCES;
 
     public static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
 
@@ -62,6 +60,10 @@ public class ClientConfig {
     public static int availableTexturesPerEntity() { return AVAILABLE_TEXTURES_PER_ENTITY.get(); }
     public static HashMap<String, List<String>> entityBloodColors() { return ENTITY_BLOOD_COLORS; }
 
+    public static List<? extends String> burnDamageSources() { return BURN_DAMAGE_SOURCE.get(); }
+    public static List<? extends String> blackListInjurySources() { return BLACKLIST_INJURY_SOURCES.get(); }
+    public static String getBurnDamageColor() { return BURN_DAMAGE_COLOR; }
+
     public static void loadClientConfig() {
         BUILDER.push("blood spray settings");
 
@@ -74,12 +76,21 @@ public class ClientConfig {
         AVAILABLE_TEXTURES_PER_ENTITY = BUILDER.comment("The maximum amount of available injury textures permitted per entity.\n" +
                         "Resource packs can be created to add additional textures for entities, override existing textures, or to\n" +
                         "even create textures for entities that have none.")
-                .defineInRange("max_entity_injuries", 25, 0, 100);
+                .defineInRange("available_textures_per_entity", 25, 0, 100);
+
+        BURN_DAMAGE_SOURCE = BUILDER.comment("List of the damage sources that will display burn damage for the entities (only applies when show_entity_damage is true).")
+                .defineListAllowEmpty("burn_damage_sources",
+                        List.of("burn", "fireball", "fireworks", "lava", "hotFloor", "onFire", "inFire", "lightningBolt"),
+                        it -> it instanceof String);
+
+        BLACKLIST_INJURY_SOURCES = BUILDER.comment("List of the damage sources that will not display texture damage to the entity.")
+                .defineListAllowEmpty("blacklist_injury_sources",
+                        List.of("drown", "starve", "dryOut", "freeze", "fellOutOfWorld"),
+                        it -> it instanceof String);
 
         BUILDER.pop();
 
-        ENTITY_BLOOD_COLORS = getConfigData("entity_blood_colors");
-        DAMAGE_OVERLAY_SOURCES = getConfigData("damage_source_colors");
+        ENTITY_BLOOD_COLORS = getConfigData();
 
         ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, BUILDER.build());
     }
@@ -88,26 +99,15 @@ public class ClientConfig {
 
         if (!configFile.exists()) {
             try {
-
                 // Populates the default entity blood colors map. This is what will be populated by default in the
                 // entity_blood_colors.json file.
-                if (configFile.getName().contains("entity_blood_colors")) {
-                    DEFAULT_ENTITY_BLOOD_COLORS.put(BLOOD_BLACK, BLOOD_BLACK_ENTITIES);
-                    DEFAULT_ENTITY_BLOOD_COLORS.put(BLOOD_BLUE, BLOOD_BLUE_ENTITIES);
-                    DEFAULT_ENTITY_BLOOD_COLORS.put(BLOOD_GREEN, BLOOD_GREEN_ENTITIES);
-                    DEFAULT_ENTITY_BLOOD_COLORS.put(BLOOD_GREY, BLOOD_GREY_ENTITIES);
-                    DEFAULT_ENTITY_BLOOD_COLORS.put(BLOOD_PURPLE, BLOOD_PURPLE_ENTITIES);
-                    DEFAULT_ENTITY_BLOOD_COLORS.put(BLOOD_ORANGE, BLOOD_ORANGE_ENTITIES);
-                    FileUtils.write(configFile, GSON.toJson(ClientConfig.DEFAULT_ENTITY_BLOOD_COLORS), Charset.defaultCharset());
-                }
-
-                // TODO: Write description here.
-                // Populates the default entity blood colors map. This is what will be populated by default in the
-                // entity_blood_colors.json file.
-                else if (configFile.getName().contains("damage_source_colors")) {
-                    DEFAULT_DAMAGE_OVERLAY_SOURCES.put(DARK_GRAY_DAMAGE_OVERLAY, DARK_GRAY_DAMAGE_OVERLAY_SOURCES);
-                    FileUtils.write(configFile, GSON.toJson(ClientConfig.DEFAULT_DAMAGE_OVERLAY_SOURCES), Charset.defaultCharset());
-                }
+                DEFAULT_ENTITY_BLOOD_COLORS.put(BLOOD_BLACK, BLOOD_BLACK_ENTITIES);
+                DEFAULT_ENTITY_BLOOD_COLORS.put(BLOOD_BLUE, BLOOD_BLUE_ENTITIES);
+                DEFAULT_ENTITY_BLOOD_COLORS.put(BLOOD_GREEN, BLOOD_GREEN_ENTITIES);
+                DEFAULT_ENTITY_BLOOD_COLORS.put(BLOOD_GREY, BLOOD_GREY_ENTITIES);
+                DEFAULT_ENTITY_BLOOD_COLORS.put(BLOOD_PURPLE, BLOOD_PURPLE_ENTITIES);
+                DEFAULT_ENTITY_BLOOD_COLORS.put(BLOOD_ORANGE, BLOOD_ORANGE_ENTITIES);
+                FileUtils.write(configFile, GSON.toJson(ClientConfig.DEFAULT_ENTITY_BLOOD_COLORS), Charset.defaultCharset());
             }
             catch (IOException e) {
                 BloodyBitsMod.LOGGER.error("Bloody Bits color config file could not be written.");
@@ -128,11 +128,9 @@ public class ClientConfig {
         return jsonPath.toFile();
     }
 
-    private static HashMap<String, List<String>> getConfigData(String configName) {
+    private static HashMap<String, List<String>> getConfigData() {
         File configDir = getConfigDirectory();
-        File entityBloodColorsConfigFile = new File(configDir, configName + ".json");
-//        File entityBloodColorsConfigFile = new File(configDir, "entity_blood_colors" + ".json");
-//        File damageSourceColorsConfigFile = new File(configDir, "damage_source_colors" + ".json");
+        File entityBloodColorsConfigFile = new File(configDir, "entity_blood_colors" + ".json");
         return getOrCreateConfigFile(entityBloodColorsConfigFile, new TypeToken<HashMap<String, List<String>>>(){}.getType());
     }
 }
