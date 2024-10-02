@@ -13,12 +13,50 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.entity.living.LivingDamageEvent;
 import net.minecraftforge.event.entity.living.LivingHealEvent;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.network.PacketDistributor;
 
 @Mod.EventBusSubscriber(modid = BloodyBitsMod.MODID)
 public class BloodyBitsEvents {
+
+    @SubscribeEvent
+    public static void testBloodSpray(PlayerInteractEvent.RightClickBlock event) {
+        BloodyBitsMod.LOGGER.info("CREATING BLOOD SPRAY");
+        if (!event.getEntity().level().isClientSide()) {
+            BloodyBitsMod.LOGGER.info("CREATING BLOOD SPRAY SERVER SIDE");
+            if (BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.size() >= CommonConfig.maxSpatters()) {
+                BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.get(0).discard();
+                BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.remove(0);
+            }
+
+            BloodSprayEntity bloodSprayEntity = new BloodSprayEntity(EntityRegistry.BLOOD_SPRAY.get(), event.getEntity(), event.getEntity().level());
+            BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.add(bloodSprayEntity);
+//            Vec3 sourceAngle;
+//            if (event.getSource().getEntity() != null) {
+//                sourceAngle = (event.getSource().getDirectEntity() != null) ? event.getSource().getDirectEntity().getLookAngle() : event.getSource().getEntity().getLookAngle();
+//            }
+//            else {
+//                sourceAngle = event.getEntity().getLookAngle();
+//            }
+
+//            double xAngle = sourceAngle.x;
+//            double yAngle = -sourceAngle.y + Math.random();
+//            double zAngle = sourceAngle.z;
+//            double adjustedDamage = maxDamage * 0.1;
+
+            // Ensure the angles are always going where they are expected to go.
+//            xAngle = (xAngle > 0) ? (xAngle - Math.random()) : (xAngle + Math.random()) - adjustedDamage;
+//            zAngle = (zAngle > 0) ? (zAngle - Math.random()) : (zAngle + Math.random()) - adjustedDamage;
+
+            bloodSprayEntity.setDeltaMovement(event.getEntity().getLookAngle());
+            event.getEntity().level().addFreshEntity(bloodSprayEntity);
+
+            BloodyBitsPacketHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> bloodSprayEntity),
+                    new EntityMessage(bloodSprayEntity.getId(), event.getEntity().getId()));
+        }
+    }
 
     @SubscribeEvent
     public static void entityHealEvent(LivingHealEvent event) {
@@ -38,6 +76,7 @@ public class BloodyBitsEvents {
      */
     @SubscribeEvent
     public static void bloodOnEntityDamage(LivingDamageEvent event) {
+        BloodyBitsMod.LOGGER.info("ENTITY DAMAGED: {}", event.getEntity().getEncodeId());
         LivingEntity entity = event.getEntity();
         if (entity != null) {
             BloodyBitsMod.LOGGER.info("ENTITY {} ID: {}", entity.getEncodeId(), event.getEntity().getId());

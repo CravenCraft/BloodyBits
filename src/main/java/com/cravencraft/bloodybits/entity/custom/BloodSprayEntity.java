@@ -15,6 +15,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.ButtonBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.*;
@@ -373,8 +374,8 @@ public class BloodSprayEntity extends AbstractArrow {
             this.zMaxLimit = (float) determineSpatterExpansion(initialZMaxVal, false, true) * 10; // Z MAX
 
             // All of this is boilerplate from AbstractArrow except the setSoundEvent now playing a slime sound.
-            BlockState blockstate = this.level().getBlockState(result.getBlockPos());
-            blockstate.onProjectileHit(this.level(), blockstate, result, this);
+//            BlockState blockstate = this.level().getBlockState(result.getBlockPos());
+//            blockstate.onProjectileHit(this.level(), blockstate, result, this);
             Vec3 vec3 = result.getLocation().subtract(this.getX(), this.getY(), this.getZ());
             this.setDeltaMovement(vec3);
             Vec3 vec31 = vec3.normalize().scale(0.05F);
@@ -478,17 +479,17 @@ public class BloodSprayEntity extends AbstractArrow {
         return (isMax) ? blockPos + 1 : blockPos;
     }
 
-    @Override
-    protected void onHit(HitResult hitResult) {
-//        BloodyBitsMod.LOGGER.info("ON HIT OVERRIDE");
-        if (hitResult.getType() == HitResult.Type.BLOCK) {
-//            BloodyBitsMod.LOGGER.info("ON HIT OVERRIDE ----- HIT BLOCK");
-            BlockHitResult blockhitresult = (BlockHitResult)hitResult;
-            this.onHitBlock(blockhitresult);
-            BlockPos blockpos = blockhitresult.getBlockPos();
-            this.level().gameEvent(GameEvent.PROJECTILE_LAND, blockpos, GameEvent.Context.of(this, this.level().getBlockState(blockpos)));
-        }
-    }
+//    @Override
+//    protected void onHit(HitResult hitResult) {
+////        BloodyBitsMod.LOGGER.info("ON HIT OVERRIDE");
+//        if (hitResult.getType() == HitResult.Type.BLOCK) {
+////            BloodyBitsMod.LOGGER.info("ON HIT OVERRIDE ----- HIT BLOCK");
+//            BlockHitResult blockhitresult = (BlockHitResult)hitResult;
+//            this.onHitBlock(blockhitresult);
+//            BlockPos blockpos = blockhitresult.getBlockPos();
+//            this.level().gameEvent(GameEvent.PROJECTILE_LAND, blockpos, GameEvent.Context.of(this, this.level().getBlockState(blockpos)));
+//        }
+//    }
 
     @Override
     protected boolean canHitEntity(Entity entity) {
@@ -498,6 +499,22 @@ public class BloodSprayEntity extends AbstractArrow {
     @Override
     protected void onHitEntity(EntityHitResult pResult) {
 
+    }
+
+    /**
+     * We don't want the blood to catch on fire.
+     */
+    @Override
+    public boolean fireImmune() {
+        return true;
+    }
+
+    /**
+     * We don't want the blood to interact with things such as buttons.
+     */
+    @Override
+    public boolean mayInteract(Level pLevel, BlockPos pPos) {
+        return false;
     }
 
     @Override

@@ -64,7 +64,7 @@ public class CommonConfig {
                 .defineListAllowEmpty("solid_entities",
                         List.of("minecraft:skeleton", "minecraft:skeleton_horse", "minecraft:wither_skeleton", "minecraft:wither", "minecraft:shulker"),
                         it -> it instanceof String);
-        BLACKLIST_ENTITIES = BUILDER.comment("Some mobs don't play nice with this mod, and may cause crashes. Define which mobs you want to blacklist here.")
+        BLACKLIST_ENTITIES = BUILDER.comment("Some mobs don't play nice with this mod, and may cause crashes. Define which mobs you want to blacklist here (enter 'player' for all players).")
                 .defineListAllowEmpty("blacklist_entities",
                         List.of("alexsmobs:cachalot_whale"),
                         it -> it instanceof String);
