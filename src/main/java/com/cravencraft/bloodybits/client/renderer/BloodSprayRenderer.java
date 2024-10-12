@@ -2,7 +2,7 @@ package com.cravencraft.bloodybits.client.renderer;
 
 import com.cravencraft.bloodybits.BloodyBitsMod;
 import com.cravencraft.bloodybits.config.CommonConfig;
-import com.cravencraft.bloodybits.entity.custom.BloodSprayEntity;
+import com.cravencraft.bloodybits.entity.BloodSprayEntity;
 import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -49,7 +49,7 @@ public class BloodSprayRenderer extends EntityRenderer<BloodSprayEntity> {
             pPoseStack.mulPose(Axis.ZP.rotationDegrees(90.0F));
         }
 
-        int alpha = (int) (225 - (((double) entity.currentLifeTime / CommonConfig.despawnTime()) * 225));
+        int alpha = (int) (225 - (((double) entity.getLife() / CommonConfig.despawnTime()) * 225));
         alpha = Math.max(0, alpha);
         
 //        pPoseStack.mulPose(Axis.XP.rotationDegrees(45.0F));
@@ -110,7 +110,7 @@ public class BloodSprayRenderer extends EntityRenderer<BloodSprayEntity> {
             BloodyBitsUtils.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMin, entity.zMax, 1.0F, 1.0F,1, 1, 1, pPackedLight, entity.red, entity.green, entity.blue, alpha);
             BloodyBitsUtils.vertex(matrix4f, matrix3f, vertexConsumer, entity.xMin, entity.yMax, entity.zMax, 1.0F, 0.0F,1, 1, 1, pPackedLight, entity.red, entity.green, entity.blue, alpha);
 
-            if (entity.currentLifeTime > 50 && entity.entityDirection != null && entity.entityDirection.equals(Direction.DOWN)) {
+            if (entity.getLife() > 50 && entity.entityDirection != null && entity.entityDirection.equals(Direction.DOWN)) {
                 int correctedPackedLight = Math.max(pPackedLight, 10485776);
                 VertexConsumer dripVertexConsumer = pBuffer.getBuffer(RenderType.entityTranslucent(SPRAY));
                 float zPos = (Math.abs(entity.zMax - entity.zMin) / 2) + entity.zMin; // Gets the center point to make the Z-axis.

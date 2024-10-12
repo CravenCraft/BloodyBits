@@ -1,7 +1,7 @@
 package com.cravencraft.bloodybits.registries;
 
 import com.cravencraft.bloodybits.BloodyBitsMod;
-import com.cravencraft.bloodybits.entity.custom.BloodSprayEntity;
+import com.cravencraft.bloodybits.entity.BloodSprayEntity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraftforge.registries.DeferredRegister;

@@ -5,9 +5,10 @@
 - Fixed bug that causes a blood fountain whenever the player dies, but does not respawn.
 - Added an option to blacklist the player (all players) from being an entity that can bleed.
 - Stopped blood from triggering buttons and interacting with other entities.
-- Removing blood sprays/chunks on entity death until I find a better & less crash-prone solution. 
+- Removing blood sprays/chunks on entity death until I find a better & less crash-prone solution.
+- Major rework to blood entities. They no longer extend the AbstractArrow class, which fixes the catching fire, button pressing, 
+    and some crashing bugs. As well, allowed me to remove some mixin classes that were prone to errors when using Sinytra Connector.
 - TODO: Add config option to modify the blood spatter/explosion radius.
-- TODO: Fix bug that causes a crash when blood chunks are emitted for certain entities.
 
 ## V1.2.1
 - Added a quick fix for a potential crash whenever the player takes damage.

@@ -1,6 +1,6 @@
 package com.cravencraft.bloodybits.network.messages;
 
-import com.cravencraft.bloodybits.entity.custom.BloodSprayEntity;
+import com.cravencraft.bloodybits.entity.BloodSprayEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.Entity;

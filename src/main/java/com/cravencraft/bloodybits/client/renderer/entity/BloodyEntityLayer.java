@@ -1,19 +1,13 @@
 package com.cravencraft.bloodybits.client.renderer.entity;
 
 import com.cravencraft.bloodybits.BloodyBitsMod;
-import com.cravencraft.bloodybits.entity.custom.BloodSprayEntity;
-import com.cravencraft.bloodybits.registries.EntityRegistry;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.model.EntityModel;
-import net.minecraft.client.model.PlayerModel;
-import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
-import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
-import net.minecraft.client.renderer.entity.layers.StuckInBodyLayer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;

@@ -5,8 +5,6 @@
   "refmap": "mixins.bloodybits.refmap.json",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
-    "AbstractArrowMixin",
-    "ButtonBlockMixin"
   ],
   "client": [
     "LivingEntityRendererMixin"

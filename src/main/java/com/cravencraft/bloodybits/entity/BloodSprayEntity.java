@@ -1,25 +1,26 @@
-package com.cravencraft.bloodybits.entity.custom;
+package com.cravencraft.bloodybits.entity;
 
 import com.cravencraft.bloodybits.config.ClientConfig;
 import com.cravencraft.bloodybits.config.CommonConfig;
 import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtUtils;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.projectile.AbstractArrow;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.projectile.Projectile;
+import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.ButtonBlock;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.*;
-import net.minecraftforge.network.NetworkHooks;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
@@ -28,7 +29,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-public class BloodSprayEntity extends AbstractArrow {
+public class BloodSprayEntity extends Projectile {
+    private static final EntityDataAccessor<Byte> ID_FLAGS = SynchedEntityData.defineId(net.minecraft.world.entity.projectile.AbstractArrow.class, EntityDataSerializers.BYTE);
+    private static final EntityDataAccessor<Byte> PIERCE_LEVEL = SynchedEntityData.defineId(net.minecraft.world.entity.projectile.AbstractArrow.class, EntityDataSerializers.BYTE);
+    @Nullable
+    public BlockState lastState;
+    protected boolean inGround;
+    protected int inGroundTime;
+    private int life;
+    private SoundEvent soundEvent;
 
     private static final int BLOOD_SPATTER_TEXTURES = 7;
     public static final int WALL_SLIDE_DOWN_AMOUNT = 20;
@@ -37,7 +46,6 @@ public class BloodSprayEntity extends AbstractArrow {
     public static final double BLOOD_SPATTER_AMOUNT = 0.3;
     public static final float SPATTER_SPEED = 1.5F;
 
-    public int currentLifeTime;
     public int randomTextureNumber;
 
     public float yMinLimit;
@@ -76,112 +84,116 @@ public class BloodSprayEntity extends AbstractArrow {
         this.previousPosition = this.position();
     }
 
+    public BloodSprayEntity(EntityType<BloodSprayEntity> entityType, double pX, double pY, double pZ, Level pLevel) {
+        this(entityType, pLevel);
+        this.setPos(pX, pY, pZ);
+    }
+
     public BloodSprayEntity(EntityType<BloodSprayEntity> entityType, LivingEntity shooter, Level level) {
-        super(entityType, shooter, level);
+        this(entityType, shooter.getX(), shooter.getEyeY() - (double)0.1F, shooter.getZ(), level);
+        this.setOwner(shooter);
         this.previousPosition = this.position();
 
     }
 
-    /**
-     * If the owner of the entity is not null, then the string field 'ownerName' will be set to the
-     * entity's encoded ID (e.x., minecraft:villager), and if the entity is a player, then it will
-     * simply be set to 'player'.
-     *
-     * This value is used by the configs in order to determine which mobs have custom blood colors,
-     * and if a mob is found in the list, then its color will be set based on the hex format specified
-     * in the config.
-     *
-     * @param ownerEntity
-     */
-    @Override
-    public void setOwner(@Nullable Entity ownerEntity) {
-        super.setOwner(ownerEntity);
+    public int getLife() {
+        return this.life;
+    }
 
-        if (ownerEntity != null) {
-            this.ownerName = (ownerEntity.toString().contains("Player")) ? "player" : ownerEntity.getEncodeId();
-            this.isSolid = CommonConfig.solidEntities().contains(this.ownerName);
-            if (this.level().isClientSide()) {
-                for (Map.Entry<String, List<String>> mapElement : ClientConfig.entityBloodColors().entrySet()) {
-                    if (mapElement.getValue().contains(this.ownerName)) {
-                        String bloodColorHexVal = mapElement.getKey();
-                        this.red = HexFormat.fromHexDigits(bloodColorHexVal, 1, 3);
-                        this.green = HexFormat.fromHexDigits(bloodColorHexVal, 3, 5);
-                        this.blue = HexFormat.fromHexDigits(bloodColorHexVal.substring(5));
-                        break;
-                    }
-                }
-            }
+    public void setSoundEvent(SoundEvent pSoundEvent) {
+        this.soundEvent = pSoundEvent;
+    }
+
+    /**
+     * Checks if the entity is in range to render.
+     */
+    public boolean shouldRenderAtSqrDistance(double pDistance) {
+        double d0 = this.getBoundingBox().getSize() * 10.0D;
+        if (Double.isNaN(d0)) {
+            d0 = 1.0D;
         }
 
+        d0 *= 64.0D * getViewScale();
+        return pDistance < d0 * d0;
+    }
+
+    protected void defineSynchedData() {
+        this.entityData.define(ID_FLAGS, (byte)0);
+        this.entityData.define(PIERCE_LEVEL, (byte)0);
     }
 
     /**
-     * Will tick down the entity & discard it whenever it reaches the time specified in the Common Config.
-     * This method only ticks client side since all the logic that matters is on this side. The blood spray
-     * will also slowly decrease in size based on its initial size and the current percentage of its lifetime.
+     * Similar to setArrowHeading, it's point the throwable entity to a x, y, z direction.
      */
-    @Override
-    protected void tickDespawn() {
-        ++this.currentLifeTime;
-
-        if (this.currentLifeTime >= CommonConfig.despawnTime()) {
-            this.discard();
-            BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.remove(this);
-        }
+    public void shoot(double pX, double pY, double pZ, float pVelocity, float pInaccuracy) {
+        super.shoot(pX, pY, pZ, pVelocity, pInaccuracy);
+        this.life = 0;
     }
 
     /**
-     * Do nothing when the player interacts with the entity.
-     *
-     * @param player
+     * Sets a target for the client to interpolate towards over the next few ticks
      */
-    @Override
-    public void playerTouch(@NotNull Player player) {}
-
-    /**
-     * Hopefully this is never called because of the above playerTouch override method.
-     *
-     * @return
-     */
-    @Override
-    protected ItemStack getPickupItem() {
-        return ItemStack.EMPTY;
+    public void lerpTo(double pX, double pY, double pZ, float pYaw, float pPitch, int pPosRotationIncrements, boolean pTeleport) {
+        this.setPos(pX, pY, pZ);
+        this.setRot(pYaw, pPitch);
     }
 
     /**
-     * Sets the water inertia to be very low. It being negative also helps the AbstractArrowMixin to remove
-     * the bubble particles from the blood spray entity when it's in the water.
+     * Updates the entity motion clientside, called by packets from the server
      */
-    @Override
-    protected float getWaterInertia() {
-        return -0.01F;
+    public void lerpMotion(double pX, double pY, double pZ) {
+        super.lerpMotion(pX, pY, pZ);
+        this.life = 0;
     }
 
     /**
-     * Ensures that the entity will not start counting down ticks to discard until it has hit a surface.
-     * Will also discard if the entity has no owner, which will discard the entity upon restarting of the game.
-     *
-     * Determines the blood spray shape whenever it is in the air, the water, and the ground. Also, ensures that
-     * if the entity is a solid that it does not change shape.
+     * Called to update the entity's position/logic.
      */
-    @Override
     public void tick() {
-        if (this.ownerName == null) {
-            this.discard();
-        }
-
-        super.tick();
         if (this.isRemoved()) {
             return;
         }
 
-        // Removes any blood spray entity that has a null owner. This usually happens whenever the game closes & opens back up.
         if (!this.level().isClientSide() && this.ownerName == null) {
             this.discard();
             BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.remove(this);
         }
         else {
+            super.tick();
+            Vec3 vec3 = this.getDeltaMovement();
+            if (this.xRotO == 0.0F && this.yRotO == 0.0F) {
+                double d0 = vec3.horizontalDistance();
+                this.setYRot((float)(Mth.atan2(vec3.x, vec3.z) * (double)(180F / (float)Math.PI)));
+                this.setXRot((float)(Mth.atan2(vec3.y, d0) * (double)(180F / (float)Math.PI)));
+                this.yRotO = this.getYRot();
+                this.xRotO = this.getXRot();
+            }
+
+            BlockPos blockpos = this.blockPosition();
+            BlockState blockstate = this.level().getBlockState(blockpos);
+            if (!blockstate.isAir()) {
+                VoxelShape voxelshape = blockstate.getCollisionShape(this.level(), blockpos);
+                if (!voxelshape.isEmpty()) {
+                    Vec3 vec31 = this.position();
+
+                    for(AABB aabb : voxelshape.toAabbs()) {
+                        if (aabb.move(blockpos).contains(vec31)) {
+                            this.inGround = true;
+                            break;
+                        }
+                    }
+                }
+            }
+
             if (this.inGround) {
+                if (this.lastState != blockstate && this.shouldFall()) {
+                    this.startFalling();
+                } else if (!this.level().isClientSide) {
+                    this.tickDespawn();
+                }
+
+                ++this.inGroundTime;
+
                 if (!this.isSolid && this.xMin < this.xMax) {
                     this.xMin = this.xMax;
                 }
@@ -201,70 +213,178 @@ public class BloodSprayEntity extends AbstractArrow {
                     this.zMin -= 0.1F;
                     this.zMax += 0.1F;
 
-                    this.currentLifeTime += (CommonConfig.despawnTime() / 50);
+                    this.life += (CommonConfig.despawnTime() / 50);
                 }
 
                 // Done to set the lifetime client side as well. Needed to properly fade the rendered blood.
                 if (!this.shouldFall() && this.level().isClientSide()) {
-                    ++this.currentLifeTime;
+                    ++this.life;
                 }
-            }
-            else if (this.isSolid) {
-                double velocity = this.getDeltaMovement().length();
-                float length = 2;
-                this.xMin = -(length);
 
-                float widthAndHeight = (10 - length) / 4;
-                this.yMin = -(widthAndHeight / 2);
-                this.yMax = (widthAndHeight / 2);
-                this.zMin = -(widthAndHeight / 2);
-                this.zMax = (widthAndHeight / 2);
-
-                if (this.isInWater()) {
-                    this.discard();
-                }
-            }
-            else if (!this.isInWater()) {
-                double velocity = this.getDeltaMovement().length();
-                float length = (float) (velocity * 10);
-                this.xMin = -(length);
-
-                float widthAndHeight = (length > 10) ? (length - 10) / 4 : (10 - length) / 4;
-                this.yMin = -(widthAndHeight / 2);
-                this.yMax = (widthAndHeight / 2);
-                this.zMin = -(widthAndHeight / 2);
-                this.zMax = (widthAndHeight / 2);
-
-                if (this.inAirTicks > 100) {
-                    this.discard();
-                    BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.remove(this);
-                }
-                else {
-                    this.inAirTicks++;
-                }
             }
             else {
-                // TODO: Put all if statement logic in their one private methods to better organize.
-                this.yMin -= 0.1F;
-                this.yMax += 0.1F;
-                this.xMin -= 0.01F;
-                this.xMax += 0.01F;
-                this.zMin -= 0.1F;
-                this.zMax += 0.1F;
+                boilerplateTickCodeFromAbstractArrow(vec3);
 
-                // Rapidly decrease the life of the entity in water.
-                this.currentLifeTime += (CommonConfig.despawnTime() / 50);
-                this.tickDespawn();
+                if (this.isSolid) {
+                    double velocity = this.getDeltaMovement().length();
+                    float length = 2;
+                    this.xMin = -(length);
+
+                    float widthAndHeight = (10 - length) / 4;
+                    this.yMin = -(widthAndHeight / 2);
+                    this.yMax = (widthAndHeight / 2);
+                    this.zMin = -(widthAndHeight / 2);
+                    this.zMax = (widthAndHeight / 2);
+
+                    if (this.isInWater()) {
+                        this.discard();
+                    }
+                }
+                else if (!this.isInWater()) {
+                    double velocity = this.getDeltaMovement().length();
+                    float length = (float) (velocity * 10);
+                    this.xMin = -(length);
+
+                    float widthAndHeight = (length > 10) ? (length - 10) / 4 : (10 - length) / 4;
+                    this.yMin = -(widthAndHeight / 2);
+                    this.yMax = (widthAndHeight / 2);
+                    this.zMin = -(widthAndHeight / 2);
+                    this.zMax = (widthAndHeight / 2);
+
+                    if (this.inAirTicks > 100) {
+                        this.discard();
+                        BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.remove(this);
+                    }
+                    else {
+                        this.inAirTicks++;
+                    }
+                }
+                else {
+                    this.yMin -= 0.1F;
+                    this.yMax += 0.1F;
+                    this.xMin -= 0.01F;
+                    this.xMax += 0.01F;
+                    this.zMin -= 0.1F;
+                    this.zMax += 0.1F;
+
+                    // Rapidly decrease the life of the entity in water.
+                    this.life += (CommonConfig.despawnTime() / 50);
+                    this.tickDespawn();
+                }
             }
         }
     }
 
     /**
-     * Is called once on block hit. Can get the direction the entity has hit the block on, which will dictate how
-     * it is expanded. If the entity is a solid, then will make the entity bounce off a wall until it lands on a floor surface.
+     * Most of the boilerplate code taken from the AbstractArrow class since we don't
+     * want to actually extend that class because it causes unwanted interactions with entities.
      */
-    @Override
-    protected void onHitBlock(BlockHitResult result) {
+    public void boilerplateTickCodeFromAbstractArrow(Vec3 vec3) {
+        this.inGroundTime = 0;
+        Vec3 vec32 = this.position();
+        Vec3 vec33 = vec32.add(vec3);
+        HitResult hitresult = this.level().clip(new ClipContext(vec32, vec33, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this));
+
+        while(!this.isRemoved()) {
+            if (hitresult != null && hitresult.getType() != HitResult.Type.MISS) {
+                switch (net.minecraftforge.event.ForgeEventFactory.onProjectileImpactResult(this, hitresult)) {
+                    case SKIP_ENTITY:
+                        if (hitresult.getType() != HitResult.Type.ENTITY) { // If there is no entity, we just return default behaviour
+                            this.onHit(hitresult);
+                            this.hasImpulse = true;
+                            break;
+                        }
+                        break;
+                    case STOP_AT_CURRENT_NO_DAMAGE:
+                        this.discard();
+                        break;
+                    case STOP_AT_CURRENT:
+                        this.setPierceLevel((byte) 0);
+                    case DEFAULT:
+                        this.onHit(hitresult);
+                        this.hasImpulse = true;
+                        break;
+                }
+            }
+
+            if (this.getPierceLevel() <= 0) {
+                break;
+            }
+
+            hitresult = null;
+        }
+        if (this.isRemoved()) return;
+
+        vec3 = this.getDeltaMovement();
+        double d5 = vec3.x;
+        double d6 = vec3.y;
+        double d1 = vec3.z;
+
+        double d7 = this.getX() + d5;
+        double d2 = this.getY() + d6;
+        double d3 = this.getZ() + d1;
+        double d4 = vec3.horizontalDistance();
+
+        // Removes rotation from the blood spray if it has entered the water.
+        if (!this.isInWater()) {
+            this.setYRot((float)(Mth.atan2(d5, d1) * (double)(180F / (float)Math.PI)));
+        }
+        else {
+            this.setYRot((float)(Mth.atan2(-d5, -d1) * (double)(180F / (float)Math.PI)));
+        }
+
+        this.setXRot((float)(Mth.atan2(d6, d4) * (double)(180F / (float)Math.PI)));
+        this.setXRot(lerpRotation(this.xRotO, this.getXRot()));
+        this.setYRot(lerpRotation(this.yRotO, this.getYRot()));
+        float f = 0.99F;
+        if (this.isInWater()) {
+            f = this.getWaterInertia();
+        }
+
+        this.setDeltaMovement(vec3.scale(f));
+        if (!this.isNoGravity()) {
+            Vec3 vec34 = this.getDeltaMovement();
+            if (this.isInWater()) {
+                this.setDeltaMovement(vec34.x, 0, vec34.z);
+            }
+            else {
+                this.setDeltaMovement(vec34.x, vec34.y - (double)0.05F, vec34.z);
+            }
+        }
+
+        this.setPos(d7, d2, d3);
+        this.checkInsideBlocks();
+    }
+
+    public boolean shouldFall() {
+        return this.inGround && this.level().noCollision((new AABB(this.position(), this.position())).inflate(0.06D));
+    }
+
+    private void startFalling() {
+        this.inGround = false;
+        Vec3 vec3 = this.getDeltaMovement();
+        this.setDeltaMovement(vec3.multiply(this.random.nextFloat() * 0.2F, (double)(this.random.nextFloat() * 0.2F), (double)(this.random.nextFloat() * 0.2F)));
+        this.life = 0;
+    }
+
+    public void move(@NotNull MoverType pType, @NotNull Vec3 pPos) {
+        super.move(pType, pPos);
+        if (pType != MoverType.SELF && this.shouldFall()) {
+            this.startFalling();
+        }
+
+    }
+
+    protected void tickDespawn() {
+        ++this.life;
+        if (this.life >= CommonConfig.despawnTime()) {
+            this.discard();
+            BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.remove(this);
+        }
+
+    }
+
+    protected void onHitBlock(@NotNull BlockHitResult result) {
         if (this.isSolid) {
             this.setSoundEvent((Math.random() > 0.5) ? SoundEvents.BONE_BLOCK_FALL : SoundEvents.BONE_BLOCK_HIT);
             float volume = (float) CommonConfig.bloodSpatterVolume();
@@ -282,7 +402,6 @@ public class BloodSprayEntity extends AbstractArrow {
                 this.setPosRaw(this.getX() - vec31.x, this.getY() - vec31.y, this.getZ() - vec31.z);
             }
             else {
-
                 Vec3 vec3 = result.getLocation().subtract(this.getX(), this.getY(), this.getZ());
 
                 this.setDeltaMovement(0, -0.25, 0);
@@ -377,9 +496,7 @@ public class BloodSprayEntity extends AbstractArrow {
             this.zMinLimit = (float) determineSpatterExpansion(initialZMinVal, false, false) * 10; // Z MIN
             this.zMaxLimit = (float) determineSpatterExpansion(initialZMaxVal, false, true) * 10; // Z MAX
 
-            // All of this is boilerplate from AbstractArrow except the setSoundEvent now playing a slime sound.
-//            BlockState blockstate = this.level().getBlockState(result.getBlockPos());
-//            blockstate.onProjectileHit(this.level(), blockstate, result, this);
+
             Vec3 vec3 = result.getLocation().subtract(this.getX(), this.getY(), this.getZ());
             this.setDeltaMovement(vec3);
             Vec3 vec31 = vec3.normalize().scale(0.05F);
@@ -394,12 +511,100 @@ public class BloodSprayEntity extends AbstractArrow {
             this.inGround = true;
             this.wasInGround = true;
         }
-
-        this.setCritArrow(false);
-        this.setPierceLevel((byte)0);
-        this.setShotFromCrossbow(false);
-        this.resetPiercedEntities();
     }
+
+    protected final SoundEvent getHitGroundSoundEvent() {
+        return this.soundEvent;
+    }
+
+    protected boolean canHitEntity(Entity entity) {
+        return false;
+    }
+
+    public void addAdditionalSaveData(CompoundTag pCompound) {
+        super.addAdditionalSaveData(pCompound);
+        pCompound.putShort("life", (short)this.life);
+        if (this.lastState != null) {
+            pCompound.put("inBlockState", NbtUtils.writeBlockState(this.lastState));
+        }
+
+        pCompound.putBoolean("inGround", this.inGround);
+    }
+
+    /**
+     * (abstract) Protected helper method to read subclass entity data from NBT.
+     */
+    public void readAdditionalSaveData(CompoundTag pCompound) {
+        super.readAdditionalSaveData(pCompound);
+        this.life = pCompound.getShort("life");
+        if (pCompound.contains("inBlockState", 10)) {
+            this.lastState = NbtUtils.readBlockState(this.level().holderLookup(Registries.BLOCK), pCompound.getCompound("inBlockState"));
+        }
+
+        this.inGround = pCompound.getBoolean("inGround");
+    }
+
+    /**
+     * If the owner of the entity is not null, then the string field 'ownerName' will be set to the
+     * entity's encoded ID (e.x., minecraft:villager), and if the entity is a player, then it will
+     * simply be set to 'player'.
+     *
+     * This value is used by the configs in order to determine which mobs have custom blood colors,
+     * and if a mob is found in the list, then its color will be set based on the hex format specified
+     * in the config.
+     */
+    public void setOwner(@Nullable Entity ownerEntity) {
+        super.setOwner(ownerEntity);
+
+        if (ownerEntity != null) {
+            this.ownerName = (ownerEntity.toString().contains("Player")) ? "player" : ownerEntity.getEncodeId();
+            this.isSolid = CommonConfig.solidEntities().contains(this.ownerName);
+            if (this.level().isClientSide()) {
+                for (Map.Entry<String, List<String>> mapElement : ClientConfig.entityBloodColors().entrySet()) {
+                    if (mapElement.getValue().contains(this.ownerName)) {
+                        String bloodColorHexVal = mapElement.getKey();
+                        this.red = HexFormat.fromHexDigits(bloodColorHexVal, 1, 3);
+                        this.green = HexFormat.fromHexDigits(bloodColorHexVal, 3, 5);
+                        this.blue = HexFormat.fromHexDigits(bloodColorHexVal.substring(5));
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    protected Entity.MovementEmission getMovementEmission() {
+        return Entity.MovementEmission.NONE;
+    }
+
+
+    /**
+     * Returns {@code true} if it's possible to attack this entity with an item.
+     */
+    public boolean isAttackable() {
+        return false;
+    }
+
+    protected float getEyeHeight(Pose pPose, EntityDimensions pSize) {
+        return 0.13F;
+    }
+
+
+    public void setPierceLevel(byte pPierceLevel) {
+        this.entityData.set(PIERCE_LEVEL, pPierceLevel);
+    }
+
+    public byte getPierceLevel() {
+        return this.entityData.get(PIERCE_LEVEL);
+    }
+
+    protected float getWaterInertia() {
+        return 0.1F;
+    }
+
+    /*
+        Below are all private methods dedicated to the blood spray entity.
+     */
 
     /**
      * Gets the maximum bounds that a blood spatter can expand to when hitting a block. This is determined by the block
@@ -479,60 +684,16 @@ public class BloodSprayEntity extends AbstractArrow {
     }
 
     private double getBlockBoundsExpAmount(int blockPos, boolean isMax) {
-
         return (isMax) ? blockPos + 1 : blockPos;
-    }
-
-//    @Override
-//    protected void onHit(HitResult hitResult) {
-////        BloodyBitsMod.LOGGER.info("ON HIT OVERRIDE");
-//        if (hitResult.getType() == HitResult.Type.BLOCK) {
-////            BloodyBitsMod.LOGGER.info("ON HIT OVERRIDE ----- HIT BLOCK");
-//            BlockHitResult blockhitresult = (BlockHitResult)hitResult;
-//            this.onHitBlock(blockhitresult);
-//            BlockPos blockpos = blockhitresult.getBlockPos();
-//            this.level().gameEvent(GameEvent.PROJECTILE_LAND, blockpos, GameEvent.Context.of(this, this.level().getBlockState(blockpos)));
-//        }
-//    }
-
-    @Override
-    protected boolean canHitEntity(Entity entity) {
-        return false;
-    }
-
-    @Override
-    protected void onHitEntity(EntityHitResult pResult) {
-
-    }
-
-    /**
-     * We don't want the blood to catch on fire.
-     */
-    @Override
-    public boolean fireImmune() {
-        return true;
-    }
-
-    /**
-     * We don't want the blood to interact with things such as buttons.
-     */
-    @Override
-    public boolean mayInteract(Level pLevel, BlockPos pPos) {
-        return false;
-    }
-
-    @Override
-    public Packet<ClientGamePacketListener> getAddEntityPacket() {
-        return NetworkHooks.getEntitySpawningPacket(this);
     }
 
     private boolean nonExpandableBlocks(String blockName) {
         return blockName.contains("air") || blockName.contains("water") || blockName.contains("lava");
     }
 
-    public void setDrip() {
+    private void setDrip() {
         if (this.drip < MAX_DRIP_LENGTH) {
-            if (this.currentLifeTime > 50 && this.entityDirection.equals(Direction.DOWN)) {
+            if (this.life > 50 && this.entityDirection.equals(Direction.DOWN)) {
                 if (this.shouldDrip) {
                     this.drip += 1.0F;
                 }

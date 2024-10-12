@@ -1,8 +1,7 @@
 package com.cravencraft.bloodybits.utils;
 
 import com.cravencraft.bloodybits.client.model.EntityDamage;
-import com.cravencraft.bloodybits.config.CommonConfig;
-import com.cravencraft.bloodybits.entity.custom.BloodSprayEntity;
+import com.cravencraft.bloodybits.entity.BloodSprayEntity;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.sounds.SoundEvent;
