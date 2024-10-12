@@ -1,15 +1,10 @@
 package com.cravencraft.bloodybits.network.messages;
 
-import com.cravencraft.bloodybits.BloodyBitsMod;
 import com.cravencraft.bloodybits.client.model.EntityDamage;
 import com.cravencraft.bloodybits.config.ClientConfig;
-import com.cravencraft.bloodybits.config.CommonConfig;
-import com.cravencraft.bloodybits.entity.custom.BloodChunkEntity;
-import com.cravencraft.bloodybits.entity.custom.BloodSprayEntity;
 import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.network.NetworkEvent;

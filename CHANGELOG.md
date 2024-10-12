@@ -4,7 +4,8 @@
 - Fixed bug that allows blood spatters to catch on fire.
 - Fixed bug that causes a blood fountain whenever the player dies, but does not respawn.
 - Added an option to blacklist the player (all players) from being an entity that can bleed.
-- TODO: Stop blood from triggering buttons and interacting with other entities.
+- Stopped blood from triggering buttons and interacting with other entities.
+- Removing blood sprays/chunks on entity death until I find a better & less crash-prone solution. 
 - TODO: Add config option to modify the blood spatter/explosion radius.
 - TODO: Fix bug that causes a crash when blood chunks are emitted for certain entities.
 

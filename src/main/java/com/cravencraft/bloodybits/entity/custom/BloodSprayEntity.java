@@ -166,6 +166,10 @@ public class BloodSprayEntity extends AbstractArrow {
      */
     @Override
     public void tick() {
+        if (this.ownerName == null) {
+            this.discard();
+        }
+
         super.tick();
         if (this.isRemoved()) {
             return;

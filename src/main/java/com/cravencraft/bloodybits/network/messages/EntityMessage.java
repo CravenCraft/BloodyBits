@@ -1,6 +1,5 @@
 package com.cravencraft.bloodybits.network.messages;
 
-import com.cravencraft.bloodybits.entity.custom.BloodChunkEntity;
 import com.cravencraft.bloodybits.entity.custom.BloodSprayEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
@@ -34,9 +33,6 @@ public class EntityMessage {
                 Entity entity = Minecraft.getInstance().level.getEntity(message.entityId);
                 if (entity instanceof BloodSprayEntity bloodSprayEntity) {
                     bloodSprayEntity.setOwner(Minecraft.getInstance().level.getEntity(message.entityOwnerid));
-                }
-                else if (entity instanceof BloodChunkEntity bloodChunkEntity) {
-                    bloodChunkEntity.setOwner(Minecraft.getInstance().level.getEntity(message.entityOwnerid));
                 }
             }
         });
