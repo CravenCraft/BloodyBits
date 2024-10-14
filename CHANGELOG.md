@@ -1,5 +1,5 @@
 ## V1.3.0
-- Major rework to how entities show damage. Still in progress. Will update this changelog message with more details
+- TODO: Major rework to how entities show damage. Still in progress. Will update this changelog message with more details
     whenever I progress more with this method.
 - Fixed bug that allows blood spatters to catch on fire.
 - Fixed bug that causes a blood fountain whenever the player dies, but does not respawn.
@@ -8,7 +8,8 @@
 - Removing blood sprays/chunks on entity death until I find a better & less crash-prone solution.
 - Major rework to blood entities. They no longer extend the AbstractArrow class, which fixes the catching fire, button pressing, 
     and some crashing bugs. As well, allowed me to remove some mixin classes that were prone to errors when using Sinytra Connector.
-- TODO: Add config option to modify the blood spatter/explosion radius.
+- Added config option to modify the blood spray radius.
+- Fixed minor bug that caused blood to not spray in certain directions.
 
 ## V1.2.1
 - Added a quick fix for a potential crash whenever the player takes damage.

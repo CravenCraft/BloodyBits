@@ -1,5 +1,6 @@
 package com.cravencraft.bloodybits.entity;
 
+import com.cravencraft.bloodybits.BloodyBitsMod;
 import com.cravencraft.bloodybits.config.ClientConfig;
 import com.cravencraft.bloodybits.config.CommonConfig;
 import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
@@ -405,7 +406,7 @@ public class BloodSprayEntity extends Projectile {
                 Vec3 vec3 = result.getLocation().subtract(this.getX(), this.getY(), this.getZ());
 
                 this.setDeltaMovement(0, -0.25, 0);
-                Vec3 vec31 = vec3.normalize().scale((double)0.1F);
+                Vec3 vec31 = vec3.normalize().scale(0.1F);
                 this.setPosRaw(this.getX() - vec31.x, this.getY() - vec31.y, this.getZ() - vec31.z);
             }
         }
@@ -502,8 +503,7 @@ public class BloodSprayEntity extends Projectile {
             Vec3 vec31 = vec3.normalize().scale(0.05F);
             this.setPosRaw(this.getX() - vec31.x, this.getY() - vec31.y, this.getZ() - vec31.z);
 
-            // Modified sound to be a deeper pitch of Slime Block sounds.
-            // TODO: Add custom spatter sounds here.
+            // Modified sound to be a deeper pitch of Mud and Wet Grass sounds.
             this.setSoundEvent(BloodyBitsUtils.getRandomSound(new Random().nextInt(3)));
             float volume = (float) CommonConfig.bloodSpatterVolume();
             this.playSound(this.getHitGroundSoundEvent(), volume, 1.8F / (this.random.nextFloat() * 0.2F + 0.9F));
@@ -613,7 +613,6 @@ public class BloodSprayEntity extends Projectile {
      * @param initialExpansionAmount The initial amount the blood spatter will try to expand.
      * @param isYAxis If the hit position is on the y-axis.
      * @param isMax Whether the point is a max or min val (e.x., xMax).
-     * @return
      */
     private double determineSpatterExpansion(double initialExpansionAmount, boolean isYAxis, boolean isMax)  {
         boolean isNonExpandable;
@@ -649,7 +648,6 @@ public class BloodSprayEntity extends Projectile {
             }
         }
         else {
-
             if (isYAxis) {
                 modifiedExpansionAmount = getMaxBlockBoundsExpAmount(this.hitBlockPos.getX(), initialExpansionAmount, isMax);
                 isNonExpandable = nonExpandableBlocks(this.level().getBlockState(BlockPos.containing(modifiedExpansionAmount, this.hitBlockPos.getY(), hitPosition.z)).getBlock().toString());
