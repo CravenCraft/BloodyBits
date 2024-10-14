@@ -8,6 +8,8 @@ import java.util.List;
 
 public class CommonConfig {
     public static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
+
+    private static ForgeConfigSpec.BooleanValue BLEED_WHEN_DAMAGED;
     private static ForgeConfigSpec.IntValue DESPAWN_TIME;
     private static ForgeConfigSpec.IntValue MAX_SPATTERS;
     private static ForgeConfigSpec.DoubleValue BLOOD_SPRAY_DISTANCE;
@@ -17,6 +19,7 @@ public class CommonConfig {
     private static ForgeConfigSpec.ConfigValue<List<? extends String>> BLACKLIST_ENTITIES;
     private static ForgeConfigSpec.ConfigValue<List<? extends String>> BLACKLIST_DAMAGE_SOURCES;
 
+    public static boolean bleedWhenDamaged() { return BLEED_WHEN_DAMAGED.get(); }
     public static int despawnTime() {
         return DESPAWN_TIME.get();
     }
@@ -35,6 +38,8 @@ public class CommonConfig {
 
         DESPAWN_TIME = BUILDER.comment("How long in ticks (20 ticks = 1 second) until a blood spatter despawns.")
                 .defineInRange("despawn_time", 2000, 0, 100000);
+        BLEED_WHEN_DAMAGED = BUILDER.comment("Do entities bleed when damaged below 50% health. The more they are damaged, the more often they bleed.")
+                .define("bleed_when_damaged", true);
         MAX_SPATTERS = BUILDER.comment("The maximum amount of blood spatters that can exist in the world at once.")
                 .defineInRange("max_spatters", 500, 0, 10000);
         BLOOD_SPATTER_VOLUME = BUILDER.comment("How loud the blood spatters are.")

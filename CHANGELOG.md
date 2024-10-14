@@ -10,6 +10,8 @@
     and some crashing bugs. As well, allowed me to remove some mixin classes that were prone to errors when using Sinytra Connector.
 - Added config option to modify the blood spray radius.
 - Fixed minor bug that caused blood to not spray in certain directions.
+- TODO: Added an optional bleed effect when an entity is below 50% health that bleeds more as they get lower in health.
+        Need to tweak it a bit more to ensure that it feels right. Maybe the entity doesn't bleed quite as much when lower.
 
 ## V1.2.1
 - Added a quick fix for a potential crash whenever the player takes damage.

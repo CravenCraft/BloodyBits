@@ -9,10 +9,14 @@ import com.cravencraft.bloodybits.network.messages.EntityMessage;
 import com.cravencraft.bloodybits.registries.EntityRegistry;
 import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageSources;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.living.LivingDamageEvent;
+import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.event.entity.living.LivingHealEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -69,7 +73,7 @@ public class BloodyBitsEvents {
 
             if (!event.getEntity().level().isClientSide() && !CommonConfig.blackListEntities().contains(entityName) && !CommonConfig.blackListDamageSources().contains(event.getSource().type().msgId())) {
                 int maxDamage = (int) Math.min(20, event.getAmount());
-                createBloodSpray(entity, event.getSource(), maxDamage);
+                createBloodSpray(entity, event.getSource(), maxDamage, false);
             }
 
             // For adding damage textures to the given entity.
@@ -78,7 +82,26 @@ public class BloodyBitsEvents {
         }
     }
 
-    private static void createBloodSpray(LivingEntity entity, DamageSource damageSource, int damageAmount) {
+    @SubscribeEvent
+    public static void entityBleedWhenDamaged(LivingEvent event) {
+        if (CommonConfig.bleedWhenDamaged() && event.getEntity() != null && !event.getEntity().level().isClientSide() && !event.getEntity().isDeadOrDying()) {
+            LivingEntity entity = event.getEntity();
+            double remainingHealthPercentage = entity.getHealth() / entity.getMaxHealth();
+            String entityName = (entity instanceof Player) ? "player" : entity.getEncodeId();
+            entityName = (entityName == null) ? "" : entityName;
+
+            if (!CommonConfig.blackListEntities().contains(entityName) && remainingHealthPercentage < 0.5) {
+                double randomNumber = remainingHealthPercentage * Math.random();
+
+                if (randomNumber < 0.001) {
+                    createBloodSpray(entity, entity.damageSources().genericKill(), 1, true);
+                }
+            }
+        }
+
+    }
+
+    private static void createBloodSpray(LivingEntity entity, DamageSource damageSource, int damageAmount, boolean isBleedingDamage) {
         if (entity != null && damageSource != null) {
             String entityName = (entity instanceof Player) ? "player" : entity.getEncodeId();
             entityName = (entityName == null) ? "" : entityName;
@@ -103,11 +126,9 @@ public class BloodyBitsEvents {
                     }
 
                     double xAngle = sourceAngle.x;
-                    double yAngle = -sourceAngle.y + Math.random();
+                    double yAngle = (isBleedingDamage) ? -sourceAngle.y : -sourceAngle.y + Math.random();
                     double zAngle = sourceAngle.z;
                     double adjustedDamage = damageAmount * CommonConfig.bloodSprayDistance();
-
-                    BloodyBitsMod.LOGGER.info("BEFORE X ANGLE: {}, Y ANGLE: {}, Z ANGLE: {}", xAngle, yAngle, zAngle);
 
                     // Ensure the angles are always going where they are expected to go.
                     xAngle = (xAngle > 0) ? (xAngle - Math.random()) : (xAngle + Math.random());
@@ -115,8 +136,6 @@ public class BloodyBitsEvents {
 
                     xAngle *= adjustedDamage;
                     zAngle *= adjustedDamage;
-
-                    BloodyBitsMod.LOGGER.info("AFTER X ANGLE: {}, Y ANGLE: {}, Z ANGLE: {}", xAngle, yAngle, zAngle);
 
                     bloodSprayEntity.setDeltaMovement(xAngle, yAngle * 0.35, zAngle);
                     entity.level().addFreshEntity(bloodSprayEntity);
