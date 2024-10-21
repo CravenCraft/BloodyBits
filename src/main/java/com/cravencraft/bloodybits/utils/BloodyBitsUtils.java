@@ -1,6 +1,7 @@
 package com.cravencraft.bloodybits.utils;
 
 import com.cravencraft.bloodybits.client.model.EntityDamage;
+import com.cravencraft.bloodybits.client.model.EntityInjuries;
 import com.cravencraft.bloodybits.entity.BloodSprayEntity;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -16,6 +17,7 @@ import java.util.List;
 public class BloodyBitsUtils {
     public static ArrayList<BloodSprayEntity> BLOOD_SPRAY_ENTITIES = new ArrayList<>();
     public static final HashMap<Integer, EntityDamage> DAMAGED_ENTITIES = new HashMap<>();
+    public static final HashMap<Integer, EntityInjuries> INJURED_ENTITIES = new HashMap<>();
     public static final List<String> NO_INJURY_TEXTURE_ENTITIES = new ArrayList<>();
 
     public static double getRandomAngle(double range) {

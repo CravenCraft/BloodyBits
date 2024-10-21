@@ -1,24 +1,25 @@
 package com.cravencraft.bloodybits.events;
 
 import com.cravencraft.bloodybits.BloodyBitsMod;
+import com.cravencraft.bloodybits.config.ClientConfig;
 import com.cravencraft.bloodybits.config.CommonConfig;
 import com.cravencraft.bloodybits.entity.BloodSprayEntity;
 import com.cravencraft.bloodybits.network.BloodyBitsPacketHandler;
-import com.cravencraft.bloodybits.network.messages.EntityHealthMessage;
+import com.cravencraft.bloodybits.network.messages.EntityDamageMessage;
+import com.cravencraft.bloodybits.network.messages.EntityHealMessage;
 import com.cravencraft.bloodybits.network.messages.EntityMessage;
 import com.cravencraft.bloodybits.registries.EntityRegistry;
 import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.damagesource.DamageSources;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.living.LivingDamageEvent;
+import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.event.entity.living.LivingHealEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
+import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.network.PacketDistributor;
@@ -49,14 +50,28 @@ public class BloodyBitsEvents {
         }
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public static void entityDeathEvent(LivingDeathEvent deathEvent) {
+        if (!deathEvent.isCanceled() && deathEvent.getEntity() != null && deathEvent.getEntity().level().isClientSide()) {
+            BloodyBitsMod.LOGGER.info("Removing entity {} from INJURED ENTITIES.", deathEvent.getEntity().getId());
+            BloodyBitsUtils.INJURED_ENTITIES.remove(deathEvent.getEntity().getId());
+        }
+    }
+
+    @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void entityHealEvent(LivingHealEvent event) {
+        BloodyBitsMod.LOGGER.info("----------------------- BEGIN HEAL EVENT -----------------------");
         LivingEntity entity = event.getEntity();
 
-        if (entity != null) {
+        if (!event.isCanceled() && entity != null) {
+//            BloodyBitsPacketHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> entity),
+//                    new EntityHealthMessage(false, entity.getId()));
+
+
             BloodyBitsPacketHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> entity),
-                    new EntityHealthMessage(false, entity.getId()));
+                    new EntityHealMessage(entity.getId(), event.getAmount()));
         }
+        BloodyBitsMod.LOGGER.info("----------------------- END HEAL EVENT -----------------------");
     }
 
     /**
@@ -64,10 +79,12 @@ public class BloodyBitsEvents {
      * close enough to any of the players. Will break out of the loop the second a player is found,
      * which should optimize this somewhat.
      */
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void bloodOnEntityDamage(LivingDamageEvent event) {
+        BloodyBitsMod.LOGGER.info("----------------------- BEGIN DAMAGE EVENT -----------------------");
+
         LivingEntity entity = event.getEntity();
-        if (entity != null) {
+        if (!event.isCanceled() && entity != null) {
             String entityName = (entity instanceof Player) ? "player" : entity.getEncodeId();
             entityName = (entityName == null) ? "" : entityName;
 
@@ -76,10 +93,19 @@ public class BloodyBitsEvents {
                 createBloodSpray(entity, event.getSource(), maxDamage, false);
             }
 
+//            BloodyBitsPacketHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> entity),
+//                    new EntityHealthMessage(true, entity.getId()));
+
             // For adding damage textures to the given entity.
-            BloodyBitsPacketHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> entity),
-                    new EntityHealthMessage(true, entity.getId()));
+            if (!ClientConfig.blackListInjurySources().contains(event.getSource().type().msgId())) {
+                boolean isBurn = ClientConfig.burnDamageSources().contains(event.getSource().type().msgId());
+
+                BloodyBitsPacketHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> entity),
+                        new EntityDamageMessage(entity.getId(), event.getAmount(), !isBurn, isBurn));
+            }
         }
+
+        BloodyBitsMod.LOGGER.info("----------------------- END DAMAGE EVENT -----------------------");
     }
 
     @SubscribeEvent

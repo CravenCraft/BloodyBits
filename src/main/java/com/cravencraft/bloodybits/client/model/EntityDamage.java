@@ -19,6 +19,10 @@ public class EntityDamage {
     private int entityInjuries;
     private final List<Integer> usedInjuryTextures = new ArrayList<>(ClientConfig.maxEntityInjuries());
 
+    private final List<NativeImage> bloodColorInjuries = new ArrayList<>(ClientConfig.availableTexturesPerEntity());
+    private final List<NativeImage> burnColorInjuries = new ArrayList<>(ClientConfig.availableTexturesPerEntity());
+    private final HashMap<String, NativeImage> todoRenameInjuryMap = new HashMap<>();
+
     public EntityDamage(String entityName) {
         this.entityInjuries = 0;
         this.entityName = entityName;
@@ -32,6 +36,17 @@ public class EntityDamage {
                 NativeImage damageLayerTexture = NativeImage.read(Minecraft.getInstance().getResourceManager().open(injuryTextureResourceLocation));
 //                this.paintDamageToNativeImage(damageLayerTexture, this.entityDamageColor);
                 this.availableInjuryTextures.add(damageLayerTexture);
+
+                NativeImage bloodColorDamage = damageLayerTexture;
+                NativeImage burnColorDamage = damageLayerTexture;
+
+                int entityDamageColor = this.getMobDamageColor(entityName);
+
+                // Doing all paint logic. Currently, that means painting the blood and (if applicable)
+                // burn overlay.
+                bloodColorDamage = this.paintDamageToNativeImage(bloodColorDamage, entityDamageColor);
+                burnColorDamage = this.paintDamageToNativeImage(burnColorDamage, this.getBurnDamageColor());
+
                 BloodyBitsMod.LOGGER.error("{} ADDED TO THE LIST OF AVAILABLE {} TEXTURES.", path, modifiedEntityName); // TODO: Remove after you finish testing.
             }
 
@@ -202,7 +217,7 @@ public class EntityDamage {
         return FastColor.ABGR32.color(255, blueDamage, greenDamage, redDamage);
     }
 
-    private void paintDamageToNativeImage(NativeImage damageLayerTexture, int damageColorRGBA) {
+    private NativeImage paintDamageToNativeImage(NativeImage damageLayerTexture, int damageColorRGBA) {
         for (int x = 0; x < damageLayerTexture.getWidth(); x++) {
             for (int y = 0; y < damageLayerTexture.getHeight(); y++) {
                 if (damageLayerTexture.getPixelRGBA(x, y) != 0) {
@@ -228,5 +243,6 @@ public class EntityDamage {
                 }
             }
         }
+        return damageLayerTexture;
     }
 }
