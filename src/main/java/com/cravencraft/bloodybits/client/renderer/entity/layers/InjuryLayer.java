@@ -37,7 +37,7 @@ public class InjuryLayer <T extends LivingEntity, M extends EntityModel<T>> exte
     @Override
     public void render(@NotNull PoseStack poseStack, @NotNull MultiBufferSource bufferSource, int pPackedLight, @NotNull T livingEntity, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
         if (ClientConfig.showEntityDamage() && livingEntity.isAlive() && livingEntity.getHealth() < livingEntity.getMaxHealth()) {
-            BloodyBitsMod.LOGGER.info("ARE WE RENDERIN???");
+//            BloodyBitsMod.LOGGER.info("ARE WE RENDERIN???");
 //            poseStack.pushPose();
             int entityId = livingEntity.getId();
 

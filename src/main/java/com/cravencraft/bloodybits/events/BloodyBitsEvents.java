@@ -12,6 +12,7 @@ import com.cravencraft.bloodybits.network.messages.EntityHealMessage;
 import com.cravencraft.bloodybits.network.messages.EntityMessage;
 import com.cravencraft.bloodybits.registries.EntityRegistry;
 import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
+import com.google.common.collect.Lists;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -21,12 +22,15 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
+import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.client.event.RenderLivingEvent;
 import net.minecraftforge.event.entity.living.LivingDamageEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
@@ -36,6 +40,9 @@ import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.network.PacketDistributor;
+
+import java.util.List;
+import java.util.Map;
 
 @Mod.EventBusSubscriber(modid = BloodyBitsMod.MODID)
 public class BloodyBitsEvents {
@@ -108,6 +115,23 @@ public class BloodyBitsEvents {
         }
     }
 
+//    @SubscribeEvent
+//    public static void testRenderLayer(RenderLivingEvent) {
+//
+//    }
+
+//    @SubscribeEvent
+//    public static void registerRenderLayer(EntityRenderersEvent.AddLayers addLayersEvent) {
+//        addLayersEvent.getContext().getEntityRenderDispatcher().getRenderer().ad
+//        BloodyBitsMod.LOGGER.info("Registering renderers.");
+//        Map<EntityType<?>, EntityRenderer<?>> rendererMap = addLayersEvent.getContext().getEntityRenderDispatcher().renderers;
+//
+//        for (var renderer : rendererMap.entrySet()) {
+//            BloodyBitsMod.LOGGER.info("Entity: {}", renderer.getKey().getDescriptionId());
+//        }
+////        addLayersEvent.getContext().
+//    }
+
     @SubscribeEvent
     public static void testRenderEvent(RenderLivingEvent.Pre event) {
 
@@ -131,9 +155,14 @@ public class BloodyBitsEvents {
             // if it is contained within the map.
             if (BloodyBitsUtils.INJURED_ENTITIES.containsKey(entityId)) {
                 LivingEntityRenderer livingEntityRenderer = event.getRenderer();
+                InjuryLayer injuryLayer = new InjuryLayer(livingEntityRenderer);
+
+
 //                livingEntityRenderer
-//                BloodyBitsMod.LOGGER.info("Render layers: {}", livingEntityRenderer.layers);
-                livingEntityRenderer.addLayer(new InjuryLayer(livingEntityRenderer));
+                BloodyBitsMod.LOGGER.info("Render layers: {} Does it contain it? {}", livingEntityRenderer.layers.size(), livingEntityRenderer.layers.contains(injuryLayer));
+
+//                if (livingEntityRenderer.layers.contains())
+                livingEntityRenderer.addLayer(injuryLayer);
 
 //                EntityInjuries entityInjuries = BloodyBitsUtils.INJURED_ENTITIES.get(entityId);
 //
