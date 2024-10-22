@@ -1,6 +1,8 @@
 package com.cravencraft.bloodybits.events;
 
 import com.cravencraft.bloodybits.BloodyBitsMod;
+import com.cravencraft.bloodybits.client.model.EntityInjuries;
+import com.cravencraft.bloodybits.client.renderer.entity.layers.InjuryLayer;
 import com.cravencraft.bloodybits.config.ClientConfig;
 import com.cravencraft.bloodybits.config.CommonConfig;
 import com.cravencraft.bloodybits.entity.BloodSprayEntity;
@@ -10,15 +12,26 @@ import com.cravencraft.bloodybits.network.messages.EntityHealMessage;
 import com.cravencraft.bloodybits.network.messages.EntityMessage;
 import com.cravencraft.bloodybits.registries.EntityRegistry;
 import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
+import com.mojang.blaze3d.platform.NativeImage;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.model.EntityModel;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.entity.EntityRenderer;
+import net.minecraft.client.renderer.entity.LivingEntityRenderer;
+import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.client.event.RenderLivingEvent;
 import net.minecraftforge.event.entity.living.LivingDamageEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.event.entity.living.LivingHealEvent;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -31,24 +44,24 @@ public class BloodyBitsEvents {
      * TODO: Remove or comment out before building code for release.
      * Just a simple method made to test blood sprays by right clicking on blocks.
      */
-    @SubscribeEvent
-    public static void testBloodSpray(PlayerInteractEvent.RightClickBlock event) {
-        if (!event.getEntity().level().isClientSide()) {
-            if (BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.size() >= CommonConfig.maxSpatters()) {
-                BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.get(0).discard();
-                BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.remove(0);
-            }
-
-            BloodSprayEntity bloodSprayEntity = new BloodSprayEntity(EntityRegistry.BLOOD_SPRAY.get(), event.getEntity(), event.getEntity().level());
-            BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.add(bloodSprayEntity);
-
-            bloodSprayEntity.setDeltaMovement(event.getEntity().getLookAngle());
-            event.getEntity().level().addFreshEntity(bloodSprayEntity);
-
-            BloodyBitsPacketHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> bloodSprayEntity),
-                    new EntityMessage(bloodSprayEntity.getId(), event.getEntity().getId()));
-        }
-    }
+//    @SubscribeEvent
+//    public static void testBloodSpray(PlayerInteractEvent.RightClickBlock event) {
+//        if (!event.getEntity().level().isClientSide()) {
+//            if (BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.size() >= CommonConfig.maxSpatters()) {
+//                BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.get(0).discard();
+//                BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.remove(0);
+//            }
+//
+//            BloodSprayEntity bloodSprayEntity = new BloodSprayEntity(EntityRegistry.BLOOD_SPRAY.get(), event.getEntity(), event.getEntity().level());
+//            BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.add(bloodSprayEntity);
+//
+//            bloodSprayEntity.setDeltaMovement(event.getEntity().getLookAngle());
+//            event.getEntity().level().addFreshEntity(bloodSprayEntity);
+//
+//            BloodyBitsPacketHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> bloodSprayEntity),
+//                    new EntityMessage(bloodSprayEntity.getId(), event.getEntity().getId()));
+//        }
+//    }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void entityDeathEvent(LivingDeathEvent deathEvent) {
@@ -96,6 +109,88 @@ public class BloodyBitsEvents {
     }
 
     @SubscribeEvent
+    public static void testRenderEvent(RenderLivingEvent.Pre event) {
+
+        LivingEntity livingEntity = event.getEntity();
+        if (ClientConfig.showEntityDamage() && livingEntity.isAlive() && livingEntity.getHealth() < livingEntity.getMaxHealth()) {
+
+//            BloodyBitsMod.LOGGER.info("Rendering {} on client side? {}", event.getEntity(), event.getEntity().level().isClientSide());
+            PoseStack poseStack = event.getPoseStack();
+
+            MultiBufferSource bufferSource = event.getMultiBufferSource();
+            float partialTicks = event.getPartialTick();
+            int packedLight = event.getPackedLight();
+
+//            poseStack.pushPose();
+//            poseStack.scale(-1.0F, -1.0F, 1.0F);
+//            event.getRenderer().scale(pEntity, pPoseStack, pPartialTicks);
+//            poseStack.translate(0.0F, -1.501F, 0.0F);
+            int entityId = livingEntity.getId();
+
+            // Will render a random assortment of injury textures on the given entity
+            // if it is contained within the map.
+            if (BloodyBitsUtils.INJURED_ENTITIES.containsKey(entityId)) {
+                LivingEntityRenderer livingEntityRenderer = event.getRenderer();
+//                livingEntityRenderer
+//                BloodyBitsMod.LOGGER.info("Render layers: {}", livingEntityRenderer.layers);
+                livingEntityRenderer.addLayer(new InjuryLayer(livingEntityRenderer));
+
+//                EntityInjuries entityInjuries = BloodyBitsUtils.INJURED_ENTITIES.get(entityId);
+//
+//                if (entityInjuries.smallInjuries != null && !entityInjuries.smallInjuries.isEmpty()) {
+//                    for (var smallInjury : entityInjuries.smallInjuries.entrySet()) {
+//                        renderDamageLayerToBuffer(event.getRenderer(), smallInjury.getKey(), livingEntity, bufferSource, poseStack, partialTicks, packedLight);
+//                    }
+//                }
+//
+//                // TODO:
+//                //  - Textures are a bit too dark. Use some lighter greys.
+//                //  - Actually, just have heals slowly change the opacity of the image. Once the image is at 0, then remove it.
+//                //      Think about that more and see if that will work.
+//                if (entityInjuries.mediumInjuries != null && !entityInjuries.mediumInjuries.isEmpty()) {
+//                    for (var mediumInjury : entityInjuries.mediumInjuries.entrySet()) {
+//                        renderDamageLayerToBuffer(event.getRenderer(), mediumInjury.getKey(), livingEntity, bufferSource, poseStack, partialTicks, packedLight);
+//                    }
+//                }
+//
+//                if (entityInjuries.largeInjuries != null && !entityInjuries.largeInjuries.isEmpty()) {
+//                    for (var largeInjury : entityInjuries.largeInjuries.entrySet()) {
+//                        renderDamageLayerToBuffer(event.getRenderer(), largeInjury.getKey(), livingEntity, bufferSource, poseStack, partialTicks, packedLight);
+//                    }
+//                }
+            }
+//            poseStack.popPose();
+        }
+
+
+    }
+
+    /**
+     * All the code needed to render the new entity damage layer. Essentially copied from the original render method that is being mixed into.
+     */
+    private static void renderDamageLayerToBuffer(LivingEntityRenderer renderer, NativeImage damageLayerTexture, LivingEntity livingEntity, MultiBufferSource buffer, PoseStack poseStack, float pPartialTicks, int pPackedLight) {
+        DynamicTexture dynamicTexture = new DynamicTexture(damageLayerTexture);
+        VertexConsumer customVertexConsumer = buffer.getBuffer(RenderType.entityTranslucent(Minecraft.getInstance().getTextureManager().register("damage_layer", dynamicTexture)));
+
+        Minecraft minecraft = Minecraft.getInstance();
+        Player player = minecraft.player;
+        boolean isEntityVisible = !livingEntity.isInvisible();
+        boolean canPlayerSeeInvisibleEntity;
+        if (player != null) {
+            canPlayerSeeInvisibleEntity = !isEntityVisible && !livingEntity.isInvisibleTo(player);
+        }
+        else {
+            canPlayerSeeInvisibleEntity = false;
+        }
+
+//        boolean shouldEntityAppearGlowing = minecraft.shouldEntityAppearGlowing(pEntity);
+//        this.getParentModel().renderType(this.getTextureLocation(pEntity));
+//        RenderType rendertype = this.getParentModel().renderType(this.getTextureLocation(pEntity));
+        int i = LivingEntityRenderer.getOverlayCoords(livingEntity, 0.0F);
+        renderer.getModel().renderToBuffer(poseStack, customVertexConsumer, pPackedLight, i, 1.0F, 1.0F, 1.0F, canPlayerSeeInvisibleEntity ? 0.15F : 1.0F);
+    }
+
+    @SubscribeEvent
     public static void entityBleedWhenDamaged(LivingEvent event) {
         if (CommonConfig.bleedWhenDamaged() && event.getEntity() != null && !event.getEntity().level().isClientSide() && !event.getEntity().isDeadOrDying()) {
             LivingEntity entity = event.getEntity();
@@ -112,6 +207,15 @@ public class BloodyBitsEvents {
             }
         }
 
+    }
+
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public static void creeperExplosionEvent(LivingDeathEvent event) {
+        LivingEntity entity = event.getEntity();
+
+        if (entity != null && !event.isCanceled() && entity instanceof Creeper creeper) {
+
+        }
     }
 
     private static void createBloodSpray(LivingEntity entity, DamageSource damageSource, int damageAmount, boolean isBleedingDamage) {

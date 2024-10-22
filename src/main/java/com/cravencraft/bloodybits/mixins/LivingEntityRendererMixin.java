@@ -61,43 +61,43 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extend
      * incredible animations. This is incompatible with this feature. So, for now it will be incompatible until I add in
      * optional support later down the line.
      */
-    @Inject(method = "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
-              at = @At(value = "INVOKE", shift = At.Shift.BEFORE, target = "Lcom/mojang/blaze3d/vertex/PoseStack;popPose()V")
-    )
-    private void renderBloodLayer(T entity, float pEntityYaw, float pPartialTicks, PoseStack poseStack, MultiBufferSource buffer, int pPackedLight, CallbackInfo ci) {
-        if (ClientConfig.showEntityDamage() && entity.isAlive() && entity.getHealth() < entity.getMaxHealth()) {
-            int entityId = entity.getId();
-
-            // Will render a random assortment of injury textures on the given entity
-            // if it is contained within the map.
-            if (BloodyBitsUtils.INJURED_ENTITIES.containsKey(entityId)) {
-
-                EntityInjuries entityInjuries = BloodyBitsUtils.INJURED_ENTITIES.get(entityId);
-
-                if (entityInjuries.smallInjuries != null && !entityInjuries.smallInjuries.isEmpty()) {
-                    for (var smallInjury : entityInjuries.smallInjuries.entrySet()) {
-                        this.renderDamageLayerToBuffer(smallInjury.getKey(), entity, buffer, poseStack, pPartialTicks, pPackedLight);
-                    }
-                }
-
-                // TODO:
-                //  - Textures are a bit too dark. Use some lighter greys.
-                //  - Actually, just have heals slowly change the opacity of the image. Once the image is at 0, then remove it.
-                //      Think about that more and see if that will work.
-                if (entityInjuries.mediumInjuries != null && !entityInjuries.mediumInjuries.isEmpty()) {
-                    for (var mediumInjury : entityInjuries.mediumInjuries.entrySet()) {
-                        this.renderDamageLayerToBuffer(mediumInjury.getKey(), entity, buffer, poseStack, pPartialTicks, pPackedLight);
-                    }
-                }
-
-                if (entityInjuries.largeInjuries != null && !entityInjuries.largeInjuries.isEmpty()) {
-                    for (var largeInjury : entityInjuries.largeInjuries.entrySet()) {
-                        this.renderDamageLayerToBuffer(largeInjury.getKey(), entity, buffer, poseStack, pPartialTicks, pPackedLight);
-                    }
-                }
-            }
-        }
-    }
+//    @Inject(method = "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
+//              at = @At(value = "INVOKE", shift = At.Shift.BEFORE, target = "Lcom/mojang/blaze3d/vertex/PoseStack;popPose()V")
+//    )
+//    private void renderBloodLayer(T entity, float pEntityYaw, float pPartialTicks, PoseStack poseStack, MultiBufferSource buffer, int pPackedLight, CallbackInfo ci) {
+//        if (ClientConfig.showEntityDamage() && entity.isAlive() && entity.getHealth() < entity.getMaxHealth()) {
+//            int entityId = entity.getId();
+//
+//            // Will render a random assortment of injury textures on the given entity
+//            // if it is contained within the map.
+//            if (BloodyBitsUtils.INJURED_ENTITIES.containsKey(entityId)) {
+//
+//                EntityInjuries entityInjuries = BloodyBitsUtils.INJURED_ENTITIES.get(entityId);
+//
+//                if (entityInjuries.smallInjuries != null && !entityInjuries.smallInjuries.isEmpty()) {
+//                    for (var smallInjury : entityInjuries.smallInjuries.entrySet()) {
+//                        this.renderDamageLayerToBuffer(smallInjury.getKey(), entity, buffer, poseStack, pPartialTicks, pPackedLight);
+//                    }
+//                }
+//
+//                // TODO:
+//                //  - Textures are a bit too dark. Use some lighter greys.
+//                //  - Actually, just have heals slowly change the opacity of the image. Once the image is at 0, then remove it.
+//                //      Think about that more and see if that will work.
+//                if (entityInjuries.mediumInjuries != null && !entityInjuries.mediumInjuries.isEmpty()) {
+//                    for (var mediumInjury : entityInjuries.mediumInjuries.entrySet()) {
+//                        this.renderDamageLayerToBuffer(mediumInjury.getKey(), entity, buffer, poseStack, pPartialTicks, pPackedLight);
+//                    }
+//                }
+//
+//                if (entityInjuries.largeInjuries != null && !entityInjuries.largeInjuries.isEmpty()) {
+//                    for (var largeInjury : entityInjuries.largeInjuries.entrySet()) {
+//                        this.renderDamageLayerToBuffer(largeInjury.getKey(), entity, buffer, poseStack, pPartialTicks, pPackedLight);
+//                    }
+//                }
+//            }
+//        }
+//    }
 
     /**
      * All the code needed to render the new entity damage layer. Essentially copied from the original render method that is being mixed into.
