@@ -18,6 +18,7 @@ import java.util.*;
 public class BloodyBitsUtils {
     public static ArrayList<BloodSprayEntity> BLOOD_SPRAY_ENTITIES = new ArrayList<>();
     public static final HashMap<Integer, EntityInjuries> INJURED_ENTITIES = new HashMap<>();
+    public static final List<String> INJURY_LAYER_ENTITIES = new ArrayList<>();
 
     /**
      * Convenient helper method to simplify vertex drawing.

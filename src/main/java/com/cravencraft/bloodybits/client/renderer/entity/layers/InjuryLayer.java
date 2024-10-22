@@ -9,19 +9,12 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
-import net.minecraft.client.model.IronGolemModel;
-import net.minecraft.client.model.PlayerModel;
-import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
-import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.texture.DynamicTexture;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.animal.IronGolem;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -37,8 +30,6 @@ public class InjuryLayer <T extends LivingEntity, M extends EntityModel<T>> exte
     @Override
     public void render(@NotNull PoseStack poseStack, @NotNull MultiBufferSource bufferSource, int pPackedLight, @NotNull T livingEntity, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
         if (ClientConfig.showEntityDamage() && livingEntity.isAlive() && livingEntity.getHealth() < livingEntity.getMaxHealth()) {
-//            BloodyBitsMod.LOGGER.info("ARE WE RENDERIN???");
-//            poseStack.pushPose();
             int entityId = livingEntity.getId();
 
             // Will render a random assortment of injury textures on the given entity
@@ -69,7 +60,6 @@ public class InjuryLayer <T extends LivingEntity, M extends EntityModel<T>> exte
                     }
                 }
             }
-//            poseStack.popPose();
         }
     }
 
@@ -91,10 +81,6 @@ public class InjuryLayer <T extends LivingEntity, M extends EntityModel<T>> exte
             canPlayerSeeInvisibleEntity = false;
         }
 
-//        boolean shouldEntityAppearGlowing = minecraft.shouldEntityAppearGlowing(pEntity);
-//        this.getParentModel().renderType(this.getTextureLocation(pEntity));
-//        RenderType rendertype = this.getParentModel().renderType(this.getTextureLocation(pEntity));
-//        int i = LivingEntityRenderer.getOverlayCoords(pEntity, this.getWhiteOverlayProgress(pEntity, pPartialTicks));
         this.getParentModel().renderToBuffer(poseStack, customVertexConsumer, pPackedLight, 0, 1.0F, 1.0F, 1.0F, canPlayerSeeInvisibleEntity ? 0.15F : 1.0F);
     }
 }
