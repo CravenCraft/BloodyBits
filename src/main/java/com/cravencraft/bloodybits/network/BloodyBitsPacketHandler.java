@@ -24,7 +24,6 @@ public class BloodyBitsPacketHandler {
 
     public static void register() {
         INSTANCE.registerMessage(getId(), EntityMessage.class, EntityMessage::encode, EntityMessage::decode, EntityMessage::handle);
-//        INSTANCE.registerMessage(getId(), EntityHealthMessage.class, EntityHealthMessage::encode, EntityHealthMessage::decode, EntityHealthMessage::handle);
         INSTANCE.registerMessage(getId(), EntityDamageMessage.class, EntityDamageMessage::encode, EntityDamageMessage::decode, EntityDamageMessage::handle);
         INSTANCE.registerMessage(getId(), EntityHealMessage.class, EntityHealMessage::encode, EntityHealMessage::decode, EntityHealMessage::handle);
     }

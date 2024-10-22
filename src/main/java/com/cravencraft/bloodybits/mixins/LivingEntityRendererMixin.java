@@ -77,42 +77,26 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extend
                 EntityInjuries entityInjuries = BloodyBitsUtils.INJURED_ENTITIES.get(entityId);
 
                 if (entityInjuries.smallInjuries != null && !entityInjuries.smallInjuries.isEmpty()) {
-//                    BloodyBitsMod.LOGGER.info("SMALL INJURY SIZE: {}", entityInjuries.smallInjuries.size());
                     for (var smallInjury : entityInjuries.smallInjuries.entrySet()) {
-//                        BloodyBitsMod.LOGGER.info("SMALL INJURY TYPE: {}", smallInjury.getKey());
                         this.renderDamageLayerToBuffer(smallInjury.getKey(), entity, buffer, poseStack, pPartialTicks, pPackedLight);
                     }
                 }
 
                 // TODO:
                 //  - Textures are a bit too dark. Use some lighter greys.
-                //  - Less hits to make a texture. Maybe 1 for large, 2 for medium, and 3 for small.
-                //  - Have it so if a large texture is taken then it creates 2 hits for medium instead of 1, and 3 for small.
-                //      Can do this by just adding that amount to the hit number maybe instead of calling the specific update method?
-                //  - Same for heals.
                 //  - Actually, just have heals slowly change the opacity of the image. Once the image is at 0, then remove it.
                 //      Think about that more and see if that will work.
                 if (entityInjuries.mediumInjuries != null && !entityInjuries.mediumInjuries.isEmpty()) {
-//                    BloodyBitsMod.LOGGER.info("MEDIUM INJURY SIZE: {}", entityInjuries.mediumInjuries.size());
                     for (var mediumInjury : entityInjuries.mediumInjuries.entrySet()) {
                         this.renderDamageLayerToBuffer(mediumInjury.getKey(), entity, buffer, poseStack, pPartialTicks, pPackedLight);
                     }
                 }
 
                 if (entityInjuries.largeInjuries != null && !entityInjuries.largeInjuries.isEmpty()) {
-//                    BloodyBitsMod.LOGGER.info("LARGE INJURY SIZE: {}", entityInjuries.largeInjuries.size());
                     for (var largeInjury : entityInjuries.largeInjuries.entrySet()) {
                         this.renderDamageLayerToBuffer(largeInjury.getKey(), entity, buffer, poseStack, pPartialTicks, pPackedLight);
                     }
                 }
-
-//                NativeImage entityInjury;
-//                entityInjury.copyFrom();
-
-
-//                for (NativeImage damageLayerTexture : entityDamage.getPaintedAppliedInjuryTextures().values()) {
-//                    this.renderDamageLayerToBuffer(damageLayerTexture, entity, buffer, poseStack, pPartialTicks, pPackedLight);
-//                }
             }
         }
     }
