@@ -2,11 +2,10 @@ package com.cravencraft.bloodybits.client.model;
 
 import com.cravencraft.bloodybits.BloodyBitsMod;
 import com.cravencraft.bloodybits.config.ClientConfig;
-import com.cravencraft.bloodybits.config.CommonConfig;
+import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
 import com.mojang.blaze3d.platform.NativeImage;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.FastColor;
 
 import java.io.IOException;
 import java.util.*;
@@ -39,11 +38,8 @@ public class EntityInjuries {
 
 
     public EntityInjuries(String entityName) {
-//        this.entityInjuries = 0;
-//        this.entityName = entityName;
-//        this.entityDamageColor = this.getMobDamageColor(entityName);
-        String modifiedEntityName = (entityName.equals("player")) ? entityName : decompose(entityName, ':')[1];
-        String path = "textures/entity/" + modifiedEntityName + "/"; // TODO: Do we want to just pass this into the below method?
+        String modifiedEntityName = (entityName.equals("player")) ? entityName : BloodyBitsUtils.decompose(entityName, ':')[1];
+        String path = "textures/entity/" + modifiedEntityName + "/";
 
         this.addEntityDamageTexture(path + "small_injuries/", entityName);
         this.addEntityDamageTexture(path + "medium_injuries/", entityName);
@@ -59,17 +55,12 @@ public class EntityInjuries {
                 NativeImage bloodColorDamageLayer = NativeImage.read(Minecraft.getInstance().getResourceManager().open(injuryTextureResourceLocation));
                 NativeImage burnColorDamageLayer = NativeImage.read(Minecraft.getInstance().getResourceManager().open(injuryTextureResourceLocation));
 
-//                NativeImage bloodColorDamage = damageLayerTexture;
-//                NativeImage burnColorDamage = damageLayerTexture;
-
-//                int entityDamageColor = this.getMobDamageColor(entityName);
-
                 // Doing all paint logic. Currently, that means painting the blood and (if applicable)
                 // burn overlay.
                 // TODO: Might just be able to pass in the original Native image to these. Test out after everything.
-                this.paintDamageToNativeImage(bloodColorDamageLayer, this.getMobDamageColor(entityName));
-                this.paintDamageToNativeImage(burnColorDamageLayer, this.getMobDamageColor(entityName));
-                this.paintDamageToNativeImage(burnColorDamageLayer, this.getBurnDamageColor());
+                BloodyBitsUtils.paintDamageToNativeImage(bloodColorDamageLayer, BloodyBitsUtils.getMobDamageColor(entityName));
+                BloodyBitsUtils.paintDamageToNativeImage(burnColorDamageLayer, BloodyBitsUtils.getMobDamageColor(entityName));
+                BloodyBitsUtils.paintDamageToNativeImage(burnColorDamageLayer, BloodyBitsUtils.getBurnDamageColor());
 
                 if (path.contains("small")) {
                     this.smallBleedInjuries.add(bloodColorDamageLayer);
@@ -83,11 +74,9 @@ public class EntityInjuries {
                     this.largeBleedInjuries.add(bloodColorDamageLayer);
                     this.largeBurnInjuries.add(burnColorDamageLayer);
                 }
-//                BloodyBitsMod.LOGGER.info("{} ADDED TO THE LIST OF AVAILABLE {} TEXTURES.", modifiedPath, entityName); // TODO: Remove after you finish testing.
             }
             catch (IOException ignore) {
                 // Want to gracefully ignore when a texture for an entity does not exist.
-//                BloodyBitsMod.LOGGER.info("No injury texture in Resource Location: {}", modifiedPath);
                 break;
             }
         }
@@ -548,84 +537,5 @@ public class EntityInjuries {
         }
 
         this.smallBurnHits -= 3;
-    }
-
-    /*
-        All helper methods below. Can just make static or move to a util class to declutter this class.
-     */
-    protected static String[] decompose(String pLocation, char pSeparator) {
-        String[] astring = new String[]{"minecraft", pLocation};
-        int i = pLocation.indexOf(pSeparator);
-        if (i >= 0) {
-            astring[1] = pLocation.substring(i + 1);
-            if (i >= 1) {
-                astring[0] = pLocation.substring(0, i);
-            }
-        }
-
-        return astring;
-    }
-
-
-    private int getMobDamageColor(String entityName) {
-        int redDamage = 200;
-        int greenDamage = 1;
-        int blueDamage = 1;
-        int alphaDamage = 255;
-
-        if (CommonConfig.solidEntities().contains(entityName)) {
-            redDamage = 0;
-            greenDamage = 0;
-            blueDamage = 0;
-            alphaDamage = 0;
-        }
-        else {
-            for (Map.Entry<String, List<String>> mapElement : ClientConfig.entityBloodColors().entrySet()) {
-                if (mapElement.getValue().contains(Objects.requireNonNull(entityName))) {
-                    String bloodColorHexVal = mapElement.getKey();
-                    redDamage = HexFormat.fromHexDigits(bloodColorHexVal, 1, 3);
-                    greenDamage = HexFormat.fromHexDigits(bloodColorHexVal, 3, 5);
-                    blueDamage = HexFormat.fromHexDigits(bloodColorHexVal.substring(5));
-                    break;
-                }
-            }
-        }
-        return FastColor.ABGR32.color(alphaDamage, blueDamage, greenDamage, redDamage);
-    }
-
-    private int getBurnDamageColor() {
-        String bloodColorHexVal = ClientConfig.getBurnDamageColor();
-        int redDamage = HexFormat.fromHexDigits(bloodColorHexVal, 1, 3);
-        int greenDamage = HexFormat.fromHexDigits(bloodColorHexVal, 3, 5);
-        int blueDamage = HexFormat.fromHexDigits(bloodColorHexVal.substring(5));
-        return FastColor.ABGR32.color(150, blueDamage, greenDamage, redDamage);
-    }
-
-    private void paintDamageToNativeImage(NativeImage unpaintedDamageLayerTexture, int damageColorRGBA) {
-        for (int x = 0; x < unpaintedDamageLayerTexture.getWidth(); x++) {
-            for (int y = 0; y < unpaintedDamageLayerTexture.getHeight(); y++) {
-                if (unpaintedDamageLayerTexture.getPixelRGBA(x, y) != 0) {
-                    int median = 125;
-
-                    int damageLayerPixelRGBA = unpaintedDamageLayerTexture.getPixelRGBA(x, y);
-                    int currentDamageLayerAlpha = (FastColor.ABGR32.alpha(damageLayerPixelRGBA) > 0) ? 150 : 0;
-                    int currentDamageLayerRed = FastColor.ABGR32.red(damageLayerPixelRGBA);
-                    int currentDamageLayerGreen = FastColor.ABGR32.green(damageLayerPixelRGBA);
-                    int currentDamageLayerBlue = FastColor.ABGR32.blue(damageLayerPixelRGBA);
-
-                    int newDamageColorRed = FastColor.ABGR32.red(damageColorRGBA);
-                    int newDamageColorGreen = FastColor.ABGR32.green(damageColorRGBA);
-                    int newDamageColorBlue = FastColor.ABGR32.blue(damageColorRGBA);
-
-                    newDamageColorRed = (int) Math.min(newDamageColorRed * ((float) currentDamageLayerRed / median), 255);
-                    newDamageColorGreen = (int) Math.min(newDamageColorGreen * ((float) currentDamageLayerGreen / median), 255);
-                    newDamageColorBlue = (int) Math.min(newDamageColorBlue * ((float) currentDamageLayerBlue / median), 255);
-
-                    int newDamageLayerRGBA = FastColor.ABGR32.color(currentDamageLayerAlpha, newDamageColorBlue, newDamageColorGreen, newDamageColorRed);
-
-                    unpaintedDamageLayerTexture.setPixelRGBA(x, y, newDamageLayerRGBA);
-                }
-            }
-        }
     }
 }

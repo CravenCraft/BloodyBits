@@ -1,28 +1,23 @@
 package com.cravencraft.bloodybits.utils;
 
-import com.cravencraft.bloodybits.client.model.EntityDamage;
 import com.cravencraft.bloodybits.client.model.EntityInjuries;
+import com.cravencraft.bloodybits.config.ClientConfig;
+import com.cravencraft.bloodybits.config.CommonConfig;
 import com.cravencraft.bloodybits.entity.BloodSprayEntity;
+import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.util.FastColor;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 public class BloodyBitsUtils {
     public static ArrayList<BloodSprayEntity> BLOOD_SPRAY_ENTITIES = new ArrayList<>();
-    public static final HashMap<Integer, EntityDamage> DAMAGED_ENTITIES = new HashMap<>();
     public static final HashMap<Integer, EntityInjuries> INJURED_ENTITIES = new HashMap<>();
-    public static final List<String> NO_INJURY_TEXTURE_ENTITIES = new ArrayList<>();
-
-    public static double getRandomAngle(double range) {
-        return (Math.random() > 0.5) ? Math.random() * range : -(Math.random() * range);
-    }
 
     /**
      * Convenient helper method to simplify vertex drawing.
@@ -45,5 +40,81 @@ public class BloodyBitsUtils {
             case 2 -> SoundEvents.WET_GRASS_HIT;
             default -> SoundEvents.MUD_STEP;
         };
+    }
+
+    public static String[] decompose(String pLocation, char pSeparator) {
+        String[] astring = new String[]{"minecraft", pLocation};
+        int i = pLocation.indexOf(pSeparator);
+        if (i >= 0) {
+            astring[1] = pLocation.substring(i + 1);
+            if (i >= 1) {
+                astring[0] = pLocation.substring(0, i);
+            }
+        }
+
+        return astring;
+    }
+
+
+    public static int getMobDamageColor(String entityName) {
+        int redDamage = 200;
+        int greenDamage = 1;
+        int blueDamage = 1;
+        int alphaDamage = 255;
+
+        if (CommonConfig.solidEntities().contains(entityName)) {
+            redDamage = 0;
+            greenDamage = 0;
+            blueDamage = 0;
+            alphaDamage = 0;
+        }
+        else {
+            for (Map.Entry<String, List<String>> mapElement : ClientConfig.entityBloodColors().entrySet()) {
+                if (mapElement.getValue().contains(Objects.requireNonNull(entityName))) {
+                    String bloodColorHexVal = mapElement.getKey();
+                    redDamage = HexFormat.fromHexDigits(bloodColorHexVal, 1, 3);
+                    greenDamage = HexFormat.fromHexDigits(bloodColorHexVal, 3, 5);
+                    blueDamage = HexFormat.fromHexDigits(bloodColorHexVal.substring(5));
+                    break;
+                }
+            }
+        }
+        return FastColor.ABGR32.color(alphaDamage, blueDamage, greenDamage, redDamage);
+    }
+
+    public static int getBurnDamageColor() {
+        String bloodColorHexVal = ClientConfig.getBurnDamageColor();
+        int redDamage = HexFormat.fromHexDigits(bloodColorHexVal, 1, 3);
+        int greenDamage = HexFormat.fromHexDigits(bloodColorHexVal, 3, 5);
+        int blueDamage = HexFormat.fromHexDigits(bloodColorHexVal.substring(5));
+        return FastColor.ABGR32.color(150, blueDamage, greenDamage, redDamage);
+    }
+
+    public static void paintDamageToNativeImage(NativeImage unpaintedDamageLayerTexture, int damageColorRGBA) {
+        for (int x = 0; x < unpaintedDamageLayerTexture.getWidth(); x++) {
+            for (int y = 0; y < unpaintedDamageLayerTexture.getHeight(); y++) {
+                if (unpaintedDamageLayerTexture.getPixelRGBA(x, y) != 0) {
+                    int median = 125;
+
+                    int damageLayerPixelRGBA = unpaintedDamageLayerTexture.getPixelRGBA(x, y);
+                    int currentDamageLayerAlpha = (FastColor.ABGR32.alpha(damageLayerPixelRGBA) > 0) ? 150 : 0;
+                    int currentDamageLayerRed = FastColor.ABGR32.red(damageLayerPixelRGBA);
+                    int currentDamageLayerGreen = FastColor.ABGR32.green(damageLayerPixelRGBA);
+                    int currentDamageLayerBlue = FastColor.ABGR32.blue(damageLayerPixelRGBA);
+
+                    int newDamageColorRed = FastColor.ABGR32.red(damageColorRGBA);
+                    int newDamageColorGreen = FastColor.ABGR32.green(damageColorRGBA);
+                    int newDamageColorBlue = FastColor.ABGR32.blue(damageColorRGBA);
+
+                    newDamageColorRed = (int) Math.min(newDamageColorRed * ((float) currentDamageLayerRed / median), 255);
+                    newDamageColorGreen = (int) Math.min(newDamageColorGreen * ((float) currentDamageLayerGreen / median), 255);
+                    newDamageColorBlue = (int) Math.min(newDamageColorBlue * ((float) currentDamageLayerBlue / median), 255);
+
+                    int newDamageLayerRGBA = FastColor.ABGR32.color(currentDamageLayerAlpha, newDamageColorBlue, newDamageColorGreen, newDamageColorRed);
+
+                    unpaintedDamageLayerTexture.setPixelRGBA(x, y, newDamageLayerRGBA);
+                }
+            }
+        }
     }
 }

@@ -1,7 +1,6 @@
 package com.cravencraft.bloodybits.mixins;
 
 import com.cravencraft.bloodybits.BloodyBitsMod;
-import com.cravencraft.bloodybits.client.model.EntityDamage;
 import com.cravencraft.bloodybits.client.model.EntityInjuries;
 import com.cravencraft.bloodybits.config.ClientConfig;
 import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
@@ -71,7 +70,6 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extend
 
             // Will render a random assortment of injury textures on the given entity
             // if it is contained within the map.
-            // TODO: Update this to properly display entity injuries once the base is set.
             if (BloodyBitsUtils.INJURED_ENTITIES.containsKey(entityId)) {
 
                 EntityInjuries entityInjuries = BloodyBitsUtils.INJURED_ENTITIES.get(entityId);
