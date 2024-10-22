@@ -1,6 +1,5 @@
 package com.cravencraft.bloodybits.network.messages;
 
-import com.cravencraft.bloodybits.BloodyBitsMod;
 import com.cravencraft.bloodybits.client.model.EntityInjuries;
 import com.cravencraft.bloodybits.config.ClientConfig;
 import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
@@ -43,7 +42,8 @@ public class EntityHealMessage {
 
     private static void healEntityInjuries(LivingEntity livingEntity, EntityHealMessage message) {
 
-        if (livingEntity.isAlive() && livingEntity.getHealth() < livingEntity.getMaxHealth()) {
+        if (livingEntity.isAlive()) {
+
             int entityId = livingEntity.getId();
             if (livingEntity.getHealth() < livingEntity.getMaxHealth()) {
                 // Will get the entity injuries either by retrieving them from a list based on the entity's ID.
@@ -51,7 +51,6 @@ public class EntityHealMessage {
                     EntityInjuries entityInjuries = BloodyBitsUtils.INJURED_ENTITIES.get(entityId);
 
                     double entityHealPercentage = message.healAmount / livingEntity.getMaxHealth();
-                    BloodyBitsMod.LOGGER.info("Entity heal %: {}", entityHealPercentage);
 
                     // Apply the appropriate hit size depending on the damage amount.
                     if (entityHealPercentage >= 0.15) {
@@ -66,7 +65,6 @@ public class EntityHealMessage {
                 }
             }
             else {
-                BloodyBitsMod.LOGGER.info("Removing entity {} from INJURED ENTITIES", entityId);
                 BloodyBitsUtils.INJURED_ENTITIES.remove(entityId);
             }
         }

@@ -53,25 +53,18 @@ public class BloodyBitsEvents {
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void entityDeathEvent(LivingDeathEvent deathEvent) {
         if (!deathEvent.isCanceled() && deathEvent.getEntity() != null && deathEvent.getEntity().level().isClientSide()) {
-            BloodyBitsMod.LOGGER.info("Removing entity {} from INJURED ENTITIES.", deathEvent.getEntity().getId());
             BloodyBitsUtils.INJURED_ENTITIES.remove(deathEvent.getEntity().getId());
         }
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void entityHealEvent(LivingHealEvent event) {
-        BloodyBitsMod.LOGGER.info("----------------------- BEGIN HEAL EVENT -----------------------");
         LivingEntity entity = event.getEntity();
 
         if (!event.isCanceled() && entity != null) {
-//            BloodyBitsPacketHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> entity),
-//                    new EntityHealthMessage(false, entity.getId()));
-
-
             BloodyBitsPacketHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> entity),
                     new EntityHealMessage(entity.getId(), event.getAmount()));
         }
-        BloodyBitsMod.LOGGER.info("----------------------- END HEAL EVENT -----------------------");
     }
 
     /**
@@ -81,7 +74,6 @@ public class BloodyBitsEvents {
      */
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void bloodOnEntityDamage(LivingDamageEvent event) {
-        BloodyBitsMod.LOGGER.info("----------------------- BEGIN DAMAGE EVENT -----------------------");
 
         LivingEntity entity = event.getEntity();
         if (!event.isCanceled() && entity != null) {
@@ -93,9 +85,6 @@ public class BloodyBitsEvents {
                 createBloodSpray(entity, event.getSource(), maxDamage, false);
             }
 
-//            BloodyBitsPacketHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> entity),
-//                    new EntityHealthMessage(true, entity.getId()));
-
             // For adding damage textures to the given entity.
             if (!ClientConfig.blackListInjurySources().contains(event.getSource().type().msgId())) {
                 boolean isBurn = ClientConfig.burnDamageSources().contains(event.getSource().type().msgId());
@@ -104,8 +93,6 @@ public class BloodyBitsEvents {
                         new EntityDamageMessage(entity.getId(), event.getAmount(), !isBurn, isBurn));
             }
         }
-
-        BloodyBitsMod.LOGGER.info("----------------------- END DAMAGE EVENT -----------------------");
     }
 
     @SubscribeEvent
