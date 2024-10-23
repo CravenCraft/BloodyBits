@@ -1,6 +1,5 @@
 package com.cravencraft.bloodybits.client.renderer.entity.layers;
 
-import com.cravencraft.bloodybits.BloodyBitsMod;
 import com.cravencraft.bloodybits.client.model.EntityInjuries;
 import com.cravencraft.bloodybits.config.ClientConfig;
 import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
@@ -21,8 +20,11 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.HexFormat;
+
 @OnlyIn(Dist.CLIENT)
 public class InjuryLayer <T extends LivingEntity, M extends EntityModel<T>> extends RenderLayer<T, M>  {
+    private static final float MAX_RGB_COLOR_VALUE = 255.0F;
 
     public InjuryLayer(LivingEntityRenderer<T, M> renderer) {
         super(renderer);
@@ -39,23 +41,21 @@ public class InjuryLayer <T extends LivingEntity, M extends EntityModel<T>> exte
 
                 EntityInjuries entityInjuries = BloodyBitsUtils.INJURED_ENTITIES.get(entityId);
 
-                if (entityInjuries.smallInjuries != null && !entityInjuries.smallInjuries.isEmpty()) {
-                    for (var smallInjury : entityInjuries.smallInjuries) {
-                        this.renderDamageLayerToBuffer(smallInjury, livingEntity, bufferSource, poseStack, partialTicks, pPackedLight);
+                if (entityInjuries.appliedSmallInjuries != null && !entityInjuries.appliedSmallInjuries.isEmpty()) {
+                    for (var smallInjury : entityInjuries.appliedSmallInjuries.entrySet()) {
+                        this.renderDamageLayerToBuffer(smallInjury.getValue(), smallInjury.getKey(), livingEntity, bufferSource, poseStack, partialTicks, pPackedLight);
                     }
                 }
 
-                // TODO:
-                //  - Textures are a bit too dark. Use some lighter greys.
-                if (entityInjuries.mediumInjuries != null && !entityInjuries.mediumInjuries.isEmpty()) {
-                    for (var mediumInjury : entityInjuries.mediumInjuries) {
-                        this.renderDamageLayerToBuffer(mediumInjury, livingEntity, bufferSource, poseStack, partialTicks, pPackedLight);
+                if (entityInjuries.appliedMediumInjuries != null && !entityInjuries.appliedMediumInjuries.isEmpty()) {
+                    for (var mediumInjury : entityInjuries.appliedMediumInjuries.entrySet()) {
+                        this.renderDamageLayerToBuffer(mediumInjury.getValue(), mediumInjury.getKey(), livingEntity, bufferSource, poseStack, partialTicks, pPackedLight);
                     }
                 }
 
-                if (entityInjuries.largeInjuries != null && !entityInjuries.largeInjuries.isEmpty()) {
-                    for (var largeInjury : entityInjuries.largeInjuries) {
-                        this.renderDamageLayerToBuffer(largeInjury, livingEntity, bufferSource, poseStack, partialTicks, pPackedLight);
+                if (entityInjuries.appliedLargeInjuries != null && !entityInjuries.appliedLargeInjuries.isEmpty()) {
+                    for (var largeInjury : entityInjuries.appliedLargeInjuries.entrySet()) {
+                        this.renderDamageLayerToBuffer(largeInjury.getValue(), largeInjury.getKey(), livingEntity, bufferSource, poseStack, partialTicks, pPackedLight);
                     }
                 }
             }
@@ -65,21 +65,39 @@ public class InjuryLayer <T extends LivingEntity, M extends EntityModel<T>> exte
     /**
      * All the code needed to render the new entity damage layer. Essentially copied from the original render method that is being mixed into.
      */
-    private void renderDamageLayerToBuffer(NativeImage damageLayerTexture, T pEntity, MultiBufferSource buffer, PoseStack poseStack, float pPartialTicks, int pPackedLight) {
+    private void renderDamageLayerToBuffer(String injuryType, NativeImage damageLayerTexture, T entity, MultiBufferSource buffer, PoseStack poseStack, float pPartialTicks, int pPackedLight) {
         DynamicTexture dynamicTexture = new DynamicTexture(damageLayerTexture);
         VertexConsumer customVertexConsumer = buffer.getBuffer(RenderType.entityTranslucent(Minecraft.getInstance().getTextureManager().register("damage_layer", dynamicTexture)));
 
         Minecraft minecraft = Minecraft.getInstance();
         Player player = minecraft.player;
-        boolean isEntityVisible = !pEntity.isInvisible();
+        boolean isEntityVisible = !entity.isInvisible();
         boolean canPlayerSeeInvisibleEntity;
         if (player != null) {
-            canPlayerSeeInvisibleEntity = !isEntityVisible && !pEntity.isInvisibleTo(player);
+            canPlayerSeeInvisibleEntity = !isEntityVisible && !entity.isInvisibleTo(player);
         }
         else {
             canPlayerSeeInvisibleEntity = false;
         }
-        // TODO: Last param is the alpha.
-        this.getParentModel().renderToBuffer(poseStack, customVertexConsumer, pPackedLight, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, canPlayerSeeInvisibleEntity ? 0.15F : 1.0F);
+
+        String damageHexColor = "";
+        switch (injuryType) {
+            case "bleed" -> {
+                String entityName = (entity instanceof Player) ? "player" : entity.getEncodeId();
+                entityName = (entityName == null) ? "" : entityName;
+
+                damageHexColor = BloodyBitsUtils.getEntityDamageHexColor(entityName);
+            }
+            case "burn" -> damageHexColor = ClientConfig.getBurnDamageColor();
+        }
+
+        if (!damageHexColor.isBlank()) {
+            float redDamage = HexFormat.fromHexDigits(damageHexColor, 1, 3) / MAX_RGB_COLOR_VALUE;
+            float greenDamage = HexFormat.fromHexDigits(damageHexColor, 3, 5) / MAX_RGB_COLOR_VALUE;
+            float blueDamage = HexFormat.fromHexDigits(damageHexColor.substring(5)) / MAX_RGB_COLOR_VALUE;
+
+            // TODO: Last param is the alpha.
+            this.getParentModel().renderToBuffer(poseStack, customVertexConsumer, pPackedLight, OverlayTexture.NO_OVERLAY, redDamage, greenDamage, blueDamage, canPlayerSeeInvisibleEntity ? 0.15F : 1.0F);
+        }
     }
 }
