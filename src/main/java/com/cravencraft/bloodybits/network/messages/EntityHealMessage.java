@@ -53,17 +53,6 @@ public class EntityHealMessage {
                     double entityHealPercentage = message.healAmount / livingEntity.getMaxHealth();
 
                     entityInjuries.addHealAmount(entityHealPercentage);
-
-                    // Apply the appropriate hit size depending on the damage amount.
-//                    if (entityHealPercentage >= 0.15) {
-//                        entityInjuries.addLargeHealAmount();
-//                    }
-//                    else if (entityHealPercentage >= 0.05) {
-//                        entityInjuries.addMediumHealAmount();
-//                    }
-//                    else {
-//                        entityInjuries.addSmallHealAmount();
-//                    }
                 }
             }
             else {

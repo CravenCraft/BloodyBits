@@ -50,13 +50,24 @@ public class BloodyBitsEvents {
         }
     }
 
+    /**
+     * Removes an entity from the INJURED_ENTITIES list upon death if that configuration is enabled client side.
+     */
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void entityDeathEvent(LivingDeathEvent deathEvent) {
-        if (!deathEvent.isCanceled() && deathEvent.getEntity() != null && deathEvent.getEntity().level().isClientSide()) {
+        if (ClientConfig.showEntityDamage() && !deathEvent.isCanceled() && deathEvent.getEntity() != null && deathEvent.getEntity().level().isClientSide()) {
             BloodyBitsUtils.INJURED_ENTITIES.remove(deathEvent.getEntity().getId());
         }
     }
 
+    /**
+     * When an entity heals a message will be sent client side with the entity's ID and the heal amount. This will
+     * be used to potentially remove injuries from the entity if it is contained within the INJURED_ENTITIES list.
+     * An entity will not be added to the list if the config is disabled, or injury textures do not exist for the given
+     * entity.
+     * TODO: Ensure the new logic does not add entities to the INJURED_ENTITIES list if the entity does not have any
+     *       injury textures associated with it.
+     */
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void entityHealEvent(LivingHealEvent event) {
         LivingEntity entity = event.getEntity();
@@ -96,8 +107,13 @@ public class BloodyBitsEvents {
         }
     }
 
+    /**
+     * Adds an injury layer to the entity. Will trigger once for any new entity the first time it is rendered.
+     * Once the layer is added, it is then added to a list which will ensure that multiple layers aren't added for
+     * entities.
+     */
     @SubscribeEvent(priority = EventPriority.LOWEST)
-    public static void testRenderEvent(RenderLivingEvent.Pre<?, ?> event) {
+    public static void addInjuryLayerToEntity(RenderLivingEvent.Pre<?, ?> event) {
 
         if (ClientConfig.showEntityDamage() && !event.isCanceled()) {
 
@@ -117,6 +133,8 @@ public class BloodyBitsEvents {
         }
     }
 
+    // TODO: Rework this. This is a cool feature to have. Just want it to be slightly less random. Set up a minimum and
+    //       maximum interval that will change as the entity takes more damage. May need to get tick counts for that?
     @SubscribeEvent
     public static void entityBleedWhenDamaged(LivingEvent event) {
         if (CommonConfig.bleedWhenDamaged() && event.getEntity() != null && !event.getEntity().level().isClientSide() && !event.getEntity().isDeadOrDying()) {
@@ -136,6 +154,7 @@ public class BloodyBitsEvents {
 
     }
 
+    // TODO: Finish this for creeper explosions.
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void creeperExplosionEvent(LivingDeathEvent event) {
         LivingEntity entity = event.getEntity();
@@ -145,6 +164,12 @@ public class BloodyBitsEvents {
         }
     }
 
+    /**
+     * Creates blood sprays for any entity that is damaged. Also adds each blood spray to a list BLOOD_SPRAY_ENTITIES
+     * when it is created. This list maxes out at a configurable limit to ensure the blood spray entities impact the
+     * game's performance as little as possible. When a new blood spray is created, if the limit of the list is passed,
+     * the first index of the list is removed to ensure that the oldest sprays are removed first.
+     */
     private static void createBloodSpray(LivingEntity entity, DamageSource damageSource, int damageAmount, boolean isBleedingDamage) {
         if (entity != null && damageSource != null) {
             String entityName = (entity instanceof Player) ? "player" : entity.getEncodeId();
