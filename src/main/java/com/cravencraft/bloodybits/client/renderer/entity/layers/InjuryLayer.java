@@ -14,6 +14,7 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.texture.DynamicTexture;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
@@ -78,7 +79,7 @@ public class InjuryLayer <T extends LivingEntity, M extends EntityModel<T>> exte
         else {
             canPlayerSeeInvisibleEntity = false;
         }
-
-        this.getParentModel().renderToBuffer(poseStack, customVertexConsumer, pPackedLight, 0, 1.0F, 1.0F, 1.0F, canPlayerSeeInvisibleEntity ? 0.15F : 1.0F);
+        // TODO: Last param is the alpha.
+        this.getParentModel().renderToBuffer(poseStack, customVertexConsumer, pPackedLight, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, canPlayerSeeInvisibleEntity ? 0.15F : 1.0F);
     }
 }

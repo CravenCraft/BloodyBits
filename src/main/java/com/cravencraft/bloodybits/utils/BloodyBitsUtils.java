@@ -1,5 +1,6 @@
 package com.cravencraft.bloodybits.utils;
 
+import com.cravencraft.bloodybits.BloodyBitsMod;
 import com.cravencraft.bloodybits.client.model.EntityInjuries;
 import com.cravencraft.bloodybits.config.ClientConfig;
 import com.cravencraft.bloodybits.config.CommonConfig;
@@ -88,7 +89,7 @@ public class BloodyBitsUtils {
         int redDamage = HexFormat.fromHexDigits(bloodColorHexVal, 1, 3);
         int greenDamage = HexFormat.fromHexDigits(bloodColorHexVal, 3, 5);
         int blueDamage = HexFormat.fromHexDigits(bloodColorHexVal.substring(5));
-        return FastColor.ABGR32.color(150, blueDamage, greenDamage, redDamage);
+        return FastColor.ABGR32.color(255, blueDamage, greenDamage, redDamage);
     }
 
     public static void paintDamageToNativeImage(NativeImage unpaintedDamageLayerTexture, int damageColorRGBA) {
@@ -98,18 +99,25 @@ public class BloodyBitsUtils {
                     int median = 125;
 
                     int damageLayerPixelRGBA = unpaintedDamageLayerTexture.getPixelRGBA(x, y);
-                    int currentDamageLayerAlpha = (FastColor.ABGR32.alpha(damageLayerPixelRGBA) > 0) ? 150 : 0;
+                    int currentDamageLayerAlpha = FastColor.ABGR32.alpha(damageLayerPixelRGBA);
                     int currentDamageLayerRed = FastColor.ABGR32.red(damageLayerPixelRGBA);
                     int currentDamageLayerGreen = FastColor.ABGR32.green(damageLayerPixelRGBA);
                     int currentDamageLayerBlue = FastColor.ABGR32.blue(damageLayerPixelRGBA);
+
+//                    BloodyBitsMod.LOGGER.info("current red {} green {} blue {}", currentDamageLayerRed, currentDamageLayerGreen, currentDamageLayerBlue);
 
                     int newDamageColorRed = FastColor.ABGR32.red(damageColorRGBA);
                     int newDamageColorGreen = FastColor.ABGR32.green(damageColorRGBA);
                     int newDamageColorBlue = FastColor.ABGR32.blue(damageColorRGBA);
 
+
+//                    BloodyBitsMod.LOGGER.info("new red {} green {} blue {}", newDamageColorRed, newDamageColorGreen, newDamageColorBlue);
+
                     newDamageColorRed = (int) Math.min(newDamageColorRed * ((float) currentDamageLayerRed / median), 255);
                     newDamageColorGreen = (int) Math.min(newDamageColorGreen * ((float) currentDamageLayerGreen / median), 255);
                     newDamageColorBlue = (int) Math.min(newDamageColorBlue * ((float) currentDamageLayerBlue / median), 255);
+
+                    BloodyBitsMod.LOGGER.info("modified new red {} green {} blue {}", newDamageColorRed, newDamageColorGreen, newDamageColorBlue);
 
                     int newDamageLayerRGBA = FastColor.ABGR32.color(currentDamageLayerAlpha, newDamageColorBlue, newDamageColorGreen, newDamageColorRed);
 

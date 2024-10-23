@@ -58,6 +58,7 @@ public class EntityInjuries {
                 // Doing all paint logic. Currently, that means painting the blood and (if applicable)
                 // burn overlay.
                 // TODO: Might just be able to pass in the original Native image to these. Test out after everything.
+                BloodyBitsMod.LOGGER.info("Painting texture {} to entity {}", modifiedPath, entityName);
                 BloodyBitsUtils.paintDamageToNativeImage(bloodColorDamageLayer, BloodyBitsUtils.getMobDamageColor(entityName));
 //                BloodyBitsUtils.paintDamageToNativeImage(burnColorDamageLayer, BloodyBitsUtils.getMobDamageColor(entityName));
                 BloodyBitsUtils.paintDamageToNativeImage(burnColorDamageLayer, BloodyBitsUtils.getBurnDamageColor());
