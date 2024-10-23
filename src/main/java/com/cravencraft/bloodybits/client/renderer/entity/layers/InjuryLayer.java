@@ -39,24 +39,22 @@ public class InjuryLayer <T extends LivingEntity, M extends EntityModel<T>> exte
                 EntityInjuries entityInjuries = BloodyBitsUtils.INJURED_ENTITIES.get(entityId);
 
                 if (entityInjuries.smallInjuries != null && !entityInjuries.smallInjuries.isEmpty()) {
-                    for (var smallInjury : entityInjuries.smallInjuries.entrySet()) {
-                        this.renderDamageLayerToBuffer(smallInjury.getKey(), livingEntity, bufferSource, poseStack, partialTicks, pPackedLight);
+                    for (var smallInjury : entityInjuries.smallInjuries) {
+                        this.renderDamageLayerToBuffer(smallInjury, livingEntity, bufferSource, poseStack, partialTicks, pPackedLight);
                     }
                 }
 
                 // TODO:
                 //  - Textures are a bit too dark. Use some lighter greys.
-                //  - Actually, just have heals slowly change the opacity of the image. Once the image is at 0, then remove it.
-                //      Think about that more and see if that will work.
                 if (entityInjuries.mediumInjuries != null && !entityInjuries.mediumInjuries.isEmpty()) {
-                    for (var mediumInjury : entityInjuries.mediumInjuries.entrySet()) {
-                        this.renderDamageLayerToBuffer(mediumInjury.getKey(), livingEntity, bufferSource, poseStack, partialTicks, pPackedLight);
+                    for (var mediumInjury : entityInjuries.mediumInjuries) {
+                        this.renderDamageLayerToBuffer(mediumInjury, livingEntity, bufferSource, poseStack, partialTicks, pPackedLight);
                     }
                 }
 
                 if (entityInjuries.largeInjuries != null && !entityInjuries.largeInjuries.isEmpty()) {
-                    for (var largeInjury : entityInjuries.largeInjuries.entrySet()) {
-                        this.renderDamageLayerToBuffer(largeInjury.getKey(), livingEntity, bufferSource, poseStack, partialTicks, pPackedLight);
+                    for (var largeInjury : entityInjuries.largeInjuries) {
+                        this.renderDamageLayerToBuffer(largeInjury, livingEntity, bufferSource, poseStack, partialTicks, pPackedLight);
                     }
                 }
             }

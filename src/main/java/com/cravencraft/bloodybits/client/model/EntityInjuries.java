@@ -24,9 +24,9 @@ public class EntityInjuries {
     private int mediumHealAmount;
     private int largeHealAmount;
 
-    public HashMap<NativeImage, String> smallInjuries = new HashMap<>();
-    public HashMap<NativeImage, String> mediumInjuries = new HashMap<>();
-    public HashMap<NativeImage, String> largeInjuries = new HashMap<>();
+    public List<NativeImage> smallInjuries = new ArrayList<>();
+    public List<NativeImage> mediumInjuries = new ArrayList<>();
+    public List<NativeImage> largeInjuries = new ArrayList<>();
 
     private final List<NativeImage> smallBleedInjuries = new ArrayList<>(10);
     private final List<NativeImage> mediumBleedInjuries = new ArrayList<>(5);
@@ -59,7 +59,7 @@ public class EntityInjuries {
                 // burn overlay.
                 // TODO: Might just be able to pass in the original Native image to these. Test out after everything.
                 BloodyBitsUtils.paintDamageToNativeImage(bloodColorDamageLayer, BloodyBitsUtils.getMobDamageColor(entityName));
-                BloodyBitsUtils.paintDamageToNativeImage(burnColorDamageLayer, BloodyBitsUtils.getMobDamageColor(entityName));
+//                BloodyBitsUtils.paintDamageToNativeImage(burnColorDamageLayer, BloodyBitsUtils.getMobDamageColor(entityName));
                 BloodyBitsUtils.paintDamageToNativeImage(burnColorDamageLayer, BloodyBitsUtils.getBurnDamageColor());
 
                 if (path.contains("small")) {
@@ -82,318 +82,161 @@ public class EntityInjuries {
         }
     }
 
-    /**
-     *  Adds to the small hits for an entity, then updates the injuries in case the small hits pass the threshold
-     *  to add a small injury to the entity.
-     */
-    public void addSmallHit(String injuryType) {
-        switch (injuryType) {
-            case "bleed" -> {
-                if (this.smallBleedInjuries.isEmpty()) {
-                    if (!this.mediumBleedInjuries.isEmpty()) {
-                        if (this.smallBleedHits >= 3) {
-                            this.mediumBleedHits++;
-                            this.smallBleedHits = 0;
-                        }
-                        else {
-                            this.smallBleedHits++;
-                        }
-                    }
-                    else if (!this.largeBleedInjuries.isEmpty()) {
-                        if (this.smallBleedHits >= 5) {
-                            this.largeBleedHits++;
-                            this.smallBleedHits = 0;
-                        }
-                        else {
-                            this.smallBleedHits++;
-                        }
-                    }
-                }
-                else {
-                    this.smallBleedHits++;
-                }
+    public void addInjuryHits(String injuryType, double entityDamagePercentage) {
+
+        // Apply the appropriate hit size depending on the damage amount.
+        if (entityDamagePercentage >= 0.15) {
+            switch (injuryType) {
+                case "bleed" -> this.largeBleedHits++;
+                case "burn" -> this.largeBurnHits++;
             }
-            case "burn" -> {
-                if (this.smallBurnInjuries.isEmpty()) {
-                    if (!this.mediumBurnInjuries.isEmpty()) {
-                        if (this.smallBurnHits >= 3) {
-                            this.mediumBurnHits++;
-                            this.smallBurnHits = 0;
-                        }
-                        else {
-                            this.smallBurnHits++;
-                        }
-                    }
-                    else if (!this.largeBurnInjuries.isEmpty()) {
-                        if (this.smallBurnHits >= 5) {
-                            this.largeBurnHits++;
-                            this.smallBurnHits = 0;
-                        }
-                        else {
-                            this.smallBurnHits++;
-                        }
-                    }
-                }
-                else {
-                    this.smallBurnHits++;
-                }
+        }
+        else if (entityDamagePercentage >= 0.05) {
+            switch (injuryType) {
+                case "bleed" -> this.mediumBleedHits++;
+                case "burn" -> this.mediumBurnHits++;
+            }
+        }
+        else {
+            switch (injuryType) {
+                case "bleed" -> this.smallBleedHits++;
+                case "burn" -> this.smallBurnHits++;
+            }
+        }
+
+        /*
+            Perform conversions for bleed and burn hit amounts. Want to do large and small first since the medium one
+            will convert for both.
+         */
+
+        if (this.largeBleedInjuries.isEmpty() && this.largeBleedHits > 0) {
+            this.mediumBleedHits += (this.largeBleedHits * 2);
+            this.largeBleedHits = 0;
+        }
+
+        if (this.smallBleedInjuries.isEmpty() && this.smallBleedHits > 3) {
+            this.mediumBleedHits += (this.smallBleedHits / 3);
+            this.smallBleedHits = 0;
+
+        }
+
+        if (this.mediumBleedInjuries.isEmpty()) {
+            if (!this.largeBleedInjuries.isEmpty() && this.mediumBleedHits > 1) {
+                this.largeBleedHits += (this.mediumBleedHits / 2);
+                this.mediumBleedHits = 0;
+            }
+            else if (!this.smallBleedInjuries.isEmpty() && this.mediumBleedHits > 0) {
+                this.smallBleedHits += (this.mediumBleedHits * 2);
+                this.mediumBleedHits = 0;
+            }
+        }
+
+        if (this.largeBurnInjuries.isEmpty() && this.largeBurnHits > 0) {
+            this.mediumBurnHits += (this.largeBurnHits * 2);
+            this.largeBurnHits = 0;
+        }
+
+        if (this.smallBurnInjuries.isEmpty() && this.smallBurnHits > 3) {
+            this.mediumBurnHits += (this.smallBurnHits / 3);
+            this.smallBurnHits = 0;
+        }
+
+        if (this.mediumBurnInjuries.isEmpty()) {
+            if (!this.largeBurnInjuries.isEmpty() && this.mediumBurnHits > 1) {
+                this.largeBurnHits += (this.mediumBurnHits / 2);
+                this.mediumBurnHits = 0;
+            }
+            else if (!this.smallBurnInjuries.isEmpty() && this.mediumBurnHits > 0) {
+                this.smallBurnHits += (this.mediumBurnHits * 2);
+                this.mediumBurnHits = 0;
             }
         }
 
         this.updateInjuries();
     }
 
-    /**
-     *  Adds to the medium hits for an entity, then updates the injuries in case the medium hits pass the threshold
-     *  to add a medium injury to the entity.
-     */
-    public void addMediumHit(String injuryType) {
-        switch (injuryType) {
-            case "bleed" -> {
-                if (this.mediumBleedInjuries.isEmpty()) {
-                    if (!this.largeBleedInjuries.isEmpty()) {
-                        if (this.mediumBleedHits >= 2) {
-                            this.largeBleedHits++;
-                            this.mediumBleedHits = 0;
-                        }
-                        else {
-                            this.mediumBleedHits++;
-                        }
-                    }
-                    else if (!this.smallBleedInjuries.isEmpty()) {
-                        this.smallBleedHits += 2;
-                    }
-                }
-                else {
-                    this.mediumBleedHits++;
-                }
-            }
-            case "burn" -> {
-                if (this.mediumBurnInjuries.isEmpty()) {
-                    if (!this.largeBurnInjuries.isEmpty()) {
-                        if (this.mediumBurnHits >= 2) {
-                            this.largeBurnHits++;
-                            this.mediumBurnHits = 0;
-                        }
-                        else {
-                            this.mediumBurnHits++;
-                        }
-                    }
-                    else if (!this.smallBurnInjuries.isEmpty()) {
-                        this.smallBurnHits += 2;
-                    }
-                }
-                else {
-                    this.mediumBurnHits++;
-                }
-            }
+    public void addHealAmount(double entityHealPercentage) {
+        // Apply the appropriate hit size depending on the damage amount.
+        if (entityHealPercentage >= 0.15) {
+            this.largeHealAmount++;
         }
-
-        this.updateInjuries();
-    }
-
-    /**
-     *  Adds to the large hits for an entity, then updates the injuries in case the large hits pass the threshold
-     *  to add a large injury to the entity.
-     */
-    public void addLargeHit(String injuryType) {
-        switch (injuryType) {
-            case "bleed" -> {
-                if (this.largeBleedInjuries.isEmpty()) {
-                    if (!this.mediumBleedInjuries.isEmpty()) {
-                        this.mediumBleedHits += 2;
-                    }
-                    else if (!this.smallBleedInjuries.isEmpty()) {
-                        this.smallBleedHits += 5;
-                    }
-                }
-                else {
-                    this.largeBleedHits++;
-                }
-            }
-            case "burn" -> {
-                if (this.largeBurnInjuries.isEmpty()) {
-                    if (!this.mediumBurnInjuries.isEmpty()) {
-                        this.mediumBurnHits += 2;
-                    }
-                    else if (!this.smallBurnInjuries.isEmpty()) {
-                        this.smallBurnHits += 5;
-                    }
-                }
-                else {
-                    this.largeBurnHits++;
-                }
-            }
-        }
-
-        this.updateInjuries();
-    }
-
-    public void addSmallHealAmount() {
-
-        if (this.smallInjuries.isEmpty()) {
-            if (!this.mediumInjuries.isEmpty()) {
-                if (this.smallHealAmount >= 3) {
-                    this.mediumHealAmount++;
-                    this.smallHealAmount = 0;
-                }
-                else {
-                    this.smallHealAmount++;
-                }
-            }
-            else if (!this.largeInjuries.isEmpty()) {
-                if (this.smallHealAmount >= 5) {
-                    this.mediumHealAmount++;
-                    this.smallHealAmount = 0;
-                }
-                else {
-                    this.smallHealAmount++;
-                }
-            }
+        else if (entityHealPercentage >= 0.05) {
+            this.mediumHealAmount++;
         }
         else {
             this.smallHealAmount++;
         }
 
-        this.smallHealAmount++;
-        this.updateHealInjuries();
-    }
+        /*
+            Perform conversions for heal amounts. Want to do large and small first since the medium one
+            will convert for both.
+         */
 
-    public void addMediumHealAmount() {
+        if (this.largeInjuries.isEmpty() && this.largeHealAmount > 0) {
+            this.mediumHealAmount += (this.largeHealAmount * 2);
+            this.largeHealAmount = 0;
+        }
+
+        if (this.smallInjuries.isEmpty() && this.smallHealAmount > 3) {
+            this.mediumHealAmount += (this.smallHealAmount / 3);
+            this.smallHealAmount = 0;
+        }
 
         if (this.mediumInjuries.isEmpty()) {
-            if (!this.largeInjuries.isEmpty()) {
-                if (this.mediumHealAmount >= 2) {
-                    this.largeHealAmount++;
-                    this.mediumHealAmount = 0;
-                }
-                else {
-                    this.mediumHealAmount++;
-                }
+            if (!this.largeInjuries.isEmpty() && this.mediumHealAmount > 1) {
+                this.largeHealAmount += (this.mediumHealAmount / 2);
+                this.mediumHealAmount = 0;
             }
-            else if (!this.smallInjuries.isEmpty()) {
-                this.smallHealAmount += 3;
+            else if (!this.smallInjuries.isEmpty() && this.mediumHealAmount > 0) {
+                this.smallHealAmount += (this.mediumHealAmount * 2);
+                this.mediumHealAmount = 0;
             }
-        }
-        else {
-            this.mediumHealAmount++;
-        }
-
-        this.updateHealInjuries();
-    }
-
-    public void addLargeHealAmount() {
-
-        if (this.largeInjuries.isEmpty()) {
-            if (!this.mediumInjuries.isEmpty()) {
-                this.mediumHealAmount += 2;
-            }
-            else if (!this.smallInjuries.isEmpty()) {
-                this.smallHealAmount += 5;
-            }
-        }
-        else {
-            this.largeHealAmount++;
         }
 
         this.updateHealInjuries();
     }
 
     private void updateHealInjuries() {
-//        BloodyBitsMod.LOGGER.info("----------------------------------------------------------------------------------");
-//        BloodyBitsMod.LOGGER.info("BEFORE healing SMALL injuries heal amount: {}. Small injuries: {}", this.smallHealAmount, this.smallInjuries.size());
-//        BloodyBitsMod.LOGGER.info("BEFORE healing MEDIUM injuries heal amount: {}. Medium injuries: {}", this.mediumHealAmount, this.mediumInjuries.size());
-//        BloodyBitsMod.LOGGER.info("BEFORE healing LARGE injuries heal amount: {}. Large injuries: {}", this.largeHealAmount, this.largeInjuries.size());
-//        BloodyBitsMod.LOGGER.info("----------------------------------------------------------------------------------");
+        BloodyBitsMod.LOGGER.info("----------------------------------------------------------------------------------");
+        BloodyBitsMod.LOGGER.info("BEFORE healing SMALL injuries heal amount: {}. Small injuries: {}", this.smallHealAmount, this.smallInjuries.size());
+        BloodyBitsMod.LOGGER.info("BEFORE healing MEDIUM injuries heal amount: {}. Medium injuries: {}", this.mediumHealAmount, this.mediumInjuries.size());
+        BloodyBitsMod.LOGGER.info("BEFORE healing LARGE injuries heal amount: {}. Large injuries: {}", this.largeHealAmount, this.largeInjuries.size());
+        BloodyBitsMod.LOGGER.info("----------------------------------------------------------------------------------");
 
         if (this.largeHealAmount >= 1) {
-            this.healLargeInjuries();
-        }
-        else if (this.mediumHealAmount >= 2) {
-            this.healMediumInjuries();
-        }
-        else if (this.smallHealAmount >= 3) {
-            this.healSmallInjuries();
+            this.healInjuries(this.largeInjuries, this.largeBleedInjuries, this.largeBurnInjuries);
+            this.largeHealAmount--;
         }
 
-//        BloodyBitsMod.LOGGER.info("----------------------------------------------------------------------------------");
-//        BloodyBitsMod.LOGGER.info("AFTER healing SMALL injuries heal amount: {}. Small injuries: {}", this.smallHealAmount, this.smallInjuries.size());
-//        BloodyBitsMod.LOGGER.info("AFTER healing MEDIUM injuries heal amount: {}. Medium injuries: {}", this.mediumHealAmount, this.mediumInjuries.size());
-//        BloodyBitsMod.LOGGER.info("AFTER healing LARGE injuries heal amount: {}. Large injuries: {}", this.largeHealAmount, this.largeInjuries.size());
-//        BloodyBitsMod.LOGGER.info("----------------------------------------------------------------------------------");
+        if (this.mediumHealAmount >= 2) {
+            this.healInjuries(this.mediumInjuries, this.mediumBleedInjuries, this.mediumBurnInjuries);
+            this.mediumHealAmount -= 2;
+        }
+
+        if (this.smallHealAmount >= 3) {
+            this.healInjuries(this.smallInjuries, this.smallBleedInjuries, this.smallBurnInjuries);
+            this.smallHealAmount -= 3;
+        }
+
+        BloodyBitsMod.LOGGER.info("----------------------------------------------------------------------------------");
+        BloodyBitsMod.LOGGER.info("AFTER healing SMALL injuries heal amount: {}. Small injuries: {}", this.smallHealAmount, this.smallInjuries.size());
+        BloodyBitsMod.LOGGER.info("AFTER healing MEDIUM injuries heal amount: {}. Medium injuries: {}", this.mediumHealAmount, this.mediumInjuries.size());
+        BloodyBitsMod.LOGGER.info("AFTER healing LARGE injuries heal amount: {}. Large injuries: {}", this.largeHealAmount, this.largeInjuries.size());
+        BloodyBitsMod.LOGGER.info("----------------------------------------------------------------------------------");
     }
 
-    private void healLargeInjuries() {
-        Map.Entry<NativeImage, String> injury = null;
-        if (!this.largeInjuries.isEmpty()) {
-            // Get the last entry in the HashMap.
-            for (var integerNativeImageEntry : this.largeInjuries.entrySet()) {
-                injury = integerNativeImageEntry;
+    private void healInjuries(List<NativeImage> currentInjuries, List<NativeImage> bleedInjuries, List<NativeImage> burnInjuries) {
+        if (!currentInjuries.isEmpty()) {
+            NativeImage lastInList = currentInjuries.get(currentInjuries.size() - 1);
+
+            // Honestly, will probably never be null.
+            if (lastInList != null) {
+                bleedInjuries.add(lastInList);
+                burnInjuries.add(lastInList);
+                currentInjuries.remove(lastInList);
             }
 
-            if (injury != null) {
-                if (injury.getValue().equals("bleed")) {
-                    this.largeBleedInjuries.add(injury.getKey());
-                }
-                else if (injury.getValue().equals("burn")) {
-                    this.largeBurnInjuries.add(injury.getKey());
-                }
-
-                this.largeInjuries.remove(injury.getKey(), injury.getValue());
-            }
         }
-        else {
-            this.healMediumInjuries();
-        }
-
-        this.largeHealAmount--;
-    }
-
-    private void healMediumInjuries() {
-        Map.Entry<NativeImage, String> injury = null;
-        if (!this.mediumInjuries.isEmpty()) {
-            for (var integerNativeImageEntry : this.mediumInjuries.entrySet()) {
-                injury = integerNativeImageEntry;
-            }
-
-            if (injury != null) {
-                if (injury.getValue().equals("bleed")) {
-                    this.mediumBleedInjuries.add(injury.getKey());
-                }
-                else if (injury.getValue().equals("burn")) {
-                    this.mediumBurnInjuries.add(injury.getKey());
-                }
-
-                this.mediumInjuries.remove(injury.getKey(), injury.getValue());
-            }
-        }
-        else {
-            this.healSmallInjuries();
-        }
-
-        this.mediumHealAmount -= 2;
-    }
-
-    private void healSmallInjuries() {
-        Map.Entry<NativeImage, String> injury = null;
-        if (!this.smallInjuries.isEmpty()) {
-            for (var integerNativeImageEntry : this.smallInjuries.entrySet()) {
-                injury = integerNativeImageEntry;
-            }
-
-            if (injury != null) {
-                if (injury.getValue().equals("bleed")) {
-                    this.smallBleedInjuries.add(injury.getKey());
-                }
-                else if (injury.getValue().equals("burn")) {
-                    this.smallBurnInjuries.add(injury.getKey());
-                }
-
-                this.smallInjuries.remove(injury.getKey(), injury.getValue());
-            }
-        }
-
-        this.smallHealAmount -= 3;
     }
 
     /**
@@ -402,140 +245,66 @@ public class EntityInjuries {
      * Updates all injuries if the entity has sustained enough hits of the given damage type & size.
      */
     private void updateInjuries() {
-//        BloodyBitsMod.LOGGER.info("----------------------------------------------------------------------------------");
-//        BloodyBitsMod.LOGGER.info("Small BLEED hit BEFORE updating bleed injuries: {} Small bleed injuries: {}", this.smallBleedHits, this.smallInjuries.size());
-//        BloodyBitsMod.LOGGER.info("Medium BLEED hit BEFORE updating bleed injuries: {} Medium bleed injuries: {}", this.mediumBleedHits, this.mediumInjuries.size());
-//        BloodyBitsMod.LOGGER.info("Large BLEED hit BEFORE updating bleed injuries: {} Large bleed injuries: {}", this.largeBleedHits, this.largeInjuries.size());
-//        BloodyBitsMod.LOGGER.info("----------------------------------------------------------------------------------");
+        BloodyBitsMod.LOGGER.info("----------------------------------------------------------------------------------");
+        BloodyBitsMod.LOGGER.info("Small BLEED hit BEFORE updating bleed injuries: {} Small bleed injuries: {}", this.smallBleedHits, this.smallInjuries.size());
+        BloodyBitsMod.LOGGER.info("Medium BLEED hit BEFORE updating bleed injuries: {} Medium bleed injuries: {}", this.mediumBleedHits, this.mediumInjuries.size());
+        BloodyBitsMod.LOGGER.info("Large BLEED hit BEFORE updating bleed injuries: {} Large bleed injuries: {}", this.largeBleedHits, this.largeInjuries.size());
+        BloodyBitsMod.LOGGER.info("----------------------------------------------------------------------------------");
+        BloodyBitsMod.LOGGER.info("Small BURN hit BEFORE updating burn injuries: {} Small burn injuries: {}", this.smallBurnHits, this.smallInjuries.size());
+        BloodyBitsMod.LOGGER.info("Medium BURN hit BEFORE updating burn injuries: {} Medium burn injuries: {}", this.mediumBurnHits, this.mediumInjuries.size());
+        BloodyBitsMod.LOGGER.info("Large BURN hit BEFORE updating burn injuries: {} Large burn injuries: {}", this.largeBurnHits, this.largeInjuries.size());
+        BloodyBitsMod.LOGGER.info("----------------------------------------------------------------------------------");
 
         // Update all bleed injuries.
         if (this.largeBleedHits >= 1) {
-            this.updateLargeBleedInjuries();
+            this.updateInjuriesList(this.largeBleedInjuries, this.largeBurnInjuries, this.largeInjuries);
+            this.largeBleedHits--;
         }
         else if (this.mediumBleedHits >= 2) {
-            this.updateMediumBleedInjuries();
+            this.updateInjuriesList(this.mediumBleedInjuries, this.mediumBurnInjuries, this.mediumInjuries);
+            this.mediumBleedHits -= 2;
         }
         else if (this.smallBleedHits >= 3) {
-            this.updateSmallBleedInjuries();
+            this.updateInjuriesList(this.smallBleedInjuries, this.smallBurnInjuries, this.smallInjuries);
+            this.smallBleedHits -= 3;
         }
 
         // Update all burn injuries.
-        if (this.largeBurnHits >= 2) {
-            this.updateLargeBurnInjuries();
+        if (this.largeBurnHits >= 1) {
+            this.updateInjuriesList(this.largeBurnInjuries, this.largeBleedInjuries, this.largeInjuries);
+            this.largeBurnHits--;
         }
-        else if (this.mediumBurnHits >= 3) {
-            this.updateMediumBurnInjuries();
+        else if (this.mediumBurnHits >= 2) {
+            this.updateInjuriesList(this.mediumBurnInjuries, this.mediumBleedInjuries, this.mediumInjuries);
+            this.mediumBurnHits -= 2;
         }
-        else if (this.smallBurnHits >= 5) {
-            this.updateSmallBurnInjuries();
+        else if (this.smallBurnHits >= 3) {
+            this.updateInjuriesList(this.smallBurnInjuries, this.smallBleedInjuries, this.smallInjuries);
+            this.smallBurnHits -= 3;
         }
 
-//        BloodyBitsMod.LOGGER.info("----------------------------------------------------------------------------------");
-//        BloodyBitsMod.LOGGER.info("Small BLEED hit AFTER updating bleed injuries: {} Small bleed injuries: {}", this.smallBleedHits, this.smallInjuries.size());
-//        BloodyBitsMod.LOGGER.info("Medium BLEED hit AFTER updating bleed injuries: {} Medium bleed injuries: {}", this.mediumBleedHits, this.mediumInjuries.size());
-//        BloodyBitsMod.LOGGER.info("Large BLEED hit AFTER updating bleed injuries: {} Large bleed injuries: {}", this.largeBleedHits, this.largeInjuries.size());
-//        BloodyBitsMod.LOGGER.info("----------------------------------------------------------------------------------");
+        BloodyBitsMod.LOGGER.info("----------------------------------------------------------------------------------");
+        BloodyBitsMod.LOGGER.info("Small BLEED hit AFTER updating bleed injuries: {} Small bleed injuries: {}", this.smallBleedHits, this.smallInjuries.size());
+        BloodyBitsMod.LOGGER.info("Medium BLEED hit AFTER updating bleed injuries: {} Medium bleed injuries: {}", this.mediumBleedHits, this.mediumInjuries.size());
+        BloodyBitsMod.LOGGER.info("Large BLEED hit AFTER updating bleed injuries: {} Large bleed injuries: {}", this.largeBleedHits, this.largeInjuries.size());
+        BloodyBitsMod.LOGGER.info("----------------------------------------------------------------------------------");
+        BloodyBitsMod.LOGGER.info("Small BURN hit AFTER updating burn injuries: {} Small burn injuries: {}", this.smallBurnHits, this.smallInjuries.size());
+        BloodyBitsMod.LOGGER.info("Medium BURN hit AFTER updating burn injuries: {} Medium burn injuries: {}", this.mediumBurnHits, this.mediumInjuries.size());
+        BloodyBitsMod.LOGGER.info("Large BURN hit AFTER updating burn injuries: {} Large burn injuries: {}", this.largeBurnHits, this.largeInjuries.size());
+        BloodyBitsMod.LOGGER.info("----------------------------------------------------------------------------------");
     }
 
-    private void updateLargeBleedInjuries() {
+    private void updateInjuriesList(List<NativeImage> listToTakeFrom, List<NativeImage> otherListToRemove, List<NativeImage> listToAddTo) {
         int randomIndex;
         NativeImage randomInjury;
 
-        if (!this.largeBleedInjuries.isEmpty()) {
-            randomIndex = new Random().nextInt(this.largeBleedInjuries.size());
-            randomInjury = this.largeBleedInjuries.get(randomIndex);
+        if (!listToTakeFrom.isEmpty()) {
+            randomIndex = new Random().nextInt(listToTakeFrom.size());
+            randomInjury = listToTakeFrom.get(randomIndex);
 
-            this.largeBleedInjuries.remove(randomIndex);
-            this.largeInjuries.put(randomInjury, "bleed");
+            listToAddTo.add(randomInjury);
+            listToTakeFrom.remove(randomIndex);
+            otherListToRemove.remove(randomIndex);
         }
-        else {
-            this.updateMediumBleedInjuries();
-        }
-
-        this.largeBleedHits--;
-    }
-
-    private void updateLargeBurnInjuries() {
-        int randomIndex;
-        NativeImage randomInjury;
-
-        if (!this.largeBurnInjuries.isEmpty()) {
-            randomIndex = new Random().nextInt(this.largeBurnInjuries.size());
-            randomInjury = this.largeBurnInjuries.get(randomIndex);
-
-            this.largeBurnInjuries.remove(randomIndex);
-            this.largeInjuries.put(randomInjury, "burn");
-        }
-        else {
-            this.updateMediumBurnInjuries();
-        }
-
-        this.largeBurnHits--;
-    }
-
-    private void updateMediumBleedInjuries() {
-        int randomIndex;
-        NativeImage randomInjury;
-
-        if (!this.mediumBleedInjuries.isEmpty()) {
-            randomIndex = new Random().nextInt(this.mediumBleedInjuries.size());
-            randomInjury = this.mediumBleedInjuries.get(randomIndex);
-
-            this.mediumBleedInjuries.remove(randomIndex);
-            this.mediumInjuries.put(randomInjury, "bleed");
-        }
-        else {
-            this.updateSmallBleedInjuries();
-        }
-
-        this.mediumBleedHits -= 2;
-    }
-
-    private void updateMediumBurnInjuries() {
-        int randomIndex;
-        NativeImage randomInjury;
-
-        if (!this.mediumBurnInjuries.isEmpty()) {
-            randomIndex = new Random().nextInt(this.mediumBurnInjuries.size());
-            randomInjury = this.mediumBurnInjuries.get(randomIndex);
-
-            this.mediumBurnInjuries.remove(randomIndex);
-            this.mediumInjuries.put(randomInjury, "burn");
-        }
-        else {
-            this.updateSmallBurnInjuries();
-        }
-
-        this.mediumBurnHits -= 2;
-    }
-
-    private void updateSmallBleedInjuries() {
-        int randomIndex;
-        NativeImage randomInjury;
-
-        if (!this.smallBleedInjuries.isEmpty()) {
-            randomIndex = new Random().nextInt(this.smallBleedInjuries.size());
-            randomInjury = this.smallBleedInjuries.get(randomIndex);
-
-            this.smallInjuries.put(randomInjury, "bleed");
-            this.smallBleedInjuries.remove(randomIndex);
-        }
-
-        this.smallBleedHits -= 3;
-    }
-
-    private void updateSmallBurnInjuries() {
-        int randomIndex;
-        NativeImage randomInjury;
-
-        if (!this.smallBurnInjuries.isEmpty()) {
-            randomIndex = new Random().nextInt(this.smallBurnInjuries.size());
-            randomInjury = this.smallBurnInjuries.get(randomIndex);
-
-            this.smallBurnInjuries.remove(randomIndex);
-            this.smallInjuries.put(randomInjury, "burn");
-        }
-
-        this.smallBurnHits -= 3;
     }
 }

@@ -18,6 +18,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.client.event.RenderLivingEvent;
 import net.minecraftforge.event.entity.living.*;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -30,24 +31,24 @@ public class BloodyBitsEvents {
      * TODO: Remove or comment out before building code for release.
      * Just a simple method made to test blood sprays by right clicking on blocks.
      */
-//    @SubscribeEvent
-//    public static void testBloodSpray(PlayerInteractEvent.RightClickBlock event) {
-//        if (!event.getEntity().level().isClientSide()) {
-//            if (BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.size() >= CommonConfig.maxSpatters()) {
-//                BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.get(0).discard();
-//                BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.remove(0);
-//            }
-//
-//            BloodSprayEntity bloodSprayEntity = new BloodSprayEntity(EntityRegistry.BLOOD_SPRAY.get(), event.getEntity(), event.getEntity().level());
-//            BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.add(bloodSprayEntity);
-//
-//            bloodSprayEntity.setDeltaMovement(event.getEntity().getLookAngle());
-//            event.getEntity().level().addFreshEntity(bloodSprayEntity);
-//
-//            BloodyBitsPacketHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> bloodSprayEntity),
-//                    new EntityMessage(bloodSprayEntity.getId(), event.getEntity().getId()));
-//        }
-//    }
+    @SubscribeEvent
+    public static void testBloodSpray(PlayerInteractEvent.RightClickBlock event) {
+        if (!event.getEntity().level().isClientSide()) {
+            if (BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.size() >= CommonConfig.maxSpatters()) {
+                BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.get(0).discard();
+                BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.remove(0);
+            }
+
+            BloodSprayEntity bloodSprayEntity = new BloodSprayEntity(EntityRegistry.BLOOD_SPRAY.get(), event.getEntity(), event.getEntity().level());
+            BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.add(bloodSprayEntity);
+
+            bloodSprayEntity.setDeltaMovement(event.getEntity().getLookAngle());
+            event.getEntity().level().addFreshEntity(bloodSprayEntity);
+
+            BloodyBitsPacketHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> bloodSprayEntity),
+                    new EntityMessage(bloodSprayEntity.getId(), event.getEntity().getId()));
+        }
+    }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void entityDeathEvent(LivingDeathEvent deathEvent) {
@@ -87,6 +88,7 @@ public class BloodyBitsEvents {
             // For adding damage textures to the given entity.
             if (!ClientConfig.blackListInjurySources().contains(event.getSource().type().msgId())) {
                 boolean isBurn = ClientConfig.burnDamageSources().contains(event.getSource().type().msgId());
+                BloodyBitsMod.LOGGER.info("IS DAMAGE TYPE {} A BURN? {}", event.getSource().type().msgId(), isBurn);
 
                 BloodyBitsPacketHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> entity),
                         new EntityDamageMessage(entity.getId(), event.getAmount(), !isBurn, isBurn));

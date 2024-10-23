@@ -73,17 +73,19 @@ public class EntityDamageMessage {
 
             double entityDamagePercentage = message.damageAmount / livingEntity.getMaxHealth();
             BloodyBitsMod.LOGGER.info("Entity damage %: {}", entityDamagePercentage);
+            BloodyBitsMod.LOGGER.info("Injury type: {} is it a burn? {}", injuryType, message.isBurn);
+            entityInjuries.addInjuryHits(injuryType, entityDamagePercentage);
 
             // Apply the appropriate hit size depending on the damage amount.
-            if (entityDamagePercentage >= 0.15) {
-                entityInjuries.addLargeHit(injuryType);
-            }
-            else if (entityDamagePercentage >= 0.05) {
-                entityInjuries.addMediumHit(injuryType);
-            }
-            else {
-                entityInjuries.addSmallHit(injuryType);
-            }
+//            if (entityDamagePercentage >= 0.15) {
+//                entityInjuries.addLargeHit(injuryType);
+//            }
+//            else if (entityDamagePercentage >= 0.05) {
+//                entityInjuries.addMediumHit(injuryType);
+//            }
+//            else {
+//                entityInjuries.addSmallHit(injuryType);
+//            }
 
         }
     }
