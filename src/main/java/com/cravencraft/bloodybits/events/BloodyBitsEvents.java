@@ -121,11 +121,8 @@ public class BloodyBitsEvents {
                 entityName = (entityName == null) ? "" : entityName;
 
                 if (!BloodyBitsUtils.INJURY_LAYER_ENTITIES.contains(entityName)) {
-//                    BloodyBitsMod.LOGGER.info("INJURY LAYER ENTITIES: {}", BloodyBitsUtils.INJURY_LAYER_ENTITIES.size());
-//                    BloodyBitsMod.LOGGER.info("ADDING NEW LAYER FOR {}", entityName);
                     event.getRenderer().addLayer(new InjuryLayer(event.getRenderer()));
                     BloodyBitsUtils.INJURY_LAYER_ENTITIES.add(entityName);
-                    BloodyBitsMod.LOGGER.info("ADDED");
                 }
             }
         }
