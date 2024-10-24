@@ -4,11 +4,8 @@
   "package": "com.cravencraft.bloodybits.mixins",
   "refmap": "mixins.bloodybits.refmap.json",
   "compatibilityLevel": "JAVA_17",
-  "mixins": [
-  ],
-  "client": [
-    "LivingEntityRendererMixin"
-  ],
+  "mixins": [],
+  "client": [],
   "injectors": {
     "defaultRequire": 1
   }
