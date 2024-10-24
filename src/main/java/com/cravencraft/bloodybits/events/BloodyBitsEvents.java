@@ -19,6 +19,7 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.client.event.RenderLivingEvent;
 import net.minecraftforge.event.entity.living.*;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
+import net.minecraftforge.event.level.ExplosionEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -154,13 +155,15 @@ public class BloodyBitsEvents {
 
     }
 
-    // TODO: Finish this for creeper explosions.
+    /**
+     * For when entities explode. Like a creeper.
+     */
     @SubscribeEvent(priority = EventPriority.LOWEST)
-    public static void creeperExplosionEvent(LivingDeathEvent event) {
-        LivingEntity entity = event.getEntity();
+    public static void creeperExplosionEvent(ExplosionEvent event) {
+        LivingEntity entity = event.getExplosion().getIndirectSourceEntity();
 
-        if (entity != null && !event.isCanceled() && entity instanceof Creeper creeper) {
-
+        if (entity != null && !event.isCanceled()) {
+            createBloodSpray(entity, event.getExplosion().getDamageSource(), 15, false);
         }
     }
 

@@ -1,6 +1,9 @@
 ## V1.3.0
-- TODO: Major rework to how entities show damage. Still in progress. Will update this changelog message with more details
-    whenever I progress more with this method.
+- Reworked the entire entity damage system from earlier versions of this mod. The system now contains custom 
+    small, medium, and large injury textures for entities. The textures are overlayed over the entity's existing texture,
+    which means custom entity textures will be completely compatible with this mod. Modded entity support via resource packs
+    will also be easily supported.
+- Exploding mobs such as creepers now produce huge blood sprays on explosion.
 - Fixed bug that allows blood spatters to catch on fire.
 - Fixed bug that causes a blood fountain whenever the player dies, but does not respawn.
 - Added an option to blacklist the player (all players) from being an entity that can bleed.
