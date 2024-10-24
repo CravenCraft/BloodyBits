@@ -1,5 +1,6 @@
 package com.cravencraft.bloodybits.client.renderer.entity.layers;
 
+import com.cravencraft.bloodybits.BloodyBitsMod;
 import com.cravencraft.bloodybits.client.model.EntityInjuries;
 import com.cravencraft.bloodybits.config.ClientConfig;
 import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
@@ -38,6 +39,8 @@ public class InjuryLayer <T extends LivingEntity, M extends EntityModel<T>> exte
             // Will render a random assortment of injury textures on the given entity
             // if it is contained within the map.
             if (BloodyBitsUtils.INJURED_ENTITIES.containsKey(entityId)) {
+                BloodyBitsMod.LOGGER.info("INJURED ENTITIES: {}", BloodyBitsUtils.INJURED_ENTITIES.size());
+                BloodyBitsMod.LOGGER.info("BLOOD SPRAY ENTITIES: {}", BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.size());
 
                 EntityInjuries entityInjuries = BloodyBitsUtils.INJURED_ENTITIES.get(entityId);
 
