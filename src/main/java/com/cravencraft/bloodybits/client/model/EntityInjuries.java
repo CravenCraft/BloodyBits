@@ -51,8 +51,6 @@ public class EntityInjuries {
 
                 // Doing all paint logic. Currently, that means painting the blood and (if applicable)
                 // burn overlay.
-                BloodyBitsMod.LOGGER.info("Painting texture {}", modifiedPath);
-
                 if (path.contains("small")) {
                     this.availableSmallInjuries.add(damageLayerTexture);
                 }
@@ -184,11 +182,11 @@ public class EntityInjuries {
     }
 
     private void updateHealInjuries() {
-        BloodyBitsMod.LOGGER.info("----------------------------------------------------------------------------------");
-        BloodyBitsMod.LOGGER.info("BEFORE healing SMALL injuries heal amount: {}. Small injuries: {}", this.smallHealAmount, this.appliedSmallInjuries.size());
-        BloodyBitsMod.LOGGER.info("BEFORE healing MEDIUM injuries heal amount: {}. Medium injuries: {}", this.mediumHealAmount, this.appliedMediumInjuries.size());
-        BloodyBitsMod.LOGGER.info("BEFORE healing LARGE injuries heal amount: {}. Large injuries: {}", this.largeHealAmount, this.appliedLargeInjuries.size());
-        BloodyBitsMod.LOGGER.info("----------------------------------------------------------------------------------");
+//        BloodyBitsMod.LOGGER.info("----------------------------------------------------------------------------------");
+//        BloodyBitsMod.LOGGER.info("BEFORE healing SMALL injuries heal amount: {}. Small injuries: {}", this.smallHealAmount, this.appliedSmallInjuries.size());
+//        BloodyBitsMod.LOGGER.info("BEFORE healing MEDIUM injuries heal amount: {}. Medium injuries: {}", this.mediumHealAmount, this.appliedMediumInjuries.size());
+//        BloodyBitsMod.LOGGER.info("BEFORE healing LARGE injuries heal amount: {}. Large injuries: {}", this.largeHealAmount, this.appliedLargeInjuries.size());
+//        BloodyBitsMod.LOGGER.info("----------------------------------------------------------------------------------");
 
         if (this.largeHealAmount >= 1) {
             this.healInjuries(this.availableLargeInjuries, this.appliedLargeInjuries);
@@ -205,11 +203,11 @@ public class EntityInjuries {
             this.smallHealAmount -= 3;
         }
 
-        BloodyBitsMod.LOGGER.info("----------------------------------------------------------------------------------");
-        BloodyBitsMod.LOGGER.info("AFTER healing SMALL injuries heal amount: {}. Small injuries: {}", this.smallHealAmount, this.appliedSmallInjuries.size());
-        BloodyBitsMod.LOGGER.info("AFTER healing MEDIUM injuries heal amount: {}. Medium injuries: {}", this.mediumHealAmount, this.appliedMediumInjuries.size());
-        BloodyBitsMod.LOGGER.info("AFTER healing LARGE injuries heal amount: {}. Large injuries: {}", this.largeHealAmount, this.appliedLargeInjuries.size());
-        BloodyBitsMod.LOGGER.info("----------------------------------------------------------------------------------");
+//        BloodyBitsMod.LOGGER.info("----------------------------------------------------------------------------------");
+//        BloodyBitsMod.LOGGER.info("AFTER healing SMALL injuries heal amount: {}. Small injuries: {}", this.smallHealAmount, this.appliedSmallInjuries.size());
+//        BloodyBitsMod.LOGGER.info("AFTER healing MEDIUM injuries heal amount: {}. Medium injuries: {}", this.mediumHealAmount, this.appliedMediumInjuries.size());
+//        BloodyBitsMod.LOGGER.info("AFTER healing LARGE injuries heal amount: {}. Large injuries: {}", this.largeHealAmount, this.appliedLargeInjuries.size());
+//        BloodyBitsMod.LOGGER.info("----------------------------------------------------------------------------------");
     }
 
     private void healInjuries(List<NativeImage> availableSizeInjuries, Map<NativeImage, String> injurySizeMap) {
@@ -231,15 +229,15 @@ public class EntityInjuries {
      * Updates all injuries if the entity has sustained enough hits of the given damage type & size.
      */
     private void updateInjuries(String injuryType) {
-        BloodyBitsMod.LOGGER.info("----------------------------------------------------------------------------------");
-        BloodyBitsMod.LOGGER.info("Small BLEED hit BEFORE updating bleed injuries: {} Small bleed injuries: {}", this.smallBleedHits, this.appliedSmallInjuries.size());
-        BloodyBitsMod.LOGGER.info("Medium BLEED hit BEFORE updating bleed injuries: {} Medium bleed injuries: {}", this.mediumBleedHits, this.appliedMediumInjuries.size());
-        BloodyBitsMod.LOGGER.info("Large BLEED hit BEFORE updating bleed injuries: {} Large bleed injuries: {}", this.largeBleedHits, this.appliedLargeInjuries.size());
-        BloodyBitsMod.LOGGER.info("----------------------------------------------------------------------------------");
-        BloodyBitsMod.LOGGER.info("Small BURN hit BEFORE updating burn injuries: {} Small burn injuries: {}", this.smallBurnHits, this.appliedSmallInjuries.size());
-        BloodyBitsMod.LOGGER.info("Medium BURN hit BEFORE updating burn injuries: {} Medium burn injuries: {}", this.mediumBurnHits, this.appliedMediumInjuries.size());
-        BloodyBitsMod.LOGGER.info("Large BURN hit BEFORE updating burn injuries: {} Large burn injuries: {}", this.largeBurnHits, this.appliedLargeInjuries.size());
-        BloodyBitsMod.LOGGER.info("----------------------------------------------------------------------------------");
+//        BloodyBitsMod.LOGGER.info("----------------------------------------------------------------------------------");
+//        BloodyBitsMod.LOGGER.info("Small BLEED hit BEFORE updating bleed injuries: {} Small bleed injuries: {}", this.smallBleedHits, this.appliedSmallInjuries.size());
+//        BloodyBitsMod.LOGGER.info("Medium BLEED hit BEFORE updating bleed injuries: {} Medium bleed injuries: {}", this.mediumBleedHits, this.appliedMediumInjuries.size());
+//        BloodyBitsMod.LOGGER.info("Large BLEED hit BEFORE updating bleed injuries: {} Large bleed injuries: {}", this.largeBleedHits, this.appliedLargeInjuries.size());
+//        BloodyBitsMod.LOGGER.info("----------------------------------------------------------------------------------");
+//        BloodyBitsMod.LOGGER.info("Small BURN hit BEFORE updating burn injuries: {} Small burn injuries: {}", this.smallBurnHits, this.appliedSmallInjuries.size());
+//        BloodyBitsMod.LOGGER.info("Medium BURN hit BEFORE updating burn injuries: {} Medium burn injuries: {}", this.mediumBurnHits, this.appliedMediumInjuries.size());
+//        BloodyBitsMod.LOGGER.info("Large BURN hit BEFORE updating burn injuries: {} Large burn injuries: {}", this.largeBurnHits, this.appliedLargeInjuries.size());
+//        BloodyBitsMod.LOGGER.info("----------------------------------------------------------------------------------");
 
         // Update all bleed injuries.
         if (this.largeBleedHits >= 1) {
@@ -269,15 +267,15 @@ public class EntityInjuries {
             this.smallBurnHits -= 3;
         }
 
-        BloodyBitsMod.LOGGER.info("----------------------------------------------------------------------------------");
-        BloodyBitsMod.LOGGER.info("Small BLEED hit AFTER updating bleed injuries: {} Small bleed injuries: {}", this.smallBleedHits, this.appliedSmallInjuries.size());
-        BloodyBitsMod.LOGGER.info("Medium BLEED hit AFTER updating bleed injuries: {} Medium bleed injuries: {}", this.mediumBleedHits, this.appliedMediumInjuries.size());
-        BloodyBitsMod.LOGGER.info("Large BLEED hit AFTER updating bleed injuries: {} Large bleed injuries: {}", this.largeBleedHits, this.appliedLargeInjuries.size());
-        BloodyBitsMod.LOGGER.info("----------------------------------------------------------------------------------");
-        BloodyBitsMod.LOGGER.info("Small BURN hit AFTER updating burn injuries: {} Small burn injuries: {}", this.smallBurnHits, this.appliedSmallInjuries.size());
-        BloodyBitsMod.LOGGER.info("Medium BURN hit AFTER updating burn injuries: {} Medium burn injuries: {}", this.mediumBurnHits, this.appliedMediumInjuries.size());
-        BloodyBitsMod.LOGGER.info("Large BURN hit AFTER updating burn injuries: {} Large burn injuries: {}", this.largeBurnHits, this.appliedLargeInjuries.size());
-        BloodyBitsMod.LOGGER.info("----------------------------------------------------------------------------------");
+//        BloodyBitsMod.LOGGER.info("----------------------------------------------------------------------------------");
+//        BloodyBitsMod.LOGGER.info("Small BLEED hit AFTER updating bleed injuries: {} Small bleed injuries: {}", this.smallBleedHits, this.appliedSmallInjuries.size());
+//        BloodyBitsMod.LOGGER.info("Medium BLEED hit AFTER updating bleed injuries: {} Medium bleed injuries: {}", this.mediumBleedHits, this.appliedMediumInjuries.size());
+//        BloodyBitsMod.LOGGER.info("Large BLEED hit AFTER updating bleed injuries: {} Large bleed injuries: {}", this.largeBleedHits, this.appliedLargeInjuries.size());
+//        BloodyBitsMod.LOGGER.info("----------------------------------------------------------------------------------");
+//        BloodyBitsMod.LOGGER.info("Small BURN hit AFTER updating burn injuries: {} Small burn injuries: {}", this.smallBurnHits, this.appliedSmallInjuries.size());
+//        BloodyBitsMod.LOGGER.info("Medium BURN hit AFTER updating burn injuries: {} Medium burn injuries: {}", this.mediumBurnHits, this.appliedMediumInjuries.size());
+//        BloodyBitsMod.LOGGER.info("Large BURN hit AFTER updating burn injuries: {} Large burn injuries: {}", this.largeBurnHits, this.appliedLargeInjuries.size());
+//        BloodyBitsMod.LOGGER.info("----------------------------------------------------------------------------------");
     }
 
     private void updateInjuriesList(String injuryType, List<NativeImage> availableSizeInjuries, Map<NativeImage, String> injurySizeMap) {

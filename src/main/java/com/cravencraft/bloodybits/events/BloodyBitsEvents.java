@@ -13,9 +13,9 @@ import com.cravencraft.bloodybits.registries.EntityRegistry;
 import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraftforge.client.event.RenderLivingEvent;
 import net.minecraftforge.event.entity.living.*;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
@@ -28,28 +28,28 @@ import net.minecraftforge.network.PacketDistributor;
 @Mod.EventBusSubscriber(modid = BloodyBitsMod.MODID)
 public class BloodyBitsEvents {
 
-    /**
-     * TODO: Remove or comment out before building code for release.
-     * Just a simple method made to test blood sprays by right clicking on blocks.
-     */
-    @SubscribeEvent
-    public static void testBloodSpray(PlayerInteractEvent.RightClickBlock event) {
-        if (!event.getEntity().level().isClientSide()) {
-            if (BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.size() >= CommonConfig.maxSpatters()) {
-                BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.get(0).discard();
-                BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.remove(0);
-            }
-
-            BloodSprayEntity bloodSprayEntity = new BloodSprayEntity(EntityRegistry.BLOOD_SPRAY.get(), event.getEntity(), event.getEntity().level());
-            BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.add(bloodSprayEntity);
-
-            bloodSprayEntity.setDeltaMovement(event.getEntity().getLookAngle());
-            event.getEntity().level().addFreshEntity(bloodSprayEntity);
-
-            BloodyBitsPacketHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> bloodSprayEntity),
-                    new EntityMessage(bloodSprayEntity.getId(), event.getEntity().getId()));
-        }
-    }
+//    /**
+//     * TODO: Remove or comment out before building code for release.
+//     * Just a simple method made to test blood sprays by right clicking on blocks.
+//     */
+//    @SubscribeEvent
+//    public static void testBloodSpray(PlayerInteractEvent.RightClickBlock event) {
+//        if (!event.getEntity().level().isClientSide()) {
+//            if (BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.size() >= CommonConfig.maxSpatters()) {
+//                BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.get(0).discard();
+//                BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.remove(0);
+//            }
+//
+//            BloodSprayEntity bloodSprayEntity = new BloodSprayEntity(EntityRegistry.BLOOD_SPRAY.get(), event.getEntity(), event.getEntity().level());
+//            BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.add(bloodSprayEntity);
+//
+//            bloodSprayEntity.setDeltaMovement(event.getEntity().getLookAngle());
+//            event.getEntity().level().addFreshEntity(bloodSprayEntity);
+//
+//            BloodyBitsPacketHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> bloodSprayEntity),
+//                    new EntityMessage(bloodSprayEntity.getId(), event.getEntity().getId()));
+//        }
+//    }
 
     /**
      * Removes an entity from the INJURED_ENTITIES list upon death if that configuration is enabled client side.
@@ -66,8 +66,6 @@ public class BloodyBitsEvents {
      * be used to potentially remove injuries from the entity if it is contained within the INJURED_ENTITIES list.
      * An entity will not be added to the list if the config is disabled, or injury textures do not exist for the given
      * entity.
-     * TODO: Ensure the new logic does not add entities to the INJURED_ENTITIES list if the entity does not have any
-     *       injury textures associated with it.
      */
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void entityHealEvent(LivingHealEvent event) {
@@ -97,10 +95,9 @@ public class BloodyBitsEvents {
                 createBloodSpray(entity, event.getSource(), maxDamage, false);
             }
 
-            // For adding damage textures to the given entity.
+            // For adding damage textures to the given entity. Ensure no blacklisted injury sources are added.
             if (!ClientConfig.blackListInjurySources().contains(event.getSource().type().msgId())) {
                 boolean isBurn = ClientConfig.burnDamageSources().contains(event.getSource().type().msgId());
-                BloodyBitsMod.LOGGER.info("IS DAMAGE TYPE {} A BURN? {}", event.getSource().type().msgId(), isBurn);
 
                 BloodyBitsPacketHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> entity),
                         new EntityDamageMessage(entity.getId(), event.getAmount(), !isBurn, isBurn));
@@ -124,8 +121,8 @@ public class BloodyBitsEvents {
                 entityName = (entityName == null) ? "" : entityName;
 
                 if (!BloodyBitsUtils.INJURY_LAYER_ENTITIES.contains(entityName)) {
-                    BloodyBitsMod.LOGGER.info("INJURY LAYER ENTITIES: {}", BloodyBitsUtils.INJURY_LAYER_ENTITIES.size());
-                    BloodyBitsMod.LOGGER.info("ADDING NEW LAYER FOR {}", entityName);
+//                    BloodyBitsMod.LOGGER.info("INJURY LAYER ENTITIES: {}", BloodyBitsUtils.INJURY_LAYER_ENTITIES.size());
+//                    BloodyBitsMod.LOGGER.info("ADDING NEW LAYER FOR {}", entityName);
                     event.getRenderer().addLayer(new InjuryLayer(event.getRenderer()));
                     BloodyBitsUtils.INJURY_LAYER_ENTITIES.add(entityName);
                     BloodyBitsMod.LOGGER.info("ADDED");
@@ -136,23 +133,28 @@ public class BloodyBitsEvents {
 
     // TODO: Rework this. This is a cool feature to have. Just want it to be slightly less random. Set up a minimum and
     //       maximum interval that will change as the entity takes more damage. May need to get tick counts for that?
+
+    /**
+     *  Makes the entity bleed when damaged below a certain threshold. The entity will bleed more often the lower it is
+     *  below that threshold.
+     */
     @SubscribeEvent
-    public static void entityBleedWhenDamaged(LivingEvent event) {
+    public static void entityBleedWhenDamaged(LivingEvent.LivingTickEvent event) {
         if (CommonConfig.bleedWhenDamaged() && event.getEntity() != null && !event.getEntity().level().isClientSide() && !event.getEntity().isDeadOrDying()) {
             LivingEntity entity = event.getEntity();
             double remainingHealthPercentage = entity.getHealth() / entity.getMaxHealth();
             String entityName = (entity instanceof Player) ? "player" : entity.getEncodeId();
             entityName = (entityName == null) ? "" : entityName;
 
-            if (!CommonConfig.blackListEntities().contains(entityName) && remainingHealthPercentage < 0.5) {
-                double randomNumber = remainingHealthPercentage * Math.random();
+            if (!CommonConfig.blackListEntities().contains(entityName) && remainingHealthPercentage <= 0.5) {
 
-                if (randomNumber < 0.001) {
+                int mod = (int) (remainingHealthPercentage * 1000);
+
+                if (entity.tickCount % mod == 0) {
                     createBloodSpray(entity, entity.damageSources().genericKill(), 1, true);
                 }
             }
         }
-
     }
 
     /**
@@ -164,6 +166,18 @@ public class BloodyBitsEvents {
 
         if (entity != null && !event.isCanceled()) {
             createBloodSpray(entity, event.getExplosion().getDamageSource(), 15, false);
+        }
+    }
+
+    /**
+     * Clears all injury related lists when the client player logs out (If they have entity damage enabled).
+     * Allows the player to log out and back in if they modify their texture packs, and damage doesn't appear on entities.
+     */
+    @SubscribeEvent
+    public static void clearInjuryTextureListsOnResourcePackReload(ClientPlayerNetworkEvent.LoggingOut event) {
+        if (ClientConfig.showEntityDamage()) {
+            BloodyBitsUtils.INJURY_LAYER_ENTITIES.clear();
+            BloodyBitsUtils.INJURED_ENTITIES.clear();
         }
     }
 
