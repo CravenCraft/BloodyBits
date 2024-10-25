@@ -29,7 +29,6 @@ import net.minecraftforge.network.PacketDistributor;
 public class BloodyBitsEvents {
 
 //    /**
-//     * TODO: Remove or comment out before building code for release.
 //     * Just a simple method made to test blood sprays by right clicking on blocks.
 //     */
 //    @SubscribeEvent

@@ -33,20 +33,29 @@ public class EntityInjuries {
     public Map<NativeImage, String> appliedLargeInjuries = new HashMap<>();
 
     public EntityInjuries(String entityName) {
-        String modifiedEntityName = (entityName.equals("player")) ? entityName : BloodyBitsUtils.decompose(entityName, ':')[1];
-        String path = "textures/entity/" + modifiedEntityName + "/";
+        String namespace;
 
-        this.addEntityDamageTexture(path + "small_injuries/");
-        this.addEntityDamageTexture(path + "medium_injuries/");
-        this.addEntityDamageTexture(path + "large_injuries/");
+        if (entityName.equals("player")) {
+            namespace = "minecraft";
+        }
+        else {
+            namespace = BloodyBitsUtils.decompose(entityName, ':')[0];
+            entityName = BloodyBitsUtils.decompose(entityName, ':')[1];
+        }
+
+        String path = "textures/entity/" + entityName + "/";
+
+        this.addEntityDamageTexture(namespace, path + "small_injuries/");
+        this.addEntityDamageTexture(namespace, path + "medium_injuries/");
+        this.addEntityDamageTexture(namespace, path + "large_injuries/");
     }
 
-    private void addEntityDamageTexture(String path) {
+    private void addEntityDamageTexture(String namespace, String path) {
 
         for (int i = 0; i < ClientConfig.availableTexturesPerEntity(); i++) {
             String modifiedPath = path.concat(i + ".png");
             try {
-                ResourceLocation injuryTextureResourceLocation = new ResourceLocation(BloodyBitsMod.MODID, modifiedPath);
+                ResourceLocation injuryTextureResourceLocation = new ResourceLocation(namespace, modifiedPath);
                 NativeImage damageLayerTexture = NativeImage.read(Minecraft.getInstance().getResourceManager().open(injuryTextureResourceLocation));
 
                 // Doing all paint logic. Currently, that means painting the blood and (if applicable)
