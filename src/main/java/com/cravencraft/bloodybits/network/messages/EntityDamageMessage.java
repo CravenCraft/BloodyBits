@@ -51,9 +51,7 @@ public class EntityDamageMessage {
     }
 
     private static void addEntityInjuries(LivingEntity livingEntity, EntityDamageMessage message) {
-        BloodyBitsMod.LOGGER.info("BEFORE ADDING ENTITY INJURIES IF STATEMENT");
         if (livingEntity.isAlive()) {
-            BloodyBitsMod.LOGGER.info("INSIDE IF STATEMENT");
             int entityId = livingEntity.getId();
             String entityName = (livingEntity instanceof Player) ? "player" : livingEntity.getEncodeId();
             entityName = (entityName == null) ? "" : entityName;
@@ -66,27 +64,12 @@ public class EntityDamageMessage {
                 entityInjuries = BloodyBitsUtils.INJURED_ENTITIES.get(entityId);
             }
             else {
-                BloodyBitsMod.LOGGER.info("Adding entity {} to INJURED ENTITIES", entityId);
                 entityInjuries = new EntityInjuries(entityName);
                 BloodyBitsUtils.INJURED_ENTITIES.put(entityId, entityInjuries);
             }
 
             double entityDamagePercentage = message.damageAmount / livingEntity.getMaxHealth();
-            BloodyBitsMod.LOGGER.info("Entity damage %: {}", entityDamagePercentage);
-            BloodyBitsMod.LOGGER.info("Injury type: {} is it a burn? {}", injuryType, message.isBurn);
             entityInjuries.addInjuryHits(injuryType, entityDamagePercentage);
-
-            // Apply the appropriate hit size depending on the damage amount.
-//            if (entityDamagePercentage >= 0.15) {
-//                entityInjuries.addLargeHit(injuryType);
-//            }
-//            else if (entityDamagePercentage >= 0.05) {
-//                entityInjuries.addMediumHit(injuryType);
-//            }
-//            else {
-//                entityInjuries.addSmallHit(injuryType);
-//            }
-
         }
     }
 }

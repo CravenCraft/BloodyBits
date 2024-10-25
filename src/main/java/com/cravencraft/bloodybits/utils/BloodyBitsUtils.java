@@ -1,16 +1,13 @@
 package com.cravencraft.bloodybits.utils;
 
-import com.cravencraft.bloodybits.BloodyBitsMod;
 import com.cravencraft.bloodybits.client.model.EntityInjuries;
 import com.cravencraft.bloodybits.config.ClientConfig;
 import com.cravencraft.bloodybits.config.CommonConfig;
 import com.cravencraft.bloodybits.entity.BloodSprayEntity;
-import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.util.FastColor;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 
@@ -57,73 +54,21 @@ public class BloodyBitsUtils {
         return astring;
     }
 
+    public static String getEntityDamageHexColor(String entityName) {
+        String damageHexColor = "#c80000";
 
-    public static int getMobDamageColor(String entityName) {
-        int redDamage = 200;
-        int greenDamage = 1;
-        int blueDamage = 1;
-        int alphaDamage = 255;
-
+        // TODO: Figure out how you're actually going to show damage on solid entities.
         if (CommonConfig.solidEntities().contains(entityName)) {
-            redDamage = 0;
-            greenDamage = 0;
-            blueDamage = 0;
-            alphaDamage = 0;
+            damageHexColor = "#ffffff";
         }
         else {
             for (Map.Entry<String, List<String>> mapElement : ClientConfig.entityBloodColors().entrySet()) {
                 if (mapElement.getValue().contains(Objects.requireNonNull(entityName))) {
-                    String bloodColorHexVal = mapElement.getKey();
-                    redDamage = HexFormat.fromHexDigits(bloodColorHexVal, 1, 3);
-                    greenDamage = HexFormat.fromHexDigits(bloodColorHexVal, 3, 5);
-                    blueDamage = HexFormat.fromHexDigits(bloodColorHexVal.substring(5));
+                    damageHexColor = mapElement.getKey();
                     break;
                 }
             }
         }
-        return FastColor.ABGR32.color(alphaDamage, blueDamage, greenDamage, redDamage);
-    }
-
-    public static int getBurnDamageColor() {
-        String bloodColorHexVal = ClientConfig.getBurnDamageColor();
-        int redDamage = HexFormat.fromHexDigits(bloodColorHexVal, 1, 3);
-        int greenDamage = HexFormat.fromHexDigits(bloodColorHexVal, 3, 5);
-        int blueDamage = HexFormat.fromHexDigits(bloodColorHexVal.substring(5));
-        return FastColor.ABGR32.color(255, blueDamage, greenDamage, redDamage);
-    }
-
-    public static void paintDamageToNativeImage(NativeImage unpaintedDamageLayerTexture, int damageColorRGBA) {
-        for (int x = 0; x < unpaintedDamageLayerTexture.getWidth(); x++) {
-            for (int y = 0; y < unpaintedDamageLayerTexture.getHeight(); y++) {
-                if (unpaintedDamageLayerTexture.getPixelRGBA(x, y) != 0) {
-                    int median = 125;
-
-                    int damageLayerPixelRGBA = unpaintedDamageLayerTexture.getPixelRGBA(x, y);
-                    int currentDamageLayerAlpha = FastColor.ABGR32.alpha(damageLayerPixelRGBA);
-                    int currentDamageLayerRed = FastColor.ABGR32.red(damageLayerPixelRGBA);
-                    int currentDamageLayerGreen = FastColor.ABGR32.green(damageLayerPixelRGBA);
-                    int currentDamageLayerBlue = FastColor.ABGR32.blue(damageLayerPixelRGBA);
-
-//                    BloodyBitsMod.LOGGER.info("current red {} green {} blue {}", currentDamageLayerRed, currentDamageLayerGreen, currentDamageLayerBlue);
-
-                    int newDamageColorRed = FastColor.ABGR32.red(damageColorRGBA);
-                    int newDamageColorGreen = FastColor.ABGR32.green(damageColorRGBA);
-                    int newDamageColorBlue = FastColor.ABGR32.blue(damageColorRGBA);
-
-
-//                    BloodyBitsMod.LOGGER.info("new red {} green {} blue {}", newDamageColorRed, newDamageColorGreen, newDamageColorBlue);
-
-                    newDamageColorRed = (int) Math.min(newDamageColorRed * ((float) currentDamageLayerRed / median), 255);
-                    newDamageColorGreen = (int) Math.min(newDamageColorGreen * ((float) currentDamageLayerGreen / median), 255);
-                    newDamageColorBlue = (int) Math.min(newDamageColorBlue * ((float) currentDamageLayerBlue / median), 255);
-
-                    BloodyBitsMod.LOGGER.info("modified new red {} green {} blue {}", newDamageColorRed, newDamageColorGreen, newDamageColorBlue);
-
-                    int newDamageLayerRGBA = FastColor.ABGR32.color(currentDamageLayerAlpha, newDamageColorBlue, newDamageColorGreen, newDamageColorRed);
-
-                    unpaintedDamageLayerTexture.setPixelRGBA(x, y, newDamageLayerRGBA);
-                }
-            }
-        }
+        return damageHexColor;
     }
 }

@@ -1,6 +1,9 @@
 ## V1.3.0
-- TODO: Major rework to how entities show damage. Still in progress. Will update this changelog message with more details
-    whenever I progress more with this method.
+- Reworked the entire entity damage system from earlier versions of this mod. The system now contains custom 
+    small, medium, and large injury textures for entities. The textures are overlayed over the entity's existing texture,
+    which means custom entity textures will be completely compatible with this mod. Modded entity support via resource packs
+    will also be easily supported.
+- Exploding mobs such as creepers now produce huge blood sprays on explosion.
 - Fixed bug that allows blood spatters to catch on fire.
 - Fixed bug that causes a blood fountain whenever the player dies, but does not respawn.
 - Added an option to blacklist the player (all players) from being an entity that can bleed.
@@ -10,8 +13,7 @@
     and some crashing bugs. As well, allowed me to remove some mixin classes that were prone to errors when using Sinytra Connector.
 - Added config option to modify the blood spray radius.
 - Fixed minor bug that caused blood to not spray in certain directions.
-- TODO: Added an optional bleed effect when an entity is below 50% health that bleeds more as they get lower in health.
-        Need to tweak it a bit more to ensure that it feels right. Maybe the entity doesn't bleed quite as much when lower.
+- Added an optional bleed effect when an entity is below 50% health that bleeds more as they get lower in health.
 
 ## V1.2.1
 - Added a quick fix for a potential crash whenever the player takes damage.

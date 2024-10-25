@@ -173,6 +173,7 @@ public class BloodSprayRenderer extends EntityRenderer<BloodSprayEntity> {
             case 4 -> new ResourceLocation(BloodyBitsMod.MODID, "textures/entity/blood_spatter/spatter_4.png");
             case 5 -> new ResourceLocation(BloodyBitsMod.MODID, "textures/entity/blood_spatter/spatter_5.png");
             case 6 -> new ResourceLocation(BloodyBitsMod.MODID, "textures/entity/blood_spatter/spatter_6.png");
+            case 7 -> new ResourceLocation(BloodyBitsMod.MODID, "textures/entity/blood_spatter/spatter_7.png");
             default -> new ResourceLocation(BloodyBitsMod.MODID, "textures/entity/blood_spatter/spatter_0.png");
         };
     }

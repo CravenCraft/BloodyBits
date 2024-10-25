@@ -46,6 +46,7 @@ public class EntityHealMessage {
 
             int entityId = livingEntity.getId();
             if (livingEntity.getHealth() < livingEntity.getMaxHealth()) {
+
                 // Will get the entity injuries either by retrieving them from a list based on the entity's ID.
                 if (BloodyBitsUtils.INJURED_ENTITIES.containsKey(entityId)) {
                     EntityInjuries entityInjuries = BloodyBitsUtils.INJURED_ENTITIES.get(entityId);
@@ -53,17 +54,6 @@ public class EntityHealMessage {
                     double entityHealPercentage = message.healAmount / livingEntity.getMaxHealth();
 
                     entityInjuries.addHealAmount(entityHealPercentage);
-
-                    // Apply the appropriate hit size depending on the damage amount.
-//                    if (entityHealPercentage >= 0.15) {
-//                        entityInjuries.addLargeHealAmount();
-//                    }
-//                    else if (entityHealPercentage >= 0.05) {
-//                        entityInjuries.addMediumHealAmount();
-//                    }
-//                    else {
-//                        entityInjuries.addSmallHealAmount();
-//                    }
                 }
             }
             else {

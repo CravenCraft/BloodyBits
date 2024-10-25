@@ -50,12 +50,9 @@ public class ClientConfig {
     public static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
 
     private static ForgeConfigSpec.BooleanValue SHOW_MOB_DAMAGE;
-    private static ForgeConfigSpec.IntValue MAX_ENTITY_INJURIES;
     private static ForgeConfigSpec.IntValue AVAILABLE_TEXTURES_PER_ENTITY;
 
     public static boolean showEntityDamage() { return SHOW_MOB_DAMAGE.get(); }
-
-    public static int maxEntityInjuries() { return MAX_ENTITY_INJURIES.get(); }
 
     public static int availableTexturesPerEntity() { return AVAILABLE_TEXTURES_PER_ENTITY.get(); }
     public static HashMap<String, List<String>> entityBloodColors() { return ENTITY_BLOOD_COLORS; }
@@ -68,14 +65,11 @@ public class ClientConfig {
         BUILDER.push("blood spray settings");
 
         SHOW_MOB_DAMAGE = BUILDER.comment("Whether or not an entity should show injury textures when damaged.")
-                .define("show_entity_damage", true);
-
-        MAX_ENTITY_INJURIES = BUILDER.comment("The maximum amount of injuries allowed to display on an entity.")
-                .defineInRange("max_entity_injuries", 10, 0, 100);
+                .define("show_entity_damage", false);
 
         AVAILABLE_TEXTURES_PER_ENTITY = BUILDER.comment("The maximum amount of available injury textures permitted per entity.\n" +
                         "Resource packs can be created to add additional textures for entities, override existing textures, or to\n" +
-                        "even create textures for entities that have none.")
+                        "even create textures for entities that have none (only applies when show_entity_damage is true).")
                 .defineInRange("available_textures_per_entity", 25, 0, 100);
 
         BURN_DAMAGE_SOURCE = BUILDER.comment("List of the damage sources that will display burn damage for the entities (only applies when show_entity_damage is true).")
@@ -83,7 +77,7 @@ public class ClientConfig {
                         List.of("burn", "fireball", "fireworks", "lava", "hotFloor", "onFire", "inFire", "lightningBolt"),
                         it -> it instanceof String);
 
-        BLACKLIST_INJURY_SOURCES = BUILDER.comment("List of the damage sources that will not display texture damage to the entity.")
+        BLACKLIST_INJURY_SOURCES = BUILDER.comment("List of the damage sources that will not display texture damage to the entity (only applies when show_entity_damage is true).")
                 .defineListAllowEmpty("blacklist_injury_sources",
                         List.of("drown", "starve", "dryOut", "freeze", "fellOutOfWorld"),
                         it -> it instanceof String);
