@@ -39,7 +39,7 @@ public class CommonConfig {
         DESPAWN_TIME = BUILDER.comment("How long in ticks (20 ticks = 1 second) until a blood spatter despawns.")
                 .defineInRange("despawn_time", 2000, 0, 100000);
         BLEED_WHEN_DAMAGED = BUILDER.comment("Do entities bleed when damaged below 50% health. The more they are damaged, the more often they bleed.")
-                .define("bleed_when_damaged", true);
+                .define("bleed_when_damaged", false);
         MAX_SPATTERS = BUILDER.comment("The maximum amount of blood spatters that can exist in the world at once.")
                 .defineInRange("max_spatters", 500, 0, 10000);
         BLOOD_SPATTER_VOLUME = BUILDER.comment("How loud the blood spatters are.")
@@ -49,7 +49,7 @@ public class CommonConfig {
         SOLID_ENTITIES = BUILDER.comment("Define what mobs 'bleed' solid bits. This is mainly skeletons. Instead of bleeding they will just shoot out colored bits," +
                         "and instead of getting bloodier when damaged, they will lose pixels.")
                 .defineListAllowEmpty("solid_entities",
-                        List.of("minecraft:skeleton", "minecraft:skeleton_horse", "minecraft:wither_skeleton", "minecraft:wither", "minecraft:shulker"),
+                        List.of("minecraft:skeleton", "minecraft:skeleton_horse", "minecraft:wither_skeleton", "minecraft:wither", "minecraft:shulker", "minecraft:iron_golem", "minecraft:stray"),
                         it -> it instanceof String);
         BLACKLIST_ENTITIES = BUILDER.comment("Some mobs don't play nice with this mod, and may cause crashes. Define which mobs you want to blacklist here (enter 'player' for all players).")
                 .defineListAllowEmpty("blacklist_entities",

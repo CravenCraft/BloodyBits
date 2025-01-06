@@ -36,7 +36,7 @@ public class ClientConfig {
     private static final List<String> BLOOD_BLACK_ENTITIES = List.of("minecraft:wither_skeleton", "minecraft:wither");
     private static final List<String> BLOOD_BLUE_ENTITIES = List.of("minecraft:allay", "minecraft:warden");
     private static final List<String> BLOOD_GREEN_ENTITIES = List.of("minecraft:spider", "minecraft:cave_spider", "minecraft:creeper", "minecraft:bee", "minecraft:slime");
-    private static final List<String> BLOOD_GREY_ENTITIES = List.of("minecraft:skeleton", "minecraft:skeleton_horse", "minecraft:snow_golem", "minecraft:shulker");
+    private static final List<String> BLOOD_GREY_ENTITIES = List.of("minecraft:skeleton", "minecraft:skeleton_horse", "minecraft:snow_golem", "minecraft:shulker", "minecraft:stray");
     private static final List<String> BLOOD_PURPLE_ENTITIES = List.of("minecraft:enderman", "minecraft:shulker", "minecraft:ender_dragon", "minecraft:endermite");
     private static final List<String> BLOOD_ORANGE_ENTITIES = List.of("minecraft:magma_cube", "minecraft:blaze");
     private static final HashMap<String, List<String>> DEFAULT_ENTITY_BLOOD_COLORS = new HashMap<>();
