@@ -1,3 +1,6 @@
+## V1.3.1
+- Hotfix for a potential game crashing bug with certain entities.
+
 ## V1.3.0
 **NOTE: _HIGHLY_ RECOMMENDED TO DELETE PREVIOUS CONFIG FILES PRIOR TO UPDATING.**
 - Remade all blood spatter textures to be a bit more detailed with different opacities.

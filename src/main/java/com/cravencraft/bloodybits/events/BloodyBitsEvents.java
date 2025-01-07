@@ -18,7 +18,6 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraftforge.client.event.RenderLivingEvent;
 import net.minecraftforge.event.entity.living.*;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.level.ExplosionEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -70,9 +69,14 @@ public class BloodyBitsEvents {
     public static void entityHealEvent(LivingHealEvent event) {
         LivingEntity entity = event.getEntity();
 
-        if (!event.isCanceled() && entity != null) {
-            BloodyBitsPacketHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> entity),
-                    new EntityHealMessage(entity.getId(), event.getAmount()));
+        if (ClientConfig.showEntityDamage() && !event.isCanceled() && entity != null) {
+            String entityName = (entity instanceof Player) ? "player" : entity.getEncodeId();
+            entityName = (entityName == null) ? "" : entityName;
+
+            if (!CommonConfig.blackListEntities().contains(entityName)) {
+                BloodyBitsPacketHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> entity),
+                        new EntityHealMessage(entity.getId(), event.getAmount()));
+            }
         }
     }
 
