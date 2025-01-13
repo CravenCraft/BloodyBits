@@ -12,6 +12,7 @@ import com.cravencraft.bloodybits.network.messages.EntityMessage;
 import com.cravencraft.bloodybits.registries.EntityRegistry;
 import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
@@ -162,10 +163,10 @@ public class BloodyBitsEvents {
      */
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void creeperExplosionEvent(ExplosionEvent event) {
-        LivingEntity entity = event.getExplosion().getIndirectSourceEntity();
+        Entity entity = event.getExplosion().getDirectSourceEntity();
 
-        if (entity != null && !event.isCanceled()) {
-            createBloodSpray(entity, event.getExplosion().getDamageSource(), 15, false);
+        if (entity instanceof LivingEntity livEnt && !event.isCanceled()) {
+            createBloodSpray(livEnt, event.getExplosion().getDamageSource(), 15, false);
         }
     }
 
