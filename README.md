@@ -7,8 +7,6 @@ the damage they are doing, or receiving, in a more immersive way always felt lik
 (see: DOOM Eternal, Left 4 Dead, or more recently Helldivers 2). So, I've set out to make my own version of that 
 experience in minecraft.
 
-There have been several mods that add blood in the past, but none like this. Enemies will spray blood based on the amount
-of damage caused, and their models will become increasingly bloodier as they take more damage to communicate to the player
-how close they are to death. Certain enemies will have certain blood colors such as red for most enemies, green for 
-bug-like enemies, purple for ender-like enemies, and so on. All the colors are fully customizable within the configs
-as well.
+There have been several mods that add blood in the past, but none like this. Certain enemies will have certain blood 
+colors such as red for most enemies, green for bug-like enemies, purple for ender-like enemies, and so on. 
+All the colors are fully customizable within the configs as well.

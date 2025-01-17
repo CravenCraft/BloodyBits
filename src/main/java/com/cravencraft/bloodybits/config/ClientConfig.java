@@ -52,7 +52,7 @@ public class ClientConfig {
     private static ForgeConfigSpec.BooleanValue SHOW_MOB_DAMAGE;
     private static ForgeConfigSpec.IntValue AVAILABLE_TEXTURES_PER_ENTITY;
 
-    public static boolean showEntityDamage() { return SHOW_MOB_DAMAGE.get(); }
+    public static boolean showEntityDamage() { return false; }
 
     public static int availableTexturesPerEntity() { return AVAILABLE_TEXTURES_PER_ENTITY.get(); }
     public static HashMap<String, List<String>> entityBloodColors() { return ENTITY_BLOOD_COLORS; }

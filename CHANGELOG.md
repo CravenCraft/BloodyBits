@@ -1,3 +1,11 @@
+## V1.3.2 More Bug Fixes
+- Fixed a bug causing explosive events to spray blood from gun sources such as the player.
+    Special thanks to [slava110](https://github.com/slava110) for this fix.
+- Made the **show_mob_damage** client config always set to false until it is fully ready to be implemented. Should 
+    prevent any accidental server crashes if someone configures it.
+- Fixed a bug that was causing server crashes (Forgot I didn't move the client events to their own client-side only class). 
+- Updated README to reflect recent minor version bump.
+
 ## V1.3.1
 - Hotfix for a potential game crashing bug with certain entities.
 

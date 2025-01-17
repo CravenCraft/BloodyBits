@@ -1,6 +1,5 @@
 package com.cravencraft.bloodybits.entity;
 
-import com.cravencraft.bloodybits.BloodyBitsMod;
 import com.cravencraft.bloodybits.config.ClientConfig;
 import com.cravencraft.bloodybits.config.CommonConfig;
 import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
@@ -19,7 +18,6 @@ import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.SnowLayerBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.*;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -32,8 +30,8 @@ import java.util.Map;
 import java.util.Random;
 
 public class BloodSprayEntity extends Projectile {
-    private static final EntityDataAccessor<Byte> ID_FLAGS = SynchedEntityData.defineId(net.minecraft.world.entity.projectile.AbstractArrow.class, EntityDataSerializers.BYTE);
-    private static final EntityDataAccessor<Byte> PIERCE_LEVEL = SynchedEntityData.defineId(net.minecraft.world.entity.projectile.AbstractArrow.class, EntityDataSerializers.BYTE);
+    private static final EntityDataAccessor<Byte> ID_FLAGS = SynchedEntityData.defineId(BloodSprayEntity.class, EntityDataSerializers.BYTE);
+    private static final EntityDataAccessor<Byte> PIERCE_LEVEL = SynchedEntityData.defineId(BloodSprayEntity.class, EntityDataSerializers.BYTE);
     @Nullable
     public BlockState lastState;
     protected boolean inGround;
