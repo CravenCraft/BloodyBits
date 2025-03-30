@@ -93,6 +93,10 @@ public class BloodyBitsEvents {
 
                 int mod = (int) (remainingHealthPercentage * 1000);
 
+                if (mod == 0 || entity.tickCount == 0) {
+                    return;
+                }
+
                 if (entity.tickCount % mod == 0) {
                     createBloodSpray(entity, entity.damageSources().genericKill(), 1, true);
                 }
