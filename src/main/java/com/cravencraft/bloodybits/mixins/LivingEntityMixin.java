@@ -61,8 +61,7 @@ public abstract class LivingEntityMixin extends Entity {
         if (this.self != null) {
             String entityId = (this.toString().contains("Player")) ? "player" : this.getEncodeId();
             if (CommonConfig.deathBloodExplosion() && !CommonConfig.blackListEntities().contains(entityId)) {
-                assert this.lastDamageSource != null;
-                if (!CommonConfig.blackListDamageSources().contains(this.lastDamageSource.msgId)) {
+                if (this.lastDamageSource != null && !CommonConfig.blackListDamageSources().contains(this.lastDamageSource.msgId)) {
                     this.createBloodExplosion();
                 }
             }
