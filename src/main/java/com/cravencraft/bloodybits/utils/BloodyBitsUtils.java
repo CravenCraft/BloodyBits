@@ -6,8 +6,10 @@ import com.cravencraft.bloodybits.config.CommonConfig;
 import com.cravencraft.bloodybits.entity.BloodSprayEntity;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 
@@ -15,6 +17,7 @@ import java.util.*;
 
 public class BloodyBitsUtils {
     public static ArrayList<BloodSprayEntity> BLOOD_SPRAY_ENTITIES = new ArrayList<>();
+    public static HashMap<Integer, BloodSprayEntity> CLIENT_SIDE_BLOOD_SPRAYS = new HashMap<>();
     public static final HashMap<Integer, EntityInjuries> INJURED_ENTITIES = new HashMap<>();
     public static final List<String> INJURY_LAYER_ENTITIES = new ArrayList<>();
 

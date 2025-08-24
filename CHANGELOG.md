@@ -1,3 +1,14 @@
+## V1.3.3 Texture Polishing & Bugfixes
+- Switched the blood spray texture back to its original, more solid texture. Think it looks a lot better.
+- TODO: Added a client-side config option to make the blood spatters more bright, which should fix a minor
+        issue that shows them as much darker when on ceilings regardless of lighting. As a consequence, this may
+        make spatters in general brighter in caves and such. Still working on a fix that resolves this without
+        compromising the overall look.
+- Modified the blood spatter textures slightly.
+- Fixed a bug causing the game to crash when entities bleed due to a divide by zero error.
+  Special thanks to [encode42](https://github.com/encode42) for this fix.
+- Fixed an issue where blood spatters would reset back to red whenever the player would leave then return to the chunk.
+
 ## V1.3.2 More Bug Fixes
 - Fixed a bug causing explosive events to spray blood from gun sources such as the player.
     Special thanks to [slava110](https://github.com/slava110) for this fix.
