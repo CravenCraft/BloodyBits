@@ -536,7 +536,6 @@ public class BloodSprayEntity extends Projectile {
     private void setClientBloodColor() {
         if (this.level().isClientSide) {
             if (BloodyBitsUtils.CLIENT_SIDE_BLOOD_SPRAYS.containsKey(this.getId())) {
-                BloodyBitsMod.LOGGER.info("THE MAP CONTAINS THE KEY.");
                 BloodSprayEntity bloodSprayEntity = BloodyBitsUtils.CLIENT_SIDE_BLOOD_SPRAYS.get(this.getId());
                 this.isSolid = bloodSprayEntity.isSolid;
                 this.red = bloodSprayEntity.red;
