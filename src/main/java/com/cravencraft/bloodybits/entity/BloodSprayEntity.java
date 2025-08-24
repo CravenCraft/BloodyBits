@@ -1,5 +1,6 @@
 package com.cravencraft.bloodybits.entity;
 
+import com.cravencraft.bloodybits.BloodyBitsMod;
 import com.cravencraft.bloodybits.config.ClientConfig;
 import com.cravencraft.bloodybits.config.CommonConfig;
 import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
@@ -24,6 +25,9 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
@@ -74,7 +78,7 @@ public class BloodSprayEntity extends Projectile {
     public Vec3 hitPosition;
     public Vec3 previousPosition;
     public int inAirTicks;
-    public int red = 200;
+    public int red = 255;
     public int green = 1;
     public int blue = 1;
 
@@ -82,18 +86,21 @@ public class BloodSprayEntity extends Projectile {
         super(entityType, level);
         this.randomTextureNumber = new Random().nextInt(BLOOD_SPATTER_TEXTURES);
         this.previousPosition = this.position();
+//        BloodyBitsMod.LOGGER.info("----- CREATING 1 BLOOD SPRAY ID {} CLIENT SIDE: {} -----", this.getId(), this.level().isClientSide);
+//        BloodyBitsMod.LOGGER.info("HIT POS: {}", this.hitPosition);
     }
 
     public BloodSprayEntity(EntityType<BloodSprayEntity> entityType, double pX, double pY, double pZ, Level pLevel) {
         this(entityType, pLevel);
         this.setPos(pX, pY, pZ);
+//        BloodyBitsMod.LOGGER.info("----- CREATING 2 BLOOD SPRAY ID {} CLIENT SIDE: {} -----", this.getId(), this.level().isClientSide);
     }
 
     public BloodSprayEntity(EntityType<BloodSprayEntity> entityType, LivingEntity shooter, Level level) {
         this(entityType, shooter.getX(), shooter.getEyeY() - (double)0.1F, shooter.getZ(), level);
         this.setOwner(shooter);
         this.previousPosition = this.position();
-
+//        BloodyBitsMod.LOGGER.info("----- CREATING 3 BLOOD SPRAY ID {} CLIENT SIDE: {} -----", this.getId(), this.level().isClientSide);
     }
 
     public int getLife() {
@@ -150,10 +157,12 @@ public class BloodSprayEntity extends Projectile {
      * Called to update the entity's position/logic.
      */
     public void tick() {
+//        BloodyBitsMod.LOGGER.info("CLIENT SIDE: {}, RED: {} GREEN: {} BLUE: {}", this.level().isClientSide, this.red, this.green, this.blue);
         if (this.isRemoved()) {
             return;
         }
 
+        // TODO: I can rework this and remove it potentially when I remove the ownerName field.
         if (!this.level().isClientSide() && this.ownerName == null) {
             this.discard();
             BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.remove(this);
@@ -188,7 +197,7 @@ public class BloodSprayEntity extends Projectile {
             if (this.inGround) {
                 if (this.lastState != blockstate && this.shouldFall()) {
                     this.startFalling();
-                } else if (!this.level().isClientSide) {
+                } else {
                     this.tickDespawn();
                 }
 
@@ -240,6 +249,7 @@ public class BloodSprayEntity extends Projectile {
                         this.discard();
                     }
                 }
+                // The blood spray is in the air.
                 else if (!this.isInWater()) {
                     double velocity = this.getDeltaMovement().length();
                     float length = (float) (velocity * 10);
@@ -259,6 +269,7 @@ public class BloodSprayEntity extends Projectile {
                         this.inAirTicks++;
                     }
                 }
+                // The blood spray is in water.
                 else {
                     this.yMin -= 0.1F;
                     this.yMax += 0.1F;
@@ -380,12 +391,17 @@ public class BloodSprayEntity extends Projectile {
         if (this.life >= CommonConfig.despawnTime()) {
             this.discard();
             BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.remove(this);
+            BloodyBitsUtils.CLIENT_SIDE_BLOOD_SPRAYS.remove(this.getId());
         }
 
     }
 
     @Override
     protected void onHitBlock(@NotNull BlockHitResult result) {
+        this.hitPosition = result.getLocation();
+//        BloodyBitsMod.LOGGER.info("ID: {}, CLIENT SIDE: {}, HIT POS: {}", this.getId(), this.level().isClientSide, this.hitPosition);
+        this.setClientBloodColor();
+
         if (this.isSolid) {
             this.setSoundEvent((Math.random() > 0.5) ? SoundEvents.BONE_BLOCK_FALL : SoundEvents.BONE_BLOCK_HIT);
             float volume = (float) CommonConfig.bloodSpatterVolume();
@@ -413,7 +429,6 @@ public class BloodSprayEntity extends Projectile {
         else {
             this.hitBlockPos = result.getBlockPos();
             this.entityDirection = result.getDirection();
-            this.hitPosition = result.getLocation();
             this.lastState = this.level().getBlockState(result.getBlockPos());
             this.xHitAngle = -this.getLookAngle().x;
             this.yHitAngle = -this.getLookAngle().y;
@@ -513,6 +528,51 @@ public class BloodSprayEntity extends Projectile {
         }
     }
 
+    /**
+     * When exiting render distance, the client side object is recreated. Data will not carry over when this is done.
+     * So, a check to see if the same ID is being used for the object is done here. If so, the data will be copied over.
+     * If not, then this object ID will be added to the list.
+     */
+    private void setClientBloodColor() {
+        if (this.level().isClientSide) {
+            if (BloodyBitsUtils.CLIENT_SIDE_BLOOD_SPRAYS.containsKey(this.getId())) {
+                BloodSprayEntity bloodSprayEntity = BloodyBitsUtils.CLIENT_SIDE_BLOOD_SPRAYS.get(this.getId());
+                this.isSolid = bloodSprayEntity.isSolid;
+                this.red = bloodSprayEntity.red;
+                this.green = bloodSprayEntity.green;
+                this.blue = bloodSprayEntity.blue;
+
+                this.xHitAngle = bloodSprayEntity.xHitAngle;
+                this.xMin = bloodSprayEntity.xMin;
+                this.xMax = bloodSprayEntity.xMax;
+
+                this.yHitAngle = bloodSprayEntity.yHitAngle;
+                this.yMinLimit = bloodSprayEntity.yMinLimit;
+                this.yMaxLimit = bloodSprayEntity.yMaxLimit;
+                this.yMin = bloodSprayEntity.yMin;
+                this.yMax = bloodSprayEntity.yMax;
+
+                this.zHitAngle = bloodSprayEntity.zHitAngle;
+                this.zMinLimit = bloodSprayEntity.zMinLimit;
+                this.zMaxLimit = bloodSprayEntity.zMaxLimit;
+                this.zMin = bloodSprayEntity.zMin;
+                this.zMax = bloodSprayEntity.zMax;
+
+                this.life = bloodSprayEntity.life;
+                this.randomTextureNumber = bloodSprayEntity.randomTextureNumber;
+            }
+            else {
+
+                if (BloodyBitsUtils.CLIENT_SIDE_BLOOD_SPRAYS.size() >= CommonConfig.maxSpatters()) {
+                    BloodyBitsUtils.CLIENT_SIDE_BLOOD_SPRAYS.get(0).discard();
+                    BloodyBitsUtils.CLIENT_SIDE_BLOOD_SPRAYS.remove(0);
+                }
+
+                BloodyBitsUtils.CLIENT_SIDE_BLOOD_SPRAYS.put(this.getId(), this);
+            }
+        }
+    }
+
     protected final SoundEvent getHitGroundSoundEvent() {
         return this.soundEvent;
     }
@@ -566,6 +626,8 @@ public class BloodSprayEntity extends Projectile {
                         this.red = HexFormat.fromHexDigits(bloodColorHexVal, 1, 3);
                         this.green = HexFormat.fromHexDigits(bloodColorHexVal, 3, 5);
                         this.blue = HexFormat.fromHexDigits(bloodColorHexVal.substring(5));
+//                        BloodyBitsUtils.CLIENT_SIDE_BLOOD_SPRAYS.put(this.getId(), this);
+//                        BloodyBitsMod.LOGGER.info("SETTING OWNER CLIENT SIDE: {}, RED: {} GREEN: {} BLUE: {}", this.level().isClientSide, this.red, this.green, this.blue);
                         break;
                     }
                 }

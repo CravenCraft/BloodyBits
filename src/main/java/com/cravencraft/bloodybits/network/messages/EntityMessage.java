@@ -1,5 +1,6 @@
 package com.cravencraft.bloodybits.network.messages;
 
+import com.cravencraft.bloodybits.BloodyBitsMod;
 import com.cravencraft.bloodybits.entity.BloodSprayEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
@@ -29,12 +30,14 @@ public class EntityMessage {
     public static void handle(EntityMessage message, Supplier<NetworkEvent.Context> contextSupplier) {
         NetworkEvent.Context context = contextSupplier.get();
         context.enqueueWork(() -> {
-            if (Minecraft.getInstance().level != null && context.getDirection().getReceptionSide().isClient()) {
-                Entity entity = Minecraft.getInstance().level.getEntity(message.entityId);
-                if (entity instanceof BloodSprayEntity bloodSprayEntity) {
-                    bloodSprayEntity.setOwner(Minecraft.getInstance().level.getEntity(message.entityOwnerid));
-                }
-            }
+//            if (Minecraft.getInstance().level != null && context.getDirection().getReceptionSide().isClient()) {
+//                BloodyBitsMod.LOGGER.info("CREATING NEW ENTITY CLIENT SIDE?");
+//                Entity entity = Minecraft.getInstance().level.getEntity(message.entityId);
+//                BloodyBitsMod.LOGGER.info("ENTITY CLIENT SIDE CREATED.");
+//                if (entity instanceof BloodSprayEntity bloodSprayEntity) {
+//                    bloodSprayEntity.setOwner(Minecraft.getInstance().level.getEntity(message.entityOwnerid));
+//                }
+//            }
         });
         context.setPacketHandled(true);
     }

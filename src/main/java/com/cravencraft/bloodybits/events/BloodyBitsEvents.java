@@ -13,6 +13,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.entity.living.*;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.level.ExplosionEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -21,6 +22,8 @@ import net.minecraftforge.network.PacketDistributor;
 
 @Mod.EventBusSubscriber(modid = BloodyBitsMod.MODID)
 public class BloodyBitsEvents {
+
+    private static int currentTick = 0;
 
 //    /**
 //     * Just a simple method made to test blood sprays by right-clicking on blocks.
@@ -35,12 +38,18 @@ public class BloodyBitsEvents {
 //
 //            BloodSprayEntity bloodSprayEntity = new BloodSprayEntity(EntityRegistry.BLOOD_SPRAY.get(), event.getEntity(), event.getEntity().level());
 //            BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.add(bloodSprayEntity);
+//            BloodyBitsMod.LOGGER.info("Current Tick Count: {}", event.getEntity().tickCount);
 //
 //            bloodSprayEntity.setDeltaMovement(event.getEntity().getLookAngle());
-//            event.getEntity().level().addFreshEntity(bloodSprayEntity);
 //
-//            BloodyBitsPacketHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> bloodSprayEntity),
-//                    new EntityMessage(bloodSprayEntity.getId(), event.getEntity().getId()));
+//            if ((currentTick + 20) < event.getEntity().tickCount) {
+//                currentTick = event.getEntity().tickCount;
+//
+//                event.getEntity().level().addFreshEntity(bloodSprayEntity);
+//
+//                BloodyBitsPacketHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> bloodSprayEntity),
+//                        new EntityMessage(bloodSprayEntity.getId(), event.getEntity().getId()));
+//            }
 //        }
 //    }
 
@@ -51,7 +60,6 @@ public class BloodyBitsEvents {
      */
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void bloodOnEntityDamage(LivingDamageEvent event) {
-
         LivingEntity entity = event.getEntity();
         if (!event.isCanceled() && entity != null) {
             String entityName = (entity instanceof Player) ? "player" : entity.getEncodeId();
@@ -92,6 +100,9 @@ public class BloodyBitsEvents {
             if (!CommonConfig.blackListEntities().contains(entityName) && remainingHealthPercentage <= 0.5) {
 
                 int mod = (int) (remainingHealthPercentage * 1000);
+                if (mod == 0 || entity.tickCount == 0) {
+                    return;
+                }
 
                 if (mod == 0 || entity.tickCount == 0) {
                     return;
@@ -128,8 +139,6 @@ public class BloodyBitsEvents {
             entityName = (entityName == null) ? "" : entityName;
 
             if (!entity.level().isClientSide() && !CommonConfig.blackListEntities().contains(entityName) && !CommonConfig.blackListDamageSources().contains(damageSource.type().msgId())) {
-                //TODO: Currently, creepers don't produce blood when exploding because it's not registered as a LivingAttackEvent on THEMSELF.
-                //      So, maybe have an exception happen in a damage event?
                 for (int i = 0; i < damageAmount; i++) {
                     if (BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.size() >= CommonConfig.maxSpatters()) {
                         BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.get(0).discard();
