@@ -564,8 +564,11 @@ public class BloodSprayEntity extends Projectile {
             else {
 
                 if (BloodyBitsUtils.CLIENT_SIDE_BLOOD_SPRAYS.size() >= CommonConfig.maxSpatters()) {
-                    BloodyBitsUtils.CLIENT_SIDE_BLOOD_SPRAYS.get(0).discard();
-                    BloodyBitsUtils.CLIENT_SIDE_BLOOD_SPRAYS.remove(0);
+                    BloodSprayEntity oldest = BloodyBitsUtils.CLIENT_SIDE_BLOOD_SPRAYS.get(0);
+                    if (oldest != null) {
+                        oldest.discard();
+                        BloodyBitsUtils.CLIENT_SIDE_BLOOD_SPRAYS.remove(0);
+                    }
                 }
 
                 BloodyBitsUtils.CLIENT_SIDE_BLOOD_SPRAYS.put(this.getId(), this);
