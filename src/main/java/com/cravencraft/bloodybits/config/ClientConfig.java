@@ -5,10 +5,8 @@ import com.google.common.reflect.TypeToken;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import net.minecraftforge.common.ForgeConfigSpec;
-import net.minecraftforge.fml.ModLoadingContext;
-import net.minecraftforge.fml.config.ModConfig;
-import net.minecraftforge.fml.loading.FMLPaths;
+import net.neoforged.fml.loading.FMLPaths;
+import net.neoforged.neoforge.common.ModConfigSpec;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
@@ -25,6 +23,7 @@ public class ClientConfig {
 
     // TODO: Either here or in the common config add an option for blood explosion and spatter volume sounds.
     public static final Gson GSON = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).setPrettyPrinting().create();
+    public static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
 
     private static final String BLOOD_BLACK = "#323232";
     private static final String BLOOD_BLUE = "#2acbf7";
@@ -40,17 +39,16 @@ public class ClientConfig {
     private static final List<String> BLOOD_PURPLE_ENTITIES = List.of("minecraft:enderman", "minecraft:shulker", "minecraft:ender_dragon", "minecraft:endermite");
     private static final List<String> BLOOD_ORANGE_ENTITIES = List.of("minecraft:magma_cube", "minecraft:blaze");
     private static final HashMap<String, List<String>> DEFAULT_ENTITY_BLOOD_COLORS = new HashMap<>();
-    private static HashMap<String, List<String>> ENTITY_BLOOD_COLORS;
+    private static final HashMap<String, List<String>> ENTITY_BLOOD_COLORS;
 
     private static final String BURN_DAMAGE_COLOR = "#323232";
 
-    private static ForgeConfigSpec.ConfigValue<List<? extends String>> BURN_DAMAGE_SOURCE;
-    private static ForgeConfigSpec.ConfigValue<List<? extends String>> BLACKLIST_INJURY_SOURCES;
+    private static ModConfigSpec.ConfigValue<List<? extends String>> BURN_DAMAGE_SOURCE;
+    private static ModConfigSpec.ConfigValue<List<? extends String>> BLACKLIST_INJURY_SOURCES;
 
-    public static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
 
-    private static ForgeConfigSpec.BooleanValue SHOW_MOB_DAMAGE;
-    private static ForgeConfigSpec.IntValue AVAILABLE_TEXTURES_PER_ENTITY;
+    private static ModConfigSpec.BooleanValue SHOW_MOB_DAMAGE;
+    private static ModConfigSpec.IntValue AVAILABLE_TEXTURES_PER_ENTITY;
 
     public static boolean showEntityDamage() { return false; }
 
@@ -61,7 +59,9 @@ public class ClientConfig {
     public static List<? extends String> blackListInjurySources() { return BLACKLIST_INJURY_SOURCES.get(); }
     public static String getBurnDamageColor() { return BURN_DAMAGE_COLOR; }
 
-    public static void loadClientConfig() {
+    public static final ModConfigSpec SPEC;
+
+    static {
         BUILDER.push("blood spray settings");
 
         SHOW_MOB_DAMAGE = BUILDER.comment("Whether or not an entity should show injury textures when damaged.")
@@ -86,8 +86,10 @@ public class ClientConfig {
 
         ENTITY_BLOOD_COLORS = getConfigData();
 
-        ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, BUILDER.build());
+//        ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, BUILDER.build());
+        SPEC = BUILDER.build();
     }
+
 
     private static HashMap<String, List<String>> getOrCreateConfigFile(File configFile, Type type) {
 
@@ -117,6 +119,7 @@ public class ClientConfig {
     }
 
     private static File getConfigDirectory() {
+
         Path configPath = FMLPaths.CONFIGDIR.get();
         Path jsonPath = Paths.get(configPath.toAbsolutePath().toString(), "bloodybits_colors");
         return jsonPath.toFile();

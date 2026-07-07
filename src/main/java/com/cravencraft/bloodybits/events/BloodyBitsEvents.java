@@ -3,7 +3,6 @@ package com.cravencraft.bloodybits.events;
 import com.cravencraft.bloodybits.BloodyBitsMod;
 import com.cravencraft.bloodybits.config.CommonConfig;
 import com.cravencraft.bloodybits.entity.BloodSprayEntity;
-import com.cravencraft.bloodybits.network.BloodyBitsPacketHandler;
 import com.cravencraft.bloodybits.network.messages.EntityMessage;
 import com.cravencraft.bloodybits.registries.EntityRegistry;
 import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
@@ -12,15 +11,15 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.event.entity.living.*;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.event.level.ExplosionEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.network.PacketDistributor;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
+import net.neoforged.neoforge.event.entity.living.LivingEvent;
+import net.neoforged.neoforge.event.level.ExplosionEvent;
+import net.neoforged.neoforge.network.PacketDistributor;
 
-@Mod.EventBusSubscriber(modid = BloodyBitsMod.MODID)
+@EventBusSubscriber(modid = BloodyBitsMod.MODID)
 public class BloodyBitsEvents {
 
     private static int currentTick = 0;
@@ -59,27 +58,25 @@ public class BloodyBitsEvents {
      * which should optimize this somewhat.
      */
     @SubscribeEvent(priority = EventPriority.LOWEST)
-    public static void bloodOnEntityDamage(LivingDamageEvent event) {
+    public static void bloodOnEntityDamage(LivingDamageEvent.Post event) {
         LivingEntity entity = event.getEntity();
-        if (!event.isCanceled() && entity != null) {
-            String entityName = (entity instanceof Player) ? "player" : entity.getEncodeId();
-            entityName = (entityName == null) ? "" : entityName;
+        String entityName = (entity instanceof Player) ? "player" : entity.getEncodeId();
+        entityName = (entityName == null) ? "" : entityName;
 
-            if (!event.getEntity().level().isClientSide() && !CommonConfig.blackListEntities().contains(entityName) && !CommonConfig.blackListDamageSources().contains(event.getSource().type().msgId())) {
-                int maxDamage = (int) Math.min(20, event.getAmount());
-                createBloodSpray(entity, event.getSource(), maxDamage, false);
-            }
+        if (!event.getEntity().level().isClientSide() && !CommonConfig.blackListEntities().contains(entityName) && !CommonConfig.blackListDamageSources().contains(event.getSource().type().msgId())) {
+            int maxDamage = (int) Math.min(20, event.getOriginalDamage());
+            createBloodSpray(entity, event.getSource(), maxDamage, false);
+        }
 
-            // TODO: This is just for damage textures, and is also client side only. So, need to add this
-            //       to the client events class when I finally get around to polishing that feature.
-            // For adding damage textures to the given entity. Ensure no blacklisted injury sources are added.
+        // TODO: This is just for damage textures, and is also client side only. So, need to add this
+        //       to the client events class when I finally get around to polishing that feature.
+        // For adding damage textures to the given entity. Ensure no blacklisted injury sources are added.
 //            if (!ClientConfig.blackListInjurySources().contains(event.getSource().type().msgId())) {
 //                boolean isBurn = ClientConfig.burnDamageSources().contains(event.getSource().type().msgId());
 //
 //                BloodyBitsPacketHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> entity),
 //                        new EntityDamageMessage(entity.getId(), event.getAmount(), !isBurn, isBurn));
 //            }
-        }
     }
 
     // TODO: Rework this. This is a cool feature to have. Just want it to be slightly less random. Set up a minimum and
@@ -88,10 +85,11 @@ public class BloodyBitsEvents {
     /**
      *  Makes the entity bleed when damaged below a certain threshold. The entity will bleed more often the lower it is
      *  below that threshold.
+     *  TODO: LivingEvent might only happen at certain times. See when it happens.
      */
     @SubscribeEvent
-    public static void entityBleedWhenDamaged(LivingEvent.LivingTickEvent event) {
-        if (CommonConfig.bleedWhenDamaged() && event.getEntity() != null && !event.getEntity().level().isClientSide() && !event.getEntity().isDeadOrDying()) {
+    public static void entityBleedWhenDamaged(LivingEvent event) {
+        if (CommonConfig.bleedWhenDamaged() && !event.getEntity().level().isClientSide() && !event.getEntity().isDeadOrDying()) {
             LivingEntity entity = event.getEntity();
             double remainingHealthPercentage = entity.getHealth() / entity.getMaxHealth();
             String entityName = (entity instanceof Player) ? "player" : entity.getEncodeId();
@@ -118,8 +116,13 @@ public class BloodyBitsEvents {
     public static void creeperExplosionEvent(ExplosionEvent event) {
         Entity entity = event.getExplosion().getDirectSourceEntity();
 
-        if (entity instanceof LivingEntity livEnt && !event.isCanceled()) {
-            createBloodSpray(livEnt, event.getExplosion().getDamageSource(), 15, false);
+        if (entity instanceof LivingEntity livingEntity) {
+            // TODO: This might produce an error since the damage source is probably whatever the explosion came from,
+            //       and not the explosion itself.
+            var damageSource = event.getExplosion().getIndirectSourceEntity();
+            if (damageSource != null) {
+                createBloodSpray(livingEntity, event.getExplosion().getIndirectSourceEntity().getLastDamageSource(), 15, false);
+            }
         }
     }
 
@@ -169,8 +172,10 @@ public class BloodyBitsEvents {
                     bloodSprayEntity.setDeltaMovement(xAngle, yAngle * 0.35, zAngle);
                     entity.level().addFreshEntity(bloodSprayEntity);
 
-                    BloodyBitsPacketHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> bloodSprayEntity),
-                            new EntityMessage(bloodSprayEntity.getId(), entity.getId()));
+                    PacketDistributor.sendToServer(new EntityMessage(bloodSprayEntity.getId(), entity.getId()));
+
+//                    BloodyBitsPacketHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> bloodSprayEntity),
+//                            new EntityMessage(bloodSprayEntity.getId(), entity.getId()));
                 }
             }
         }

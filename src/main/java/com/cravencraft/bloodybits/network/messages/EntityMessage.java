@@ -1,44 +1,39 @@
 package com.cravencraft.bloodybits.network.messages;
 
 import com.cravencraft.bloodybits.BloodyBitsMod;
-import com.cravencraft.bloodybits.entity.BloodSprayEntity;
-import net.minecraft.client.Minecraft;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.world.entity.Entity;
-import net.minecraftforge.network.NetworkEvent;
+import io.netty.buffer.ByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.function.Supplier;
+public record EntityMessage(int entityId, int entityOwnerId) implements CustomPacketPayload {
+    public static final CustomPacketPayload.Type<EntityMessage> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(BloodyBitsMod.MODID, "entity_message"));
 
-public class EntityMessage {
+    public static final StreamCodec<ByteBuf, EntityMessage> STREAM_CODEC = StreamCodec.composite(
+            ByteBufCodecs.VAR_INT,
+            EntityMessage::entityId,
+            ByteBufCodecs.VAR_INT,
+            EntityMessage::entityOwnerId,
+            EntityMessage::new
+    );
 
-    public int entityId;
-    public int entityOwnerid;
-
-    public EntityMessage(int entityId, int entityOwnerId) {
-        this.entityId = entityId;
-        this.entityOwnerid = entityOwnerId;
+    @Override
+    public CustomPacketPayload.@NotNull Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
 
-    public static void encode(EntityMessage message, FriendlyByteBuf buffer) {
-        buffer.writeInt(message.entityId).writeInt(message.entityOwnerid);
-    }
+    public static void handleToClient(final EntityMessage message, final IPayloadContext contextSupplier) {
+        contextSupplier.enqueueWork(() -> {
 
-    public static EntityMessage decode(FriendlyByteBuf buffer) {
-        return new EntityMessage(buffer.readInt(), buffer.readInt());
-    }
-
-    public static void handle(EntityMessage message, Supplier<NetworkEvent.Context> contextSupplier) {
-        NetworkEvent.Context context = contextSupplier.get();
-        context.enqueueWork(() -> {
-//            if (Minecraft.getInstance().level != null && context.getDirection().getReceptionSide().isClient()) {
-//                BloodyBitsMod.LOGGER.info("CREATING NEW ENTITY CLIENT SIDE?");
-//                Entity entity = Minecraft.getInstance().level.getEntity(message.entityId);
-//                BloodyBitsMod.LOGGER.info("ENTITY CLIENT SIDE CREATED.");
-//                if (entity instanceof BloodSprayEntity bloodSprayEntity) {
-//                    bloodSprayEntity.setOwner(Minecraft.getInstance().level.getEntity(message.entityOwnerid));
-//                }
-//            }
         });
-        context.setPacketHandled(true);
+    }
+
+    public static void handleToServer(final EntityMessage message, final IPayloadContext contextSupplier) {
+        contextSupplier.enqueueWork(() -> {
+
+        });
     }
 }
