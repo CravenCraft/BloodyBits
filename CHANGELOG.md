@@ -1,3 +1,7 @@
+## V1.3.4 More Bugfixes
+- Added more null pointer checks to fix some random crashing issues. Special thanks to [MitakeAmeka](https://github.com/MitakeAmeka)
+    for spotting this issue and opening a PR with the fix.
+
 ## V1.3.3 Texture Polishing & Bugfixes
 - Switched the blood spray texture back to its original, more solid texture. Think it looks a lot better.
 - Added a client-side config option to make the blood spatters more bright, which should fix a minor
