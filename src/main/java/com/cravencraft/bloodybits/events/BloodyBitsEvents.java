@@ -104,10 +104,6 @@ public class BloodyBitsEvents {
                     return;
                 }
 
-                if (mod == 0 || entity.tickCount == 0) {
-                    return;
-                }
-
                 if (entity.tickCount % mod == 0) {
                     createBloodSpray(entity, entity.damageSources().genericKill(), 1, true);
                 }
