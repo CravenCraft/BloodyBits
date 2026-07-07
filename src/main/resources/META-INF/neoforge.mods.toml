@@ -10,11 +10,12 @@ authors="${mod_authors}" #optional
 description='''${mod_description}'''
 
 [[dependencies.${mod_id}]]
-    modId="forge" #mandatory
+    modId="neoforge" #mandatory
     # Does this dependency have to exist - if not, ordering below must be specified
-    mandatory=true #mandatory
+#    mandatory=true #mandatory
+    type="required"
     # The version range of the dependency
-    versionRange="${forge_version_range}" #mandatory
+    versionRange="[${neo_version},)" #mandatory
     ordering="NONE"
     # Side this dependency is applied on - BOTH, CLIENT, or SERVER
     side="BOTH"

@@ -124,10 +124,10 @@ public class BloodSprayEntity extends Projectile {
         return pDistance < d0 * d0;
     }
 
-    protected void defineSynchedData() {
-        this.entityData.define(ID_FLAGS, (byte)0);
-        this.entityData.define(PIERCE_LEVEL, (byte)0);
-    }
+//    protected void defineSynchedData() {
+//        this.entityData.define(ID_FLAGS, (byte)0);
+//        this.entityData.define(PIERCE_LEVEL, (byte)0);
+//    }
 
     /**
      * Similar to setArrowHeading, it's point the throwable entity to a x, y, z direction.
@@ -151,6 +151,11 @@ public class BloodSprayEntity extends Projectile {
     public void lerpMotion(double pX, double pY, double pZ) {
         super.lerpMotion(pX, pY, pZ);
         this.life = 0;
+    }
+
+    @Override
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+
     }
 
     /**
@@ -232,7 +237,8 @@ public class BloodSprayEntity extends Projectile {
 
             }
             else {
-                boilerplateTickCodeFromAbstractArrow(vec3);
+//                boilerplateTickCodeFromAbstractArrow(vec3);
+                super.tick();
 
                 if (this.isSolid) {
                     double velocity = this.getDeltaMovement().length();
@@ -290,82 +296,82 @@ public class BloodSprayEntity extends Projectile {
      * Most of the boilerplate code taken from the AbstractArrow class since we don't
      * want to actually extend that class because it causes unwanted interactions with entities.
      */
-    public void boilerplateTickCodeFromAbstractArrow(Vec3 vec3) {
-        this.inGroundTime = 0;
-        Vec3 vec32 = this.position();
-        Vec3 vec33 = vec32.add(vec3);
-        HitResult hitresult = this.level().clip(new ClipContext(vec32, vec33, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this));
-
-        while(!this.isRemoved()) {
-            if (hitresult != null && hitresult.getType() != HitResult.Type.MISS) {
-                switch (net.minecraftforge.event.ForgeEventFactory.onProjectileImpactResult(this, hitresult)) {
-                    case SKIP_ENTITY:
-                        if (hitresult.getType() != HitResult.Type.ENTITY) { // If there is no entity, we just return default behaviour
-                            this.onHit(hitresult);
-                            this.hasImpulse = true;
-                            break;
-                        }
-                        break;
-                    case STOP_AT_CURRENT_NO_DAMAGE:
-                        this.discard();
-                        break;
-                    case STOP_AT_CURRENT:
-                        this.setPierceLevel((byte) 0);
-                    case DEFAULT:
-                        this.onHit(hitresult);
-                        this.hasImpulse = true;
-                        break;
-                }
-            }
-
-            if (this.getPierceLevel() <= 0) {
-                break;
-            }
-
-            hitresult = null;
-        }
-        if (this.isRemoved()) return;
-
-        vec3 = this.getDeltaMovement();
-        double d5 = vec3.x;
-        double d6 = vec3.y;
-        double d1 = vec3.z;
-
-        double d7 = this.getX() + d5;
-        double d2 = this.getY() + d6;
-        double d3 = this.getZ() + d1;
-        double d4 = vec3.horizontalDistance();
-
-        // Removes rotation from the blood spray if it has entered the water.
-        if (!this.isInWater()) {
-            this.setYRot((float)(Mth.atan2(d5, d1) * (double)(180F / (float)Math.PI)));
-        }
-        else {
-            this.setYRot((float)(Mth.atan2(-d5, -d1) * (double)(180F / (float)Math.PI)));
-        }
-
-        this.setXRot((float)(Mth.atan2(d6, d4) * (double)(180F / (float)Math.PI)));
-        this.setXRot(lerpRotation(this.xRotO, this.getXRot()));
-        this.setYRot(lerpRotation(this.yRotO, this.getYRot()));
-        float f = 0.99F;
-        if (this.isInWater()) {
-            f = this.getWaterInertia();
-        }
-
-        this.setDeltaMovement(vec3.scale(f));
-        if (!this.isNoGravity()) {
-            Vec3 vec34 = this.getDeltaMovement();
-            if (this.isInWater()) {
-                this.setDeltaMovement(vec34.x, 0, vec34.z);
-            }
-            else {
-                this.setDeltaMovement(vec34.x, vec34.y - (double)0.05F, vec34.z);
-            }
-        }
-
-        this.setPos(d7, d2, d3);
-        this.checkInsideBlocks();
-    }
+//    public void boilerplateTickCodeFromAbstractArrow(Vec3 vec3) {
+//        this.inGroundTime = 0;
+//        Vec3 vec32 = this.position();
+//        Vec3 vec33 = vec32.add(vec3);
+//        HitResult hitresult = this.level().clip(new ClipContext(vec32, vec33, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this));
+//
+//        while(!this.isRemoved()) {
+//            if (hitresult != null && hitresult.getType() != HitResult.Type.MISS) {
+//                switch (net.minecraftforge.event.ForgeEventFactory.onProjectileImpactResult(this, hitresult)) {
+//                    case SKIP_ENTITY:
+//                        if (hitresult.getType() != HitResult.Type.ENTITY) { // If there is no entity, we just return default behaviour
+//                            this.onHit(hitresult);
+//                            this.hasImpulse = true;
+//                            break;
+//                        }
+//                        break;
+//                    case STOP_AT_CURRENT_NO_DAMAGE:
+//                        this.discard();
+//                        break;
+//                    case STOP_AT_CURRENT:
+//                        this.setPierceLevel((byte) 0);
+//                    case DEFAULT:
+//                        this.onHit(hitresult);
+//                        this.hasImpulse = true;
+//                        break;
+//                }
+//            }
+//
+//            if (this.getPierceLevel() <= 0) {
+//                break;
+//            }
+//
+//            hitresult = null;
+//        }
+//        if (this.isRemoved()) return;
+//
+//        vec3 = this.getDeltaMovement();
+//        double d5 = vec3.x;
+//        double d6 = vec3.y;
+//        double d1 = vec3.z;
+//
+//        double d7 = this.getX() + d5;
+//        double d2 = this.getY() + d6;
+//        double d3 = this.getZ() + d1;
+//        double d4 = vec3.horizontalDistance();
+//
+//        // Removes rotation from the blood spray if it has entered the water.
+//        if (!this.isInWater()) {
+//            this.setYRot((float)(Mth.atan2(d5, d1) * (double)(180F / (float)Math.PI)));
+//        }
+//        else {
+//            this.setYRot((float)(Mth.atan2(-d5, -d1) * (double)(180F / (float)Math.PI)));
+//        }
+//
+//        this.setXRot((float)(Mth.atan2(d6, d4) * (double)(180F / (float)Math.PI)));
+//        this.setXRot(lerpRotation(this.xRotO, this.getXRot()));
+//        this.setYRot(lerpRotation(this.yRotO, this.getYRot()));
+//        float f = 0.99F;
+//        if (this.isInWater()) {
+//            f = this.getWaterInertia();
+//        }
+//
+//        this.setDeltaMovement(vec3.scale(f));
+//        if (!this.isNoGravity()) {
+//            Vec3 vec34 = this.getDeltaMovement();
+//            if (this.isInWater()) {
+//                this.setDeltaMovement(vec34.x, 0, vec34.z);
+//            }
+//            else {
+//                this.setDeltaMovement(vec34.x, vec34.y - (double)0.05F, vec34.z);
+//            }
+//        }
+//
+//        this.setPos(d7, d2, d3);
+//        this.checkInsideBlocks();
+//    }
 
     public boolean shouldFall() {
         return this.inGround && this.level().noCollision((new AABB(this.position(), this.position())).inflate(0.06D));

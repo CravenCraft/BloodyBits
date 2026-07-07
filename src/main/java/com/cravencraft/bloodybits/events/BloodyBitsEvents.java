@@ -87,33 +87,33 @@ public class BloodyBitsEvents {
      *  below that threshold.
      *  TODO: LivingEvent might only happen at certain times. See when it happens.
      */
-    @SubscribeEvent
-    public static void entityBleedWhenDamaged(LivingEvent event) {
-        if (CommonConfig.bleedWhenDamaged() && !event.getEntity().level().isClientSide() && !event.getEntity().isDeadOrDying()) {
-            LivingEntity entity = event.getEntity();
-            double remainingHealthPercentage = entity.getHealth() / entity.getMaxHealth();
-            String entityName = (entity instanceof Player) ? "player" : entity.getEncodeId();
-            entityName = (entityName == null) ? "" : entityName;
-
-            if (!CommonConfig.blackListEntities().contains(entityName) && remainingHealthPercentage <= 0.5) {
-
-                int mod = (int) (remainingHealthPercentage * 1000);
-                if (mod == 0 || entity.tickCount == 0) {
-                    return;
-                }
-
-                if (entity.tickCount % mod == 0) {
-                    createBloodSpray(entity, entity.damageSources().genericKill(), 1, true);
-                }
-            }
-        }
-    }
+//    @SubscribeEvent
+//    public static void entityBleedWhenDamaged(LivingEvent event) {
+//        if (CommonConfig.bleedWhenDamaged() && !event.getEntity().level().isClientSide() && !event.getEntity().isDeadOrDying()) {
+//            LivingEntity entity = event.getEntity();
+//            double remainingHealthPercentage = entity.getHealth() / entity.getMaxHealth();
+//            String entityName = (entity instanceof Player) ? "player" : entity.getEncodeId();
+//            entityName = (entityName == null) ? "" : entityName;
+//
+//            if (!CommonConfig.blackListEntities().contains(entityName) && remainingHealthPercentage <= 0.5) {
+//
+//                int mod = (int) (remainingHealthPercentage * 1000);
+//                if (mod == 0 || entity.tickCount == 0) {
+//                    return;
+//                }
+//
+//                if (entity.tickCount % mod == 0) {
+//                    createBloodSpray(entity, entity.damageSources().genericKill(), 1, true);
+//                }
+//            }
+//        }
+//    }
 
     /**
      * For when entities explode. Like a creeper.
      */
     @SubscribeEvent(priority = EventPriority.LOWEST)
-    public static void creeperExplosionEvent(ExplosionEvent event) {
+    public static void creeperExplosionEvent(ExplosionEvent.Detonate event) {
         Entity entity = event.getExplosion().getDirectSourceEntity();
 
         if (entity instanceof LivingEntity livingEntity) {

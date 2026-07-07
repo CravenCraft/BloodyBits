@@ -25,14 +25,14 @@ public class BloodyBitsUtils {
      * Convenient helper method to simplify vertex drawing.
      */
     public static void vertex(Matrix4f pMatrix, Matrix3f pNormal, VertexConsumer pConsumer, float pX, float pY, float pZ, float pU, float pV, int pNormalX, int pNormalZ, int pNormalY, int packedLight, int red, int green, int blue, int alpha) {
+
         pConsumer
-                .vertex(pMatrix, pX, pY, pZ)
-                .color(red, green, blue, alpha)
-                .uv(pU, pV)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(packedLight)
-                .normal(pNormal, (float)pNormalX, (float)pNormalY, (float)pNormalZ)
-                .endVertex();
+                .addVertex(pMatrix, pX, pY, pZ)
+                .setColor(red, green, blue, alpha)
+                .setUv(pU, pV)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
+                .setLight(packedLight)
+                .setNormal((float)pNormalX, (float)pNormalY, (float)pNormalZ);
     }
 
     // TODO: One of these sounds isn't being properly found. Find out which one and remove it.
