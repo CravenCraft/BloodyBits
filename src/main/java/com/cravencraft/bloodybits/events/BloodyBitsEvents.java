@@ -141,8 +141,11 @@ public class BloodyBitsEvents {
             if (!entity.level().isClientSide() && !CommonConfig.blackListEntities().contains(entityName) && !CommonConfig.blackListDamageSources().contains(damageSource.type().msgId())) {
                 for (int i = 0; i < damageAmount; i++) {
                     if (BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.size() >= CommonConfig.maxSpatters()) {
-                        BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.get(0).discard();
-                        BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.remove(0);
+                        BloodSprayEntity oldest = BloodyBitsUtils.CLIENT_SIDE_BLOOD_SPRAYS.get(0);
+                        if (oldest != null) {
+                            BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.get(0).discard();
+                            BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.remove(0);
+                        }
                     }
 
                     BloodSprayEntity bloodSprayEntity = new BloodSprayEntity(EntityRegistry.BLOOD_SPRAY.get(), entity, entity.level());
