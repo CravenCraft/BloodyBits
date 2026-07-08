@@ -4,6 +4,7 @@ import com.cravencraft.bloodybits.config.ClientConfig;
 import com.cravencraft.bloodybits.config.CommonConfig;
 import com.cravencraft.bloodybits.network.BloodyBitsPacketHandler;
 import com.cravencraft.bloodybits.registries.EntityRegistry;
+import com.cravencraft.bloodybits.registries.ParticleRegistry;
 import com.cravencraft.bloodybits.sounds.BloodyBitsSounds;
 import com.mojang.logging.LogUtils;
 import net.neoforged.bus.api.IEventBus;
@@ -22,6 +23,7 @@ public class BloodyBitsMod {
 
     public BloodyBitsMod(IEventBus modEventBus, ModContainer modContainer) {
 
+        ParticleRegistry.registerParticles(modEventBus);
         EntityRegistry.register(modEventBus);
         BloodyBitsSounds.register(modEventBus);
 

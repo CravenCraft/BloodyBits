@@ -3,13 +3,18 @@ package com.cravencraft.bloodybits.events;
 import com.cravencraft.bloodybits.BloodyBitsMod;
 import com.cravencraft.bloodybits.config.CommonConfig;
 import com.cravencraft.bloodybits.entity.BloodSprayEntity;
+import com.cravencraft.bloodybits.network.BloodyBitsPacketHandler;
 import com.cravencraft.bloodybits.network.messages.EntityMessage;
+import com.cravencraft.bloodybits.particle.BloodSprayParticle;
 import com.cravencraft.bloodybits.registries.EntityRegistry;
+import com.cravencraft.bloodybits.registries.ParticleRegistry;
 import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -22,7 +27,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 @EventBusSubscriber(modid = BloodyBitsMod.MODID)
 public class BloodyBitsEvents {
 
-    private static int currentTick = 0;
+//    private static int currentTick = 0;
 
 //    /**
 //     * Just a simple method made to test blood sprays by right-clicking on blocks.
@@ -57,16 +62,55 @@ public class BloodyBitsEvents {
      * close enough to any of the players. Will break out of the loop the second a player is found,
      * which should optimize this somewhat.
      */
-    @SubscribeEvent(priority = EventPriority.LOWEST)
-    public static void bloodOnEntityDamage(LivingDamageEvent.Post event) {
-        LivingEntity entity = event.getEntity();
+    @SubscribeEvent
+    public static void bloodOnEntityDamage(LivingDamageEvent.Pre event) {
+        var entity = event.getEntity();
+        var source = event.getSource();
+        var level = entity.level();
+
+        if (level.isClientSide()) return;
+
         String entityName = (entity instanceof Player) ? "player" : entity.getEncodeId();
         entityName = (entityName == null) ? "" : entityName;
 
-        if (!event.getEntity().level().isClientSide() && !CommonConfig.blackListEntities().contains(entityName) && !CommonConfig.blackListDamageSources().contains(event.getSource().type().msgId())) {
-            int maxDamage = (int) Math.min(20, event.getOriginalDamage());
-            createBloodSpray(entity, event.getSource(), maxDamage, false);
+        if (!(source.getEntity() instanceof Player)) return;
+//        try (var level = entity.level()) {
+//            if (!level.isClientSide()) return;
+
+        AABB aabb = entity.isMultipartEntity() ? entity.getParts()[entity.getRandom().nextInt(entity.getParts().length)].getBoundingBox() : entity.getBoundingBox();
+        Vec3 vec = aabb.getCenter();
+        float damage = event.getContainer().getNewDamage();
+//        if (damage <= config.minDamage()) {
+//            return;
+//        }
+        if (damage == Float.MAX_VALUE) {
+            // kill command
+            return;
         }
+
+        damage = Math.min(damage, 2000);
+        int count = (int) (damage)
+                + level.random.nextIntBetweenInclusive(0, (int) (2 * (damage)));
+//        double speed = config.scaledBaseSpeed() + count * config.scaledSpeedPerParticle();
+        double bbShove = Math.max(aabb.getXsize() * 0.5 - 0.5, 0);
+        double scale = (aabb.getXsize() + 2) / 3f;
+//        level.addAlwaysVisibleParticle(ParticleRegistry.BLOOD_SPRAY_PARTICLE.get(), entity.getX(), entity.getY() + 3, entity.getZ(), 0, 0, 0);
+        var server = level.getServer();
+
+        if (server == null) return;
+
+        server.getPlayerList().getPlayers().forEach(player -> ((ServerLevel) level)
+                .sendParticles(player, ParticleRegistry.BLOOD_SPRAY_PARTICLE.get(), true, vec.x, vec.y + aabb.getYsize() * 0.5, vec.z, count, 0.05 + bbShove, 0.1, 0.05 + bbShove, 0.5));
+
+//        }
+//        catch (Exception e) {
+//            BloodyBitsMod.LOGGER.error("Failed to load entity damage", e);
+//        }
+
+//        if (!event.getEntity().level().isClientSide() && !CommonConfig.blackListEntities().contains(entityName) && !CommonConfig.blackListDamageSources().contains(event.getSource().type().msgId())) {
+//            int maxDamage = (int) Math.min(20, event.getOriginalDamage());
+//            createBloodSpray(entity, event.getSource(), maxDamage, false);
+//        }
 
         // TODO: This is just for damage textures, and is also client side only. So, need to add this
         //       to the client events class when I finally get around to polishing that feature.
@@ -173,9 +217,6 @@ public class BloodyBitsEvents {
                     entity.level().addFreshEntity(bloodSprayEntity);
 
                     PacketDistributor.sendToServer(new EntityMessage(bloodSprayEntity.getId(), entity.getId()));
-
-//                    BloodyBitsPacketHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> bloodSprayEntity),
-//                            new EntityMessage(bloodSprayEntity.getId(), entity.getId()));
                 }
             }
         }
