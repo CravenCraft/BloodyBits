@@ -12,15 +12,17 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.event.entity.living.*;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.event.level.ExplosionEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.network.PacketDistributor;
+import net.neoforged.neoforge.event.entity.living.*;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+import net.neoforged.neoforge.event.level.ExplosionEvent;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.neoforge.network.PacketDistributor;
 
-@Mod.EventBusSubscriber(modid = BloodyBitsMod.MODID)
+import net.neoforged.fml.common.EventBusSubscriber;
+
+@EventBusSubscriber(modid = BloodyBitsMod.MODID)
 public class BloodyBitsEvents {
 
     private static int currentTick = 0;
@@ -59,14 +61,14 @@ public class BloodyBitsEvents {
      * which should optimize this somewhat.
      */
     @SubscribeEvent(priority = EventPriority.LOWEST)
-    public static void bloodOnEntityDamage(LivingDamageEvent event) {
+    public static void bloodOnEntityDamage(LivingDamageEvent.Post event) {
         LivingEntity entity = event.getEntity();
-        if (!event.isCanceled() && entity != null) {
+        if (entity != null) {
             String entityName = (entity instanceof Player) ? "player" : entity.getEncodeId();
             entityName = (entityName == null) ? "" : entityName;
 
             if (!event.getEntity().level().isClientSide() && !CommonConfig.blackListEntities().contains(entityName) && !CommonConfig.blackListDamageSources().contains(event.getSource().type().msgId())) {
-                int maxDamage = (int) Math.min(20, event.getAmount());
+                int maxDamage = (int) Math.min(20, event.getNewDamage());
                 createBloodSpray(entity, event.getSource(), maxDamage, false);
             }
 
@@ -90,9 +92,9 @@ public class BloodyBitsEvents {
      *  below that threshold.
      */
     @SubscribeEvent
-    public static void entityBleedWhenDamaged(LivingEvent.LivingTickEvent event) {
-        if (CommonConfig.bleedWhenDamaged() && event.getEntity() != null && !event.getEntity().level().isClientSide() && !event.getEntity().isDeadOrDying()) {
-            LivingEntity entity = event.getEntity();
+    public static void entityBleedWhenDamaged(net.neoforged.neoforge.event.tick.EntityTickEvent.Post event) {
+        if (event.getEntity() instanceof LivingEntity entity) {
+            if (CommonConfig.bleedWhenDamaged() && !entity.level().isClientSide() && !entity.isDeadOrDying()) {
             double remainingHealthPercentage = entity.getHealth() / entity.getMaxHealth();
             String entityName = (entity instanceof Player) ? "player" : entity.getEncodeId();
             entityName = (entityName == null) ? "" : entityName;
@@ -110,16 +112,17 @@ public class BloodyBitsEvents {
             }
         }
     }
+    }
 
     /**
      * For when entities explode. Like a creeper.
      */
     @SubscribeEvent(priority = EventPriority.LOWEST)
-    public static void creeperExplosionEvent(ExplosionEvent event) {
+    public static void creeperExplosionEvent(ExplosionEvent.Detonate event) {
         Entity entity = event.getExplosion().getDirectSourceEntity();
 
-        if (entity instanceof LivingEntity livEnt && !event.isCanceled()) {
-            createBloodSpray(livEnt, event.getExplosion().getDamageSource(), 15, false);
+        if (entity instanceof LivingEntity livEnt) {
+            createBloodSpray(livEnt, livEnt.damageSources().explosion(event.getExplosion().getDirectSourceEntity(), event.getExplosion().getIndirectSourceEntity()), 15, false);
         }
     }
 
@@ -169,8 +172,7 @@ public class BloodyBitsEvents {
                     bloodSprayEntity.setDeltaMovement(xAngle, yAngle * 0.35, zAngle);
                     entity.level().addFreshEntity(bloodSprayEntity);
 
-                    BloodyBitsPacketHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> bloodSprayEntity),
-                            new EntityMessage(bloodSprayEntity.getId(), entity.getId()));
+                    PacketDistributor.sendToPlayersTrackingEntityAndSelf(bloodSprayEntity, new EntityMessage(bloodSprayEntity.getId(), entity.getId()));
                 }
             }
         }

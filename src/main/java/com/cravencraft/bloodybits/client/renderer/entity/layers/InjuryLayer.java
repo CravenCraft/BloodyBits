@@ -16,13 +16,11 @@ import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HexFormat;
 
-@OnlyIn(Dist.CLIENT)
+
 public class InjuryLayer <T extends LivingEntity, M extends EntityModel<T>> extends RenderLayer<T, M>  {
     private static final float MAX_RGB_COLOR_VALUE = 255.0F;
 
@@ -97,7 +95,8 @@ public class InjuryLayer <T extends LivingEntity, M extends EntityModel<T>> exte
             float blueDamage = HexFormat.fromHexDigits(damageHexColor.substring(5)) / MAX_RGB_COLOR_VALUE;
 
             // TODO: Last param is the alpha.
-            this.getParentModel().renderToBuffer(poseStack, customVertexConsumer, pPackedLight, OverlayTexture.NO_OVERLAY, redDamage, greenDamage, blueDamage, canPlayerSeeInvisibleEntity ? 0.15F : 1.0F);
+            int argb = ((int)((canPlayerSeeInvisibleEntity ? 0.15F : 1.0F) * 255) << 24) | ((int)(redDamage * 255) << 16) | ((int)(greenDamage * 255) << 8) | (int)(blueDamage * 255);
+            this.getParentModel().renderToBuffer(poseStack, customVertexConsumer, pPackedLight, OverlayTexture.NO_OVERLAY, argb);
         }
     }
 }

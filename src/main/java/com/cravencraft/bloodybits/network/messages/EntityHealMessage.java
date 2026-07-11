@@ -1,58 +1,53 @@
 package com.cravencraft.bloodybits.network.messages;
 
+import com.cravencraft.bloodybits.BloodyBitsMod;
 import com.cravencraft.bloodybits.client.model.EntityInjuries;
 import com.cravencraft.bloodybits.config.ClientConfig;
 import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraftforge.network.NetworkEvent;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-import java.util.function.Supplier;
+public record EntityHealMessage(int entityId, float healAmount) implements CustomPacketPayload {
 
-public class EntityHealMessage {
-    public int entityId;
-    public float healAmount;
+    public static final CustomPacketPayload.Type<EntityHealMessage> TYPE = new CustomPacketPayload.Type<>(BloodyBitsMod.id("entity_heal_message"));
 
-    public EntityHealMessage(int entityId, float healAmount) {
-        this.healAmount = healAmount;
-        this.entityId = entityId;
-    }
+    public static final StreamCodec<FriendlyByteBuf, EntityHealMessage> STREAM_CODEC = StreamCodec.ofMember(EntityHealMessage::encode, EntityHealMessage::decode);
 
-    public static void encode(EntityHealMessage message, FriendlyByteBuf buffer) {
-        buffer.writeInt(message.entityId);
-        buffer.writeFloat(message.healAmount);
+    public void encode(FriendlyByteBuf buffer) {
+        buffer.writeInt(this.entityId);
+        buffer.writeFloat(this.healAmount);
     }
 
     public static EntityHealMessage decode(FriendlyByteBuf buffer) {
         return new EntityHealMessage(buffer.readInt(), buffer.readFloat());
     }
 
-    public static void handle(EntityHealMessage message, Supplier<NetworkEvent.Context> contextSupplier) {
-        NetworkEvent.Context context = contextSupplier.get();
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
+    public static void handle(EntityHealMessage message, IPayloadContext context) {
         context.enqueueWork(() -> {
-            if (ClientConfig.showEntityDamage() && Minecraft.getInstance().level != null && context.getDirection().getReceptionSide().isClient()) {
-                if (Minecraft.getInstance().level.getEntity(message.entityId) instanceof LivingEntity livingEntity) {
+            if (ClientConfig.showEntityDamage() && Minecraft.getInstance().level != null && context.flow().isClientbound()) {
+                if (Minecraft.getInstance().level.getEntity(message.entityId()) instanceof LivingEntity livingEntity) {
                     healEntityInjuries(livingEntity, message);
                 }
             }
         });
-        context.setPacketHandled(true);
     }
 
     private static void healEntityInjuries(LivingEntity livingEntity, EntityHealMessage message) {
-
         if (livingEntity.isAlive()) {
-
             int entityId = livingEntity.getId();
             if (livingEntity.getHealth() < livingEntity.getMaxHealth()) {
-
-                // Will get the entity injuries either by retrieving them from a list based on the entity's ID.
                 if (BloodyBitsUtils.INJURED_ENTITIES.containsKey(entityId)) {
                     EntityInjuries entityInjuries = BloodyBitsUtils.INJURED_ENTITIES.get(entityId);
-
-                    double entityHealPercentage = message.healAmount / livingEntity.getMaxHealth();
-
+                    double entityHealPercentage = message.healAmount() / livingEntity.getMaxHealth();
                     entityInjuries.addHealAmount(entityHealPercentage);
                 }
             }

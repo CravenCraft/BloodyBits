@@ -5,10 +5,9 @@ import com.google.common.reflect.TypeToken;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import net.minecraftforge.common.ForgeConfigSpec;
-import net.minecraftforge.fml.ModLoadingContext;
-import net.minecraftforge.fml.config.ModConfig;
-import net.minecraftforge.fml.loading.FMLPaths;
+import net.neoforged.neoforge.common.ModConfigSpec;
+import net.neoforged.fml.config.ModConfig;
+import net.neoforged.fml.loading.FMLPaths;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
@@ -44,13 +43,13 @@ public class ClientConfig {
 
     private static final String BURN_DAMAGE_COLOR = "#323232";
 
-    private static ForgeConfigSpec.ConfigValue<List<? extends String>> BURN_DAMAGE_SOURCE;
-    private static ForgeConfigSpec.ConfigValue<List<? extends String>> BLACKLIST_INJURY_SOURCES;
+    private static ModConfigSpec.ConfigValue<List<? extends String>> BURN_DAMAGE_SOURCE;
+    private static ModConfigSpec.ConfigValue<List<? extends String>> BLACKLIST_INJURY_SOURCES;
 
-    public static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
+    public static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
 
-    private static ForgeConfigSpec.BooleanValue SHOW_MOB_DAMAGE;
-    private static ForgeConfigSpec.IntValue AVAILABLE_TEXTURES_PER_ENTITY;
+    private static ModConfigSpec.BooleanValue SHOW_MOB_DAMAGE;
+    private static ModConfigSpec.IntValue AVAILABLE_TEXTURES_PER_ENTITY;
 
     public static boolean showEntityDamage() { return false; }
 
@@ -85,8 +84,6 @@ public class ClientConfig {
         BUILDER.pop();
 
         ENTITY_BLOOD_COLORS = getConfigData();
-
-        ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, BUILDER.build());
     }
 
     private static HashMap<String, List<String>> getOrCreateConfigFile(File configFile, Type type) {

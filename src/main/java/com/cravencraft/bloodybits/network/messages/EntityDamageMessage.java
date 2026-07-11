@@ -6,48 +6,42 @@ import com.cravencraft.bloodybits.config.ClientConfig;
 import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.network.NetworkEvent;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-import java.util.function.Supplier;
+public record EntityDamageMessage(int entityId, float damageAmount, boolean isBleed, boolean isBurn) implements CustomPacketPayload {
+    
+    public static final CustomPacketPayload.Type<EntityDamageMessage> TYPE = new CustomPacketPayload.Type<>(BloodyBitsMod.id("entity_damage_message"));
 
-public class EntityDamageMessage {
-    public int entityId;
-    public float damageAmount;
+    public static final StreamCodec<FriendlyByteBuf, EntityDamageMessage> STREAM_CODEC = StreamCodec.ofMember(EntityDamageMessage::encode, EntityDamageMessage::decode);
 
-    //TODO: Can probably just have isBurn here if I don't plan on adding other injury sources. If I do, then maybe enums or something?
-    public boolean isBleed;
-    public boolean isBurn;
-
-    public EntityDamageMessage(int entityId, float damageAmount, boolean isBleed, boolean isBurn) {
-        this.damageAmount = damageAmount;
-        this.entityId = entityId;
-        this.isBleed = isBleed;
-        this.isBurn = isBurn;
-    }
-
-    public static void encode(EntityDamageMessage message, FriendlyByteBuf buffer) {
-        buffer.writeInt(message.entityId);
-        buffer.writeFloat(message.damageAmount);
-        buffer.writeBoolean(message.isBleed);
-        buffer.writeBoolean(message.isBurn);
+    public void encode(FriendlyByteBuf buffer) {
+        buffer.writeInt(this.entityId);
+        buffer.writeFloat(this.damageAmount);
+        buffer.writeBoolean(this.isBleed);
+        buffer.writeBoolean(this.isBurn);
     }
 
     public static EntityDamageMessage decode(FriendlyByteBuf buffer) {
         return new EntityDamageMessage(buffer.readInt(), buffer.readFloat(), buffer.readBoolean(), buffer.readBoolean());
     }
 
-    public static void handle(EntityDamageMessage message, Supplier<NetworkEvent.Context> contextSupplier) {
-        NetworkEvent.Context context = contextSupplier.get();
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
+    public static void handle(EntityDamageMessage message, IPayloadContext context) {
         context.enqueueWork(() -> {
-            if (ClientConfig.showEntityDamage() && Minecraft.getInstance().level != null && context.getDirection().getReceptionSide().isClient()) {
-                if (Minecraft.getInstance().level.getEntity(message.entityId) instanceof LivingEntity livingEntity) {
+            if (ClientConfig.showEntityDamage() && Minecraft.getInstance().level != null && context.flow().isClientbound()) {
+                if (Minecraft.getInstance().level.getEntity(message.entityId()) instanceof LivingEntity livingEntity) {
                     addEntityInjuries(livingEntity, message);
                 }
             }
         });
-        context.setPacketHandled(true);
     }
 
     private static void addEntityInjuries(LivingEntity livingEntity, EntityDamageMessage message) {
@@ -56,10 +50,8 @@ public class EntityDamageMessage {
             String entityName = (livingEntity instanceof Player) ? "player" : livingEntity.getEncodeId();
             entityName = (entityName == null) ? "" : entityName;
             EntityInjuries entityInjuries;
-            String injuryType = (message.isBleed) ? "bleed" : "burn";
+            String injuryType = (message.isBleed()) ? "bleed" : "burn";
 
-            // Will get the entity injuries either by retrieving them from a list based on the entity's ID,
-            // or by creating a new one if it is not contained in the list.
             if (BloodyBitsUtils.INJURED_ENTITIES.containsKey(entityId)) {
                 entityInjuries = BloodyBitsUtils.INJURED_ENTITIES.get(entityId);
             }
@@ -68,7 +60,7 @@ public class EntityDamageMessage {
                 BloodyBitsUtils.INJURED_ENTITIES.put(entityId, entityInjuries);
             }
 
-            double entityDamagePercentage = message.damageAmount / livingEntity.getMaxHealth();
+            double entityDamagePercentage = message.damageAmount() / livingEntity.getMaxHealth();
             entityInjuries.addInjuryHits(injuryType, entityDamagePercentage);
         }
     }
