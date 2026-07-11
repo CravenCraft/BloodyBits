@@ -55,7 +55,7 @@ public class EntityInjuries {
         for (int i = 0; i < ClientConfig.availableTexturesPerEntity(); i++) {
             String modifiedPath = path.concat(i + ".png");
             try {
-                ResourceLocation injuryTextureResourceLocation = new ResourceLocation(namespace, modifiedPath);
+                ResourceLocation injuryTextureResourceLocation = net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(namespace, modifiedPath);
                 NativeImage damageLayerTexture = NativeImage.read(Minecraft.getInstance().getResourceManager().open(injuryTextureResourceLocation));
 
                 // Doing all paint logic. Currently, that means painting the blood and (if applicable)

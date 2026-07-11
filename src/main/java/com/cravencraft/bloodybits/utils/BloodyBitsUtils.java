@@ -10,8 +10,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.phys.Vec3;
-import org.joml.Matrix3f;
-import org.joml.Matrix4f;
+import com.mojang.blaze3d.vertex.PoseStack;
 
 import java.util.*;
 
@@ -24,15 +23,14 @@ public class BloodyBitsUtils {
     /**
      * Convenient helper method to simplify vertex drawing.
      */
-    public static void vertex(Matrix4f pMatrix, Matrix3f pNormal, VertexConsumer pConsumer, float pX, float pY, float pZ, float pU, float pV, int pNormalX, int pNormalZ, int pNormalY, int packedLight, int red, int green, int blue, int alpha) {
+    public static void vertex(PoseStack.Pose pPose, VertexConsumer pConsumer, float pX, float pY, float pZ, float pU, float pV, int pNormalX, int pNormalZ, int pNormalY, int packedLight, int red, int green, int blue, int alpha) {
         pConsumer
-                .vertex(pMatrix, pX, pY, pZ)
-                .color(red, green, blue, alpha)
-                .uv(pU, pV)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(packedLight)
-                .normal(pNormal, (float)pNormalX, (float)pNormalY, (float)pNormalZ)
-                .endVertex();
+                .addVertex(pPose, pX, pY, pZ)
+                .setColor(red, green, blue, alpha)
+                .setUv(pU, pV)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
+                .setLight(packedLight)
+                .setNormal(pPose, (float)pNormalX, (float)pNormalY, (float)pNormalZ);
     }
 
     // TODO: One of these sounds isn't being properly found. Find out which one and remove it.

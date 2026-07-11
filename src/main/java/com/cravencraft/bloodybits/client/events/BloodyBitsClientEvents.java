@@ -1,12 +1,10 @@
 package com.cravencraft.bloodybits.client.events;
 
 import com.cravencraft.bloodybits.BloodyBitsMod;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.fml.common.EventBusSubscriber;
 
-@OnlyIn(Dist.CLIENT)
-@Mod.EventBusSubscriber(modid = BloodyBitsMod.MODID, value = Dist.CLIENT)
+
+
 public class BloodyBitsClientEvents {
-
 }

@@ -1,44 +1,34 @@
 package com.cravencraft.bloodybits.network.messages;
 
 import com.cravencraft.bloodybits.BloodyBitsMod;
-import com.cravencraft.bloodybits.entity.BloodSprayEntity;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.world.entity.Entity;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-import java.util.function.Supplier;
+public record EntityMessage(int entityId, int entityOwnerid) implements CustomPacketPayload {
 
-public class EntityMessage {
+    public static final CustomPacketPayload.Type<EntityMessage> TYPE = new CustomPacketPayload.Type<>(BloodyBitsMod.id("entity_message"));
 
-    public int entityId;
-    public int entityOwnerid;
+    public static final StreamCodec<FriendlyByteBuf, EntityMessage> STREAM_CODEC = StreamCodec.ofMember(EntityMessage::encode, EntityMessage::decode);
 
-    public EntityMessage(int entityId, int entityOwnerId) {
-        this.entityId = entityId;
-        this.entityOwnerid = entityOwnerId;
-    }
-
-    public static void encode(EntityMessage message, FriendlyByteBuf buffer) {
-        buffer.writeInt(message.entityId).writeInt(message.entityOwnerid);
+    public void encode(FriendlyByteBuf buffer) {
+        buffer.writeInt(this.entityId);
+        buffer.writeInt(this.entityOwnerid);
     }
 
     public static EntityMessage decode(FriendlyByteBuf buffer) {
         return new EntityMessage(buffer.readInt(), buffer.readInt());
     }
 
-    public static void handle(EntityMessage message, Supplier<NetworkEvent.Context> contextSupplier) {
-        NetworkEvent.Context context = contextSupplier.get();
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
+    public static void handle(EntityMessage message, IPayloadContext context) {
         context.enqueueWork(() -> {
-//            if (Minecraft.getInstance().level != null && context.getDirection().getReceptionSide().isClient()) {
-//                BloodyBitsMod.LOGGER.info("CREATING NEW ENTITY CLIENT SIDE?");
-//                Entity entity = Minecraft.getInstance().level.getEntity(message.entityId);
-//                BloodyBitsMod.LOGGER.info("ENTITY CLIENT SIDE CREATED.");
-//                if (entity instanceof BloodSprayEntity bloodSprayEntity) {
-//                    bloodSprayEntity.setOwner(Minecraft.getInstance().level.getEntity(message.entityOwnerid));
-//                }
-//            }
+            // Originally empty in 1.20.1 implementation
         });
-        context.setPacketHandled(true);
     }
 }
