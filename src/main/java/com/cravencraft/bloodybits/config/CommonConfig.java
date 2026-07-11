@@ -1,23 +1,22 @@
 package com.cravencraft.bloodybits.config;
 
-import net.minecraftforge.common.ForgeConfigSpec;
-import net.minecraftforge.fml.ModLoadingContext;
-import net.minecraftforge.fml.config.ModConfig;
+import net.neoforged.neoforge.common.ModConfigSpec;
+import net.neoforged.fml.config.ModConfig;
 
 import java.util.List;
 
 public class CommonConfig {
-    public static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
+    public static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
 
-    private static ForgeConfigSpec.BooleanValue BLEED_WHEN_DAMAGED;
-    private static ForgeConfigSpec.IntValue DESPAWN_TIME;
-    private static ForgeConfigSpec.IntValue MAX_SPATTERS;
-    private static ForgeConfigSpec.DoubleValue BLOOD_SPRAY_DISTANCE;
-    private static ForgeConfigSpec.DoubleValue BLOOD_SPATTER_VOLUME;
+    private static ModConfigSpec.BooleanValue BLEED_WHEN_DAMAGED;
+    private static ModConfigSpec.IntValue DESPAWN_TIME;
+    private static ModConfigSpec.IntValue MAX_SPATTERS;
+    private static ModConfigSpec.DoubleValue BLOOD_SPRAY_DISTANCE;
+    private static ModConfigSpec.DoubleValue BLOOD_SPATTER_VOLUME;
 
-    private static ForgeConfigSpec.ConfigValue<List<? extends String>> SOLID_ENTITIES;
-    private static ForgeConfigSpec.ConfigValue<List<? extends String>> BLACKLIST_ENTITIES;
-    private static ForgeConfigSpec.ConfigValue<List<? extends String>> BLACKLIST_DAMAGE_SOURCES;
+    private static ModConfigSpec.ConfigValue<List<? extends String>> SOLID_ENTITIES;
+    private static ModConfigSpec.ConfigValue<List<? extends String>> BLACKLIST_ENTITIES;
+    private static ModConfigSpec.ConfigValue<List<? extends String>> BLACKLIST_DAMAGE_SOURCES;
 
     public static boolean bleedWhenDamaged() { return BLEED_WHEN_DAMAGED.get(); }
     public static int despawnTime() {
@@ -61,7 +60,5 @@ public class CommonConfig {
                         it -> it instanceof String);
 
         BUILDER.pop();
-
-        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, BUILDER.build());
     }
 }
