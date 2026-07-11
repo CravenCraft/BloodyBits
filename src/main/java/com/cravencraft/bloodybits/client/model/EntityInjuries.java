@@ -5,7 +5,7 @@ import com.cravencraft.bloodybits.config.ClientConfig;
 import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
 import com.mojang.blaze3d.platform.NativeImage;
 import net.minecraft.client.Minecraft;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.io.IOException;
 import java.util.*;
@@ -55,7 +55,7 @@ public class EntityInjuries {
         for (int i = 0; i < ClientConfig.availableTexturesPerEntity(); i++) {
             String modifiedPath = path.concat(i + ".png");
             try {
-                ResourceLocation injuryTextureResourceLocation = new ResourceLocation(namespace, modifiedPath);
+                Identifier injuryTextureResourceLocation = net.minecraft.resources.Identifier.fromNamespaceAndPath(namespace, modifiedPath);
                 NativeImage damageLayerTexture = NativeImage.read(Minecraft.getInstance().getResourceManager().open(injuryTextureResourceLocation));
 
                 // Doing all paint logic. Currently, that means painting the blood and (if applicable)

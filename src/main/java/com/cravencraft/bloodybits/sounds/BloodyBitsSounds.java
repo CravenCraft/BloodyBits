@@ -1,22 +1,24 @@
 package com.cravencraft.bloodybits.sounds;
 
 import com.cravencraft.bloodybits.BloodyBitsMod;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.registries.DeferredRegister;
+
+import java.util.function.Supplier;
+import net.neoforged.neoforge.registries.DeferredHolder;
 
 public class BloodyBitsSounds {
     public static final DeferredRegister<SoundEvent> SOUND_EVENTS =
-            DeferredRegister.create(ForgeRegistries.SOUND_EVENTS, BloodyBitsMod.MODID);
+            DeferredRegister.create(BuiltInRegistries.SOUND_EVENT, BloodyBitsMod.MODID);
 
 
-    public static final RegistryObject<SoundEvent> BLOOD_SPATTER = registerSoundEvents("blood_spatter");
+    public static final Supplier<SoundEvent> BLOOD_SPATTER = registerSoundEvents("blood_spatter");
 
-    private static RegistryObject<SoundEvent> registerSoundEvents(String name) {
-        return SOUND_EVENTS.register(name, () -> SoundEvent.createVariableRangeEvent(new ResourceLocation(BloodyBitsMod.MODID, name)));
+    private static Supplier<SoundEvent> registerSoundEvents(String name) {
+        return SOUND_EVENTS.register(name, () -> SoundEvent.createVariableRangeEvent(net.minecraft.resources.Identifier.fromNamespaceAndPath(BloodyBitsMod.MODID, name)));
     }
 
     public static void register(IEventBus eventBus) {

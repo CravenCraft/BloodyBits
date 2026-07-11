@@ -12,6 +12,8 @@ import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
@@ -124,9 +126,10 @@ public class BloodSprayEntity extends Projectile {
         return pDistance < d0 * d0;
     }
 
-    protected void defineSynchedData() {
-        this.entityData.define(ID_FLAGS, (byte)0);
-        this.entityData.define(PIERCE_LEVEL, (byte)0);
+    @Override
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(ID_FLAGS, (byte) 0);
+        builder.define(PIERCE_LEVEL, (byte) 0);
     }
 
     /**
@@ -149,7 +152,7 @@ public class BloodSprayEntity extends Projectile {
      * Updates the entity motion clientside, called by packets from the server
      */
     public void lerpMotion(double pX, double pY, double pZ) {
-        super.lerpMotion(pX, pY, pZ);
+        super.lerpMotion(new Vec3(pX, pY, pZ));
         this.life = 0;
     }
 
@@ -298,24 +301,11 @@ public class BloodSprayEntity extends Projectile {
 
         while(!this.isRemoved()) {
             if (hitresult != null && hitresult.getType() != HitResult.Type.MISS) {
-                switch (net.minecraftforge.event.ForgeEventFactory.onProjectileImpactResult(this, hitresult)) {
-                    case SKIP_ENTITY:
-                        if (hitresult.getType() != HitResult.Type.ENTITY) { // If there is no entity, we just return default behaviour
-                            this.onHit(hitresult);
-                            this.hasImpulse = true;
-                            break;
-                        }
-                        break;
-                    case STOP_AT_CURRENT_NO_DAMAGE:
-                        this.discard();
-                        break;
-                    case STOP_AT_CURRENT:
-                        this.setPierceLevel((byte) 0);
-                    case DEFAULT:
-                        this.onHit(hitresult);
-                        this.hasImpulse = true;
-                        break;
+                if (net.neoforged.neoforge.event.EventHooks.onProjectileImpact(this, hitresult)) {
+                    break;
                 }
+                this.onHit(hitresult);
+                this.markHurt();
             }
 
             if (this.getPierceLevel() <= 0) {
@@ -364,7 +354,6 @@ public class BloodSprayEntity extends Projectile {
         }
 
         this.setPos(d7, d2, d3);
-        this.checkInsideBlocks();
     }
 
     public boolean shouldFall() {
@@ -534,7 +523,7 @@ public class BloodSprayEntity extends Projectile {
      * If not, then this object ID will be added to the list.
      */
     private void setClientBloodColor() {
-        if (this.level().isClientSide) {
+        if (this.level().isClientSide()) {
             if (BloodyBitsUtils.CLIENT_SIDE_BLOOD_SPRAYS.containsKey(this.getId())) {
                 BloodSprayEntity bloodSprayEntity = BloodyBitsUtils.CLIENT_SIDE_BLOOD_SPRAYS.get(this.getId());
                 this.isSolid = bloodSprayEntity.isSolid;
@@ -584,11 +573,11 @@ public class BloodSprayEntity extends Projectile {
         return false;
     }
 
-    public void addAdditionalSaveData(CompoundTag pCompound) {
+    public void addAdditionalSaveData(ValueOutput pCompound) {
         super.addAdditionalSaveData(pCompound);
         pCompound.putShort("life", (short)this.life);
         if (this.lastState != null) {
-            pCompound.put("inBlockState", NbtUtils.writeBlockState(this.lastState));
+            pCompound.store("inBlockState", net.minecraft.util.ExtraCodecs.NBT, NbtUtils.writeBlockState(this.lastState));
         }
 
         pCompound.putBoolean("inGround", this.inGround);
@@ -597,14 +586,18 @@ public class BloodSprayEntity extends Projectile {
     /**
      * (abstract) Protected helper method to read subclass entity data from NBT.
      */
-    public void readAdditionalSaveData(CompoundTag pCompound) {
+    public void readAdditionalSaveData(ValueInput pCompound) {
         super.readAdditionalSaveData(pCompound);
-        this.life = pCompound.getShort("life");
-        if (pCompound.contains("inBlockState", 10)) {
-            this.lastState = NbtUtils.readBlockState(this.level().holderLookup(Registries.BLOCK), pCompound.getCompound("inBlockState"));
-        }
+        this.life = pCompound.getShortOr("life", (short) 0);
+        
+        var blockStateOpt = pCompound.read("inBlockState", net.minecraft.util.ExtraCodecs.NBT);
+        blockStateOpt.ifPresent(blockState -> {
+            if (blockState instanceof CompoundTag tag) {
+                this.lastState = NbtUtils.readBlockState(this.level().holderLookup(Registries.BLOCK), tag);
+            }
+        });
 
-        this.inGround = pCompound.getBoolean("inGround");
+        this.inGround = pCompound.getBooleanOr("inGround", false);
     }
 
     /**
