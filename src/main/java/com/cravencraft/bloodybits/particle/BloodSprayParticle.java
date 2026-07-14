@@ -84,17 +84,21 @@ public class BloodSprayParticle extends TextureSheetParticle {
 
 @Override
 public void render(VertexConsumer buffer, Camera camera, float partialTick) {
-    int fadeThreshold = lifetime - fadeoutTime;
-    float quadSize = this.getQuadSize(partialTick);
-    float f = this.age + partialTick;
+    int fadeThreshold = lifetime - fadeoutTime; // Determines when the particle should start fading
+    float quadSize = this.getQuadSize(partialTick); // Gets the quad size of the particle
+    float f = this.age + partialTick; // Current age with the given tick
+
+    // If the current age is less than the splat time, then expand the quad size
     if (f <= SPLAT_IN_TIME) {
         quadSize *= (f) / (SPLAT_IN_TIME * 2f) + .5f;
     }
 
+    // If the current age reaches the fadeThreshold, then decrease the quad size while fading the alpha.
     if (f > fadeThreshold) {
         quadSize *= (float) Mth.smoothstep(1.0 - Math.max(f - fadeThreshold - 60, 0) / fadeoutTime);
         this.alpha = 1.0F - Mth.clamp((f - fadeThreshold) / fadeoutTime, 1f - INITIAL_ALPHA, 1F);
     }
+
 
     this.renderRotatedParticle(buffer, camera, partialTick, quadSize, (quat) -> {
         quat.mul(Axis.YP.rotation(-(float) Math.PI));
@@ -107,15 +111,27 @@ public void render(VertexConsumer buffer, Camera camera, float partialTick) {
     private static final double HEIGHT_BRACKET_EPSILON = 1.0E-4D;
 
     private void renderRotatedParticle(VertexConsumer pConsumer, Camera camera, float partialTick, float quadSize, Consumer<Quaternionf> pQuaternion) {
-        Vec3 cameraPos = camera.getPosition();
+        Vec3 cameraPos = camera.getPosition(); // The current camera position
+
+        // Ensures the camera position for the blood spatter particle is fixed, and doesn't follow the camera
+        // Looks like the localY version extends ever so slightly above its position in the level to ensure that
+        // the particle is being presented as on top of the blocks and block entities, which is great because this
+        //  is likely what can be used to determine x and z axis as well for wall spatters.
         float localX = (float) (Mth.lerp(partialTick, this.xo, this.x) - cameraPos.x());
-        float localY = (float) (Mth.lerp(partialTick, this.yo, this.y) - cameraPos.y()) + 0.01f + .005f * (this.age / (float) this.lifetime);
+        float localY = (float) (Mth.lerp(partialTick, this.yo, this.y) - cameraPos.y()) + 0.01f + (.005f * (this.age / (float) this.lifetime));
         float localZ = (float) (Mth.lerp(partialTick, this.zo, this.z) - cameraPos.z());
+
+        // To my knowledge, a quaternion represents a 3-dimensional object's location and rotation.
+        // So, maybe this is setting the rotation of the spatter to face up?
         Quaternionf quaternion = (new Quaternionf()).setAngleAxis(0.0F, ROTATION_VECTOR.x(), ROTATION_VECTOR.y(), ROTATION_VECTOR.z());
 
-        pQuaternion.accept(quaternion);
+        pQuaternion.accept(quaternion); // Applies the new quaternion to the one in the argument.
+
+        // Transforms the quaternion to a single location, which to my knowledge appears to be center and on top of
+        //  the blocks.
         quaternion.transform(TRANSFORM_VECTOR);
 
+        // Creates a cube from vector points.
         Vector3f[] avector3f = new Vector3f[] {
                 new Vector3f(-1.0F, -1.0F, 0.0F),
                 new Vector3f(-1.0F, 1.0F, 0.0F),
@@ -123,7 +139,7 @@ public void render(VertexConsumer buffer, Camera camera, float partialTick) {
                 new Vector3f(1.0F, -1.0F, 0.0F)
         };
 
-
+        // Applies the quaternion rotation and local positions to the cube.
         for (int i = 0; i < 4; ++i) {
             Vector3f vector3f = avector3f[i];
             vector3f.rotate(quaternion);
@@ -131,8 +147,11 @@ public void render(VertexConsumer buffer, Camera camera, float partialTick) {
             vector3f.add(localX, localY, localZ);
         }
 
+        // Looks like this just sets the very edge of where the particle should be rendered.
         Vec3 worldExtentMin = new Vec3(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY);
         Vec3 worldExtentMax = new Vec3(Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY);
+
+        // Go through each corner of the cube to determine the minimum and maximum corner values for all 3 axes
         for (Vector3f corner : avector3f) {
             Vec3 worldCorner = cameraPos.add(corner.x(), corner.y(), corner.z());
             worldExtentMin = new Vec3(
@@ -146,18 +165,27 @@ public void render(VertexConsumer buffer, Camera camera, float partialTick) {
                     Math.max(worldExtentMax.z, worldCorner.z)
             );
         }
+
+        // Gets the light color (level?) of this particle
         int light = this.getLightColor(partialTick);
+
+        // Gets the center position of this particle
         double centerX = Mth.lerp(partialTick, this.xo, this.x);
         double centerY = Mth.lerp(partialTick, this.yo, this.y);
         double centerZ = Mth.lerp(partialTick, this.zo, this.z);
+
+
         int startY = Mth.floor(centerY + 1.0D);
         int endY = Mth.floor(centerY - MAX_PROJECTION_HEIGHT);
 
+        // Gets the min/max values for the x and z axes based on what block positions contain the
+        // total extent of the particle.
         int minBlockX = BlockPos.containing(worldExtentMin).getX();
         int maxBlockX = BlockPos.containing(worldExtentMax).getX();
         int minBlockZ = BlockPos.containing(worldExtentMin).getZ();
         int maxBlockZ = BlockPos.containing(worldExtentMax).getZ();
 
+        // Render the particle at its respective position for each block that it happens to be contained within.
         for (int blockX = minBlockX; blockX <= maxBlockX; blockX++) {
             for (int blockZ = minBlockZ; blockZ <= maxBlockZ; blockZ++) {
                 this.renderColumnDecal(pConsumer, camera, blockX, blockZ, startY, endY, centerX, centerY, centerZ, worldExtentMin, worldExtentMax, quadSize, light);
@@ -350,7 +378,12 @@ public void render(VertexConsumer buffer, Camera camera, float partialTick) {
         }
     }
 
-    private void makeCornerVertex(VertexConsumer pConsumer, Vector3f pVertex, float pU, float pV, int pPackedLight, float alphaMultiplier) {
+    private void makeCornerVertex(VertexConsumer pConsumer,
+                                  Vector3f pVertex,
+                                  float pU,
+                                  float pV,
+                                  int pPackedLight,
+                                  float alphaMultiplier) {
         pConsumer.addVertex(pVertex.x(), pVertex.y(), pVertex.z())
                 .setColor(this.rCol, this.gCol, this.bCol, this.alpha * alphaMultiplier)
                 .setUv(pU, pV)
