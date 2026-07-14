@@ -99,8 +99,11 @@ public class BloodyBitsEvents {
 
         if (server == null) return;
 
-        server.getPlayerList().getPlayers().forEach(player -> ((ServerLevel) level)
-                .sendParticles(player, ParticleRegistry.BLOOD_SPRAY_PARTICLE.get(), true, vec.x, vec.y + aabb.getYsize() * 0.5, vec.z, count, 0.05 + bbShove, 0.1, 0.05 + bbShove, 0.5));
+        if (level instanceof ServerLevel serverLevel) {
+            server.getPlayerList().getPlayers().forEach(player -> (serverLevel)
+                    .sendParticles(player, ParticleRegistry.BLOOD_SPRAY_PARTICLE.get(), true, vec.x, vec.y + aabb.getYsize() * 0.5, vec.z, count, 0.05 + bbShove, 0.1, 0.05 + bbShove, 0.5));
+        }
+
 
 //        }
 //        catch (Exception e) {

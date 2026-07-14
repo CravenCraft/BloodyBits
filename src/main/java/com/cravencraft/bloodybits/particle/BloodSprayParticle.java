@@ -3,9 +3,11 @@ package com.cravencraft.bloodybits.particle;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.*;
 import net.minecraft.core.particles.SimpleParticleType;
+import net.minecraft.world.phys.AABB;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class BloodSprayParticle extends TextureSheetParticle {
     private final SpriteSet spriteSet;
@@ -17,11 +19,16 @@ public class BloodSprayParticle extends TextureSheetParticle {
 //        this.xd = x;
 //        this.yd = y;
 //        this.zd = z;
-        this.gravity = 0; // Our particle floats in midair now, because why not.
+        this.quadSize = 1.0F;
+        this.friction = 0.5f;
+        this.gravity = 0.5f; // Our particle floats in midair now, because why not.
         this.lifetime = 600;
         this.setSize(2.0f, 2.0f);
         this.scale(3f);
         this.spriteSet = spriteSet;
+//        this.rCol = 0;
+//        this.gCol = 0;
+//        this.bCol = 0;
 
         // We set the initial sprite here since ticking is not guaranteed to set the sprite
         // before the render method is called.
@@ -29,9 +36,26 @@ public class BloodSprayParticle extends TextureSheetParticle {
     }
 
     @Override
+    public @NotNull Particle scale(float scale) {
+        super.scale(scale);
+
+        var size = this.quadSize / 10.0F;
+
+//        if (FancyBlockParticles.CONFIG.terrain.isRestOnFloor() && this.destroyed)
+//            this.y = this.startY - size;
+
+        this.yo = this.y;
+
+        this.setBoundingBox(new AABB(this.x - size, this.y - size, this.z - size, this.x + size, this.y + size, this.z + size));
+        this.setLocationFromBoundingbox();
+
+        return this;
+    }
+
+    @Override
     public void tick() {
         // Set the sprite for the current particle age, i.e. advance the animation.
-        this.setSpriteFromAge(spriteSet);
+//        this.setSpriteFromAge(spriteSet);
         // Let super handle further movement. You may replace this with your own movement if needed.
         // You may also override move() if you only want to modify the built-in movement.
         super.tick();
@@ -44,7 +68,7 @@ public class BloodSprayParticle extends TextureSheetParticle {
     @Override
     public @NotNull ParticleRenderType getRenderType() {
         // TODO: Probably want translucent to allow it to fade over time.
-        return ParticleRenderType.PARTICLE_SHEET_OPAQUE;
+        return ParticleRenderType.PARTICLE_SHEET_TRANSLUCENT;
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -60,6 +84,7 @@ public class BloodSprayParticle extends TextureSheetParticle {
         // This is where the magic happens. We return a new particle each time this method is called!
         // The type of the first parameter matches the generic type passed to the super interface.
         @Override
+        @Nullable
         public Particle createParticle(@NotNull SimpleParticleType type, @NotNull ClientLevel level,
                                        double x, double y, double z, double xSpeed, double ySpeed, double zSpeed) {
             // We don't use the type and speed, and pass in everything else. You may of course use them if needed.
