@@ -3,29 +3,81 @@ package com.cravencraft.bloodybits.events;
 import com.cravencraft.bloodybits.BloodyBitsMod;
 import com.cravencraft.bloodybits.config.CommonConfig;
 import com.cravencraft.bloodybits.entity.BloodSprayEntity;
-import com.cravencraft.bloodybits.network.BloodyBitsPacketHandler;
 import com.cravencraft.bloodybits.network.messages.EntityMessage;
-import com.cravencraft.bloodybits.particle.BloodSprayParticle;
+import com.cravencraft.bloodybits.particle.BloodGroundParticleOptions;
+import com.cravencraft.bloodybits.particle.BloodParticleOptions;
 import com.cravencraft.bloodybits.registries.EntityRegistry;
 import com.cravencraft.bloodybits.registries.ParticleRegistry;
 import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.shapes.CollisionContext;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
-import net.neoforged.neoforge.event.entity.living.LivingEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.level.ExplosionEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 
+import static net.minecraft.world.level.ClipContext.Block.VISUAL;
+import static net.minecraft.world.level.ClipContext.Fluid.NONE;
+
 @EventBusSubscriber(modid = BloodyBitsMod.MODID)
 public class BloodyBitsEvents {
+
+    @SubscribeEvent
+    public static void testBlockTextureOverlay(PlayerInteractEvent.RightClickBlock event) {
+        var level = event.getLevel();
+        var server =  level.getServer();
+
+        if (level instanceof ServerLevel serverLevel &&
+                server != null &&
+                event.getHand() == InteractionHand.MAIN_HAND &&
+                event.getEntity().getMainHandItem().isEmpty()) {
+            var blockPos = event.getPos();
+            BloodyBitsMod.LOGGER.info("Attempting to send blood particle at position: {}, {}, {}.", blockPos.getX(), blockPos.getY(), blockPos.getZ());
+            var defaultBloodColor = ParticleRegistry.DEFAULT_BLOOD_COLOR;
+            BloodyBitsMod.LOGGER.info("Default blood color: {}", defaultBloodColor);
+
+
+            Vec3 groundLevel = level.clip(new ClipContext(blockPos.getCenter().add(0, 0.6, 0), blockPos.getCenter(), VISUAL, NONE, CollisionContext.empty())).getLocation();
+
+//            serverLevel.addParticle(new BloodGroundParticleOptions(defaultBloodColor),
+//                    true,
+//                    groundLevel.x,
+//                    groundLevel.y,
+//                    groundLevel.z,
+//                    0.0D,
+//                    0.0D,
+//                    0.0D);
+
+            server.getPlayerList().getPlayers().forEach(player -> (serverLevel)
+                    .sendParticles(
+                            player,
+                            new BloodGroundParticleOptions(ParticleRegistry.DEFAULT_BLOOD_COLOR),
+                            true,
+                            groundLevel.x,
+                            groundLevel.y,
+                            groundLevel.z,
+                            1,
+                            0.05,
+                            0.1,
+                            0.05,
+                            0.5
+                    )
+            );
+        }
+
+    }
 
 //    private static int currentTick = 0;
 
@@ -64,6 +116,7 @@ public class BloodyBitsEvents {
      */
     @SubscribeEvent
     public static void bloodOnEntityDamage(LivingDamageEvent.Pre event) {
+
         var entity = event.getEntity();
         var source = event.getSource();
         var level = entity.level();
@@ -100,8 +153,24 @@ public class BloodyBitsEvents {
         if (server == null) return;
 
         if (level instanceof ServerLevel serverLevel) {
+
+            BloodyBitsMod.LOGGER.info("Attempting to send blood particle at position: {}", entityName);
+
             server.getPlayerList().getPlayers().forEach(player -> (serverLevel)
-                    .sendParticles(player, ParticleRegistry.BLOOD_SPRAY_PARTICLE.get(), true, vec.x, vec.y + aabb.getYsize() * 0.5, vec.z, count, 0.05 + bbShove, 0.1, 0.05 + bbShove, 0.5));
+                    .sendParticles(
+                            player,
+                            new BloodParticleOptions(ParticleRegistry.DEFAULT_BLOOD_COLOR, 1.0f),
+                            true,
+                            vec.x,
+                            vec.y + aabb.getYsize() * 0.5,
+                            vec.z,
+                            count,
+                            0.05 + bbShove,
+                            0.1,
+                            0.05 + bbShove,
+                            0.5
+                    )
+            );
         }
 
 

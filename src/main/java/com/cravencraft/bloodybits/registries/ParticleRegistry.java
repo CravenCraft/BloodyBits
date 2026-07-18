@@ -1,12 +1,14 @@
 package com.cravencraft.bloodybits.registries;
 
 import com.cravencraft.bloodybits.BloodyBitsMod;
+import com.cravencraft.bloodybits.particle.BloodGroundParticleType;
+import com.cravencraft.bloodybits.particle.BloodParticleType;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.neoforged.bus.api.IEventBus;
-import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
+import org.joml.Vector3f;
 
 import java.util.function.Supplier;
 
@@ -15,16 +17,24 @@ public class ParticleRegistry {
     private static final DeferredRegister<ParticleType<?>> PARTICLE_TYPES =
             DeferredRegister.create(BuiltInRegistries.PARTICLE_TYPE, BloodyBitsMod.MODID);
 
-    public static final Supplier<SimpleParticleType> BLOOD_SPRAY_PARTICLE = PARTICLE_TYPES.register(
-            // The name of the particle type.
-            "blood_spray_particle",
-            // The supplier. The boolean parameter denotes whether setting the Particles option in the
-            // video settings to Minimal will affect this particle type or not; this is false for
-            // most vanilla particles, but true for e.g. explosions, campfire smoke, or squid ink.
-            () -> new SimpleParticleType(false)
-    );
-
     public static void registerParticles(IEventBus bus) {
         PARTICLE_TYPES.register(bus);
+    }
+
+    public static final Vector3f BLOOD_COLOR = new Vector3f(0.5f, 0.0f, 0.05f);
+    public static final int DEFAULT_BLOOD_COLOR = 0xFF000000
+            | (Math.round(BLOOD_COLOR.x * 255) << 16)
+            | (Math.round(BLOOD_COLOR.y * 255) << 8)
+            | Math.round(BLOOD_COLOR.z * 255);
+
+    public static final Supplier<BloodGroundParticleType> BLOOD_SPATTER_PARTICLE = PARTICLE_TYPES.register("blood_spatter_particles", () -> new BloodGroundParticleType(false));
+    public static final Supplier<SimpleParticleType> BLOOD_SPRAY_PARTICLE;
+    public static final Supplier<BloodParticleType> BLOOD_EMITTER;
+
+    static {
+        BLOOD_SPRAY_PARTICLE = PARTICLE_TYPES.register("blood_spray_particles", () -> new SimpleParticleType(false));
+//        BLOOD_SPATTER_PARTICLE = PARTICLE_TYPES.register("blood_spatter_particles", () -> new BloodGroundParticleType(false));
+        BLOOD_EMITTER = PARTICLE_TYPES.register("blood_emitter", () -> new BloodParticleType(false));
+
     }
 }
