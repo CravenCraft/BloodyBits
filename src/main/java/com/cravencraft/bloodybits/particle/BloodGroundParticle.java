@@ -43,46 +43,30 @@ public class BloodGroundParticle extends TextureSheetParticle {
     // ParticleProvider, see below. You may also add additional parameters as needed, e.g. xSpeed/ySpeed/zSpeed.
     public BloodGroundParticle(ClientLevel level, double x, double y, double z, SpriteSet spriteSet, int color, float scale, double xSpeed, double ySpeed, double zSpeed) {
         super(level, x, y, z);
-//        this.xd = x;
-//        this.yd = y;
-//        this.zd = z;
-        this.quadSize = 2.0F;
+        this.xd = xSpeed;
+        this.yd = ySpeed;
+        this.zd = zSpeed;
+        this.quadSize = 1.5f * scale;
         this.friction = 0.5f;
-        this.gravity = 0.95f;
-        this.lifetime = 600;
+        this.gravity = 1.0f;
+        this.lifetime = 100;
         this.setSize(2.0f, 2.0f);
         this.scale(1f);
         this.spriteSet = spriteSet;
         this.fadeoutTime = 150;
 //        this.quadSize = 1.5f * scale;
         this.yawRotation = this.random.nextInt(4) * DEGREES_90;
-        this.zFightOffset = this.random.nextFloat();
-        BloodyBitsMod.LOGGER.info("BloodGroundParticle constructed");
+
         this.rCol = BloodParticleOptions.red(color);
         this.gCol = BloodParticleOptions.green(color);
         this.bCol = BloodParticleOptions.blue(color);
+        this.alpha = INITIAL_ALPHA;
+        this.zFightOffset = this.random.nextFloat();
 
         // We set the initial sprite here since ticking is not guaranteed to set the sprite
         // before the render method is called.
         this.setSpriteFromAge(spriteSet);
     }
-
-//    @Override
-//    public @NotNull Particle scale(float scale) {
-//        super.scale(scale);
-//
-//        var size = this.quadSize / 10.0F;
-//
-////        if (FancyBlockParticles.CONFIG.terrain.isRestOnFloor() && this.destroyed)
-////            this.y = this.startY - size;
-//
-//        this.yo = this.y;
-//
-//        this.setBoundingBox(new AABB(this.x - size, this.y - size, this.z - size, this.x + size, this.y + size, this.z + size));
-//        this.setLocationFromBoundingbox();
-//
-//        return this;
-//    }
 
 @Override
 public void render(VertexConsumer buffer, Camera camera, float partialTick) {

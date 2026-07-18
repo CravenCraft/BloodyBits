@@ -16,6 +16,7 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -35,43 +36,39 @@ import static net.minecraft.world.level.ClipContext.Fluid.NONE;
 public class BloodyBitsEvents {
 
     @SubscribeEvent
-    public static void testBlockTextureOverlay(PlayerInteractEvent.RightClickBlock event) {
+    public static void testBlockTextureOverlay(PlayerInteractEvent.RightClickItem event) {
         var level = event.getLevel();
         var server =  level.getServer();
 
         if (level instanceof ServerLevel serverLevel &&
                 server != null &&
                 event.getHand() == InteractionHand.MAIN_HAND &&
-                event.getEntity().getMainHandItem().isEmpty()) {
-            var blockPos = event.getPos();
-            BloodyBitsMod.LOGGER.info("Attempting to send blood particle at position: {}, {}, {}.", blockPos.getX(), blockPos.getY(), blockPos.getZ());
-            var defaultBloodColor = ParticleRegistry.DEFAULT_BLOOD_COLOR;
-            BloodyBitsMod.LOGGER.info("Default blood color: {}", defaultBloodColor);
+                event.getItemStack().getItem() == Items.BLAZE_ROD) {
+            var player = event.getEntity();
+            var x = player.getX();
+            var y = player.getY() + 1.5;
+            var z = player.getZ();
+            var playerBlockPos = player.getOnPos();
+            var playerFacingDirection = player.getDirection();
+            BloodyBitsMod.LOGGER.info("Player facing direction: {}", playerFacingDirection);
+            var normalizedDirection = playerFacingDirection.getNormal();
+            BloodyBitsMod.LOGGER.info("Player position: {}, {}, {}.", x, y, z);
+            BloodyBitsMod.LOGGER.info("Player facing direction: {}, {}, {}", normalizedDirection.getX(), normalizedDirection.getY(), normalizedDirection.getZ());
 
+            Vec3 groundLevel = level.clip(new ClipContext(playerBlockPos.getCenter().add(0, 0.6, 0), playerBlockPos.getCenter(), VISUAL, NONE, CollisionContext.empty())).getLocation();
 
-            Vec3 groundLevel = level.clip(new ClipContext(blockPos.getCenter().add(0, 0.6, 0), blockPos.getCenter(), VISUAL, NONE, CollisionContext.empty())).getLocation();
-
-//            serverLevel.addParticle(new BloodGroundParticleOptions(defaultBloodColor),
-//                    true,
-//                    groundLevel.x,
-//                    groundLevel.y,
-//                    groundLevel.z,
-//                    0.0D,
-//                    0.0D,
-//                    0.0D);
-
-            server.getPlayerList().getPlayers().forEach(player -> (serverLevel)
+            server.getPlayerList().getPlayers().forEach(serverPlayer -> (serverLevel)
                     .sendParticles(
-                            player,
-                            new BloodGroundParticleOptions(ParticleRegistry.DEFAULT_BLOOD_COLOR),
+                            serverPlayer,
+                            new BloodParticleOptions(ParticleRegistry.DEFAULT_BLOOD_COLOR, 1.0f),
                             true,
-                            groundLevel.x,
-                            groundLevel.y,
-                            groundLevel.z,
+                            x,
+                            y,
+                            z,
                             1,
-                            0.05,
-                            0.1,
-                            0.05,
+                            normalizedDirection.getX(),
+                            normalizedDirection.getY(),
+                            normalizedDirection.getZ(),
                             0.5
                     )
             );
