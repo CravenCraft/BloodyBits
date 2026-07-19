@@ -9,14 +9,18 @@ import net.minecraft.client.particle.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.SimpleParticleType;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
+
+import java.util.List;
 
 import static net.minecraft.world.level.ClipContext.Block.VISUAL;
 import static net.minecraft.world.level.ClipContext.Fluid.NONE;
@@ -26,6 +30,7 @@ public class BloodSprayParticle extends TextureSheetParticle {
     float scaleTransition;
     private boolean mirrored;
     private boolean underwater;
+    private Vec3 collisionVector;
 
     public BloodSprayParticle(
             ClientLevel level,
@@ -45,10 +50,12 @@ public class BloodSprayParticle extends TextureSheetParticle {
         this.xd = xd;
         this.yd = yd;
         this.zd = zd;
+        this.collisionVector = new Vec3(xd, yd, zd);
+        BloodyBitsMod.LOGGER.info("initial blood spray particle collision vector: {}", this.collisionVector);
         this.quadSize *= 1f + (float) Math.random();
         this.scale(scale * 2.5f);
-        this.lifetime = 100 + (int) (Math.random() * 40);
-        this.gravity = 1.5F;
+        this.lifetime = 40;
+        this.gravity = 0.25F;
         this.pickSprite(spriteSet);
 
         this.rCol = BloodSprayParticleOptions.red(color);
@@ -80,6 +87,10 @@ public class BloodSprayParticle extends TextureSheetParticle {
             this.gravity *= .99f;
         }
 
+//        Vec3 vec3 = Entity.collideBoundingBox(null, new Vec3(this.xd, this.yd, this.zd), this.getBoundingBox(), this.level, List.of());
+//        BloodyBitsMod.LOGGER.info("blood spray particle collision vector: {}, {}, {}", vec3.x, vec3.y, vec3.z);
+//        BloodyBitsMod.LOGGER.info("BloodSprayParticle in ground {} vector velocities: {}, {}, {}", this.onGround, this.xd, this.yd, this.zd);
+
         this.createBloodSpatter();
 
 //        BloodyBitsMod.LOGGER.info("Is colliding with a wall: {}", this.isCollidingWithWall());
@@ -98,27 +109,75 @@ public class BloodSprayParticle extends TextureSheetParticle {
     }
 
     private void createBloodSpatter() {
-        AABB box = new AABB(
-                this.x - 0.1, this.y - 0.1, this.z - 0.1,
-                this.x + 1, this.y + 1, this.z + 1);
+        Direction collisionDirection = Direction.UP;
+        var previousColVec = this.collisionVector;
+        BloodyBitsMod.LOGGER.info("previous blood spray particle collision vector: {}, {}, {}", previousColVec.x, previousColVec.y, previousColVec.z);
+        var currentColVec = Entity.collideBoundingBox(null, new Vec3(this.xd, this.yd, this.zd), this.getBoundingBox(), this.level, List.of());
+        BloodyBitsMod.LOGGER.info("current blood spray particle collision vector: {}, {}, {}", currentColVec.x, currentColVec.y, currentColVec.z);
 
-        if (!this.level.noCollision(box)) {
-            BloodyBitsMod.LOGGER.info("is colliding with something.");
-            var clipContext = new ClipContext(box.getMinPosition(), box.getMaxPosition(), VISUAL, NONE, CollisionContext.empty());
-            var blockHitResult = level.clip(clipContext);
-            var location = blockHitResult.getLocation();
-            var direction = blockHitResult.getDirection().get3DDataValue();
-            var blockHitPos = blockHitResult.getBlockPos(); // TODO: Might want to get the center vec3 and just add 0.6 to whatever direction needs it.
-            var blockHitDir = blockHitResult.getDirection();
-            // TODO: Change the x, y, and z positions based on the direction.
-//            this.level.addParticle(
-//                    new BloodSpatterParticleOptions(this.color, direction, this.getQuadSize(0.0F)),
-//                    true, location.x, location.y, location.z,
-//                    0.0D, 0.0D, 0.0D);
-            BloodyBitsMod.LOGGER.info("Block hit pos 3d val: {}, block hit direction: {}", direction, blockHitDir);
-            BloodyBitsMod.LOGGER.info("hit location: {}", location);
+        if (previousColVec.x > 0.001 && currentColVec.x == 0.0) {
+            collisionDirection = Direction.EAST;
             this.remove();
         }
+        if (previousColVec.x < -0.001 && currentColVec.x == 0.0) {
+            collisionDirection = Direction.WEST;
+            this.remove();
+        }
+
+        if (previousColVec.y > 0.001 && currentColVec.y == 0.0) {
+            collisionDirection = Direction.UP;
+            this.remove();
+        }
+        if (previousColVec.y < -0.001 && currentColVec.y == 0.0) {
+            collisionDirection = Direction.DOWN;
+            this.remove();
+        }
+
+        if (previousColVec.z > 0.001 && currentColVec.z == 0.0) {
+            collisionDirection = Direction.SOUTH;
+            this.remove();
+        }
+        if (previousColVec.z < -0.001 && currentColVec.z == 0.0) {
+            collisionDirection = Direction.NORTH;
+            this.remove();
+        }
+
+        this.collisionVector = currentColVec;
+
+        BloodyBitsMod.LOGGER.info("collision direction: {}", collisionDirection);
+//
+//
+//        var box = this.getBoundingBox();
+//
+////        BloodyBitsMod.LOGGER.info("bounding box {}", box);
+//        AABB collidingBox = new AABB(
+//                box.minX - 0.1, box.minY - 0.1, box.minZ - 0.1,
+//                box.maxX + 0.1, box.maxY + 0.1, box.maxZ + 0.1);
+//
+//
+//        // TODO: stoppedByCollision in the Particle class is the key. Look into the move() method the utilizes it.
+//
+//        if (!this.level.noCollision(collidingBox)) {
+////            BloodyBitsMod.LOGGER.info("bounding box {} of particle is colliding with something.", collidingBox);
+//            var clipContext = new ClipContext(collidingBox.getMinPosition(), collidingBox.getMaxPosition(), VISUAL, NONE, CollisionContext.empty());
+//            var blockHitResult = level.clip(clipContext);
+//            var location = blockHitResult.getLocation();
+//            var direction = blockHitResult.getDirection().get3DDataValue();
+//            var blockHitPos = blockHitResult.getBlockPos(); // TODO: Might want to get the center vec3 and just add 0.6 to whatever direction needs it.
+//            var blockHitDir = blockHitResult.getDirection();
+////            this.gravity = 0;
+////            this.xd = 0;
+////            this.yd = 0;
+////            this.zd = 0;
+//            // TODO: Change the x, y, and z positions based on the direction.
+////            this.level.addParticle(
+////                    new BloodSpatterParticleOptions(this.color, direction, this.getQuadSize(0.0F)),
+////                    true, location.x, location.y, location.z,
+////                    0.0D, 0.0D, 0.0D);
+//            BloodyBitsMod.LOGGER.info("Block hit pos 3d val: {}, block hit direction: {}", direction, blockHitDir);
+//            BloodyBitsMod.LOGGER.info("hit location: {}", location);
+//            this.remove();
+//        }
     }
 
     @Override
