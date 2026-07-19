@@ -1,6 +1,5 @@
 package com.cravencraft.bloodybits.particle;
 
-import com.cravencraft.bloodybits.BloodyBitsMod;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import net.minecraft.Util;
@@ -8,7 +7,6 @@ import net.minecraft.client.Camera;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.*;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
@@ -28,7 +26,7 @@ import java.util.List;
 import java.util.TreeSet;
 import java.util.function.Consumer;
 
-public class BloodGroundParticle extends TextureSheetParticle {
+public class BloodSpatterParticle extends TextureSheetParticle {
     private final SpriteSet spriteSet;
     private static final Vector3f ROTATION_VECTOR = Util.make(new Vector3f(0.5F, 0.5F, 0.5F), Vector3f::normalize);
     private static final Vector3f TRANSFORM_VECTOR = new Vector3f(-1.0F, -1.0F, 0.0F);
@@ -36,12 +34,15 @@ public class BloodGroundParticle extends TextureSheetParticle {
     private static final int FADEOUT_BUFFER = 20;
     private static final float INITIAL_ALPHA = 0.7f;
     private final int fadeoutTime;
+    private final int direction;
     private final float yawRotation;
     private final float zFightOffset;
 
     // First four parameters are self-explanatory. The SpriteSet parameter is provided by the
     // ParticleProvider, see below. You may also add additional parameters as needed, e.g. xSpeed/ySpeed/zSpeed.
-    public BloodGroundParticle(ClientLevel level, double x, double y, double z, SpriteSet spriteSet, int color, float scale, double xSpeed, double ySpeed, double zSpeed) {
+    public BloodSpatterParticle(ClientLevel level, double x, double y, double z,
+                                SpriteSet spriteSet, int color, int direction, float scale,
+                                double xSpeed, double ySpeed, double zSpeed) {
         super(level, x, y, z);
         this.xd = xSpeed;
         this.yd = ySpeed;
@@ -50,16 +51,17 @@ public class BloodGroundParticle extends TextureSheetParticle {
         this.friction = 0.5f;
         this.gravity = 1.0f;
         this.lifetime = 100;
-        this.setSize(2.0f, 2.0f);
+        this.setSize(1.0f, 1.0f);
         this.scale(1f);
         this.spriteSet = spriteSet;
+        this.direction = direction;
         this.fadeoutTime = 150;
 //        this.quadSize = 1.5f * scale;
         this.yawRotation = this.random.nextInt(4) * DEGREES_90;
 
-        this.rCol = BloodParticleOptions.red(color);
-        this.gCol = BloodParticleOptions.green(color);
-        this.bCol = BloodParticleOptions.blue(color);
+        this.rCol = BloodSprayParticleOptions.red(color);
+        this.gCol = BloodSprayParticleOptions.green(color);
+        this.bCol = BloodSprayParticleOptions.blue(color);
         this.alpha = INITIAL_ALPHA;
         this.zFightOffset = this.random.nextFloat();
 
@@ -383,7 +385,7 @@ public void render(VertexConsumer buffer, Camera camera, float partialTick) {
     }
 
     @OnlyIn(Dist.CLIENT)
-    public static class Provider implements ParticleProvider<BloodGroundParticleOptions> {
+    public static class Provider implements ParticleProvider<BloodSpatterParticleOptions> {
         // A set of particle sprites.
         private final SpriteSet spriteSet;
 
@@ -396,11 +398,11 @@ public void render(VertexConsumer buffer, Camera camera, float partialTick) {
         // The type of the first parameter matches the generic type passed to the super interface.
         @Override
         @Nullable
-        public Particle createParticle(@NotNull BloodGroundParticleOptions options, @NotNull ClientLevel level,
+        public Particle createParticle(@NotNull BloodSpatterParticleOptions options, @NotNull ClientLevel level,
                                        double x, double y, double z,
                                        double xSpeed, double ySpeed, double zSpeed) {
             // We don't use the type and speed, and pass in everything else. You may of course use them if needed.
-            return new BloodGroundParticle(level, x, y, z, this.spriteSet, options.color(), options.scale(), xSpeed, ySpeed, zSpeed);
+            return new BloodSpatterParticle(level, x, y, z, this.spriteSet, options.color(), options.direction(), options.scale(), xSpeed, ySpeed, zSpeed);
         }
 
 //        @Override

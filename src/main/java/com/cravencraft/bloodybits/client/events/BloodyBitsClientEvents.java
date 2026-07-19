@@ -2,7 +2,7 @@ package com.cravencraft.bloodybits.client.events;
 
 import com.cravencraft.bloodybits.BloodyBitsMod;
 import com.cravencraft.bloodybits.particle.BloodEmitterParticle;
-import com.cravencraft.bloodybits.particle.BloodGroundParticle;
+import com.cravencraft.bloodybits.particle.BloodSpatterParticle;
 import com.cravencraft.bloodybits.particle.BloodSprayParticle;
 import com.cravencraft.bloodybits.registries.ParticleRegistry;
 import net.neoforged.api.distmarker.Dist;
@@ -19,7 +19,7 @@ public class BloodyBitsClientEvents {
     @SubscribeEvent
     public static void registerParticleProviders(RegisterParticleProvidersEvent event) {
         List<BloodEmitterParticle.VariantFactory> variants = new ArrayList<>();
-        event.registerSpriteSet(ParticleRegistry.BLOOD_SPATTER_PARTICLE.get(), BloodGroundParticle.Provider::new);
+        event.registerSpriteSet(ParticleRegistry.BLOOD_SPATTER_PARTICLE.get(), BloodSpatterParticle.Provider::new);
         event.registerSpriteSet(ParticleRegistry.BLOOD_SPRAY_PARTICLE.get(), sprites -> {
             var provider = new BloodSprayParticle.Provider(sprites);
             variants.add(provider);

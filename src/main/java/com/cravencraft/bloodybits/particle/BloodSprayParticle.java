@@ -7,19 +7,16 @@ import net.minecraft.client.Camera;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.*;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Position;
+import net.minecraft.core.Direction;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
-
-import javax.sound.sampled.Clip;
 
 import static net.minecraft.world.level.ClipContext.Block.VISUAL;
 import static net.minecraft.world.level.ClipContext.Fluid.NONE;
@@ -43,22 +40,20 @@ public class BloodSprayParticle extends TextureSheetParticle {
             double zd
     ) {
         super(level, xCoord, yCoord, zCoord, xd, yd, zd);
-        BloodyBitsMod.LOGGER.info("BloodSprayParticle speed args: {}, {}, {}", xd, yd, zd);
-        BloodyBitsMod.LOGGER.info("BloodSprayParticle x, y, and z speeds before mod: {}, {}, {}", this.xd, this.yd, this.zd);
+
         this.color = color;
-        this.xd = 1;
-        this.yd = 0;
-        this.zd = 0;
-        BloodyBitsMod.LOGGER.info("BloodSprayParticle x, y, and z speeds AFTER mod: {}, {}, {}", this.xd, this.yd, this.zd);
+        this.xd = xd;
+        this.yd = yd;
+        this.zd = zd;
         this.quadSize *= 1f + (float) Math.random();
         this.scale(scale * 2.5f);
         this.lifetime = 100 + (int) (Math.random() * 40);
         this.gravity = 1.5F;
         this.pickSprite(spriteSet);
 
-        this.rCol = BloodParticleOptions.red(color);
-        this.gCol = BloodParticleOptions.green(color);
-        this.bCol = BloodParticleOptions.blue(color);
+        this.rCol = BloodSprayParticleOptions.red(color);
+        this.gCol = BloodSprayParticleOptions.green(color);
+        this.bCol = BloodSprayParticleOptions.blue(color);
 
         this.scaleTransition = 1f + (float) Math.random();
         this.mirrored = level.random.nextBoolean();
@@ -80,74 +75,50 @@ public class BloodSprayParticle extends TextureSheetParticle {
 //        if (Math.abs(d1) >= 1.0E-5F && Math.abs(y) < 1.0E-5F) {
 //            this.stoppedByCollision = true;
 //        }
-        this.isCollidingWithWall();
+
+        if (this.underwater) {
+            this.gravity *= .99f;
+        }
+
+        this.createBloodSpatter();
 
 //        BloodyBitsMod.LOGGER.info("Is colliding with a wall: {}", this.isCollidingWithWall());
 //        BloodyBitsMod.LOGGER.info("Is on ground: {}", this.onGround);
 
 //        if (this.isCollidingWithWall())
 
-        if (this.underwater) {
-            this.gravity *= .99f;
-        }
+
 
 //        if (this.onGround) {
 //            Vec3 groundLevel = level.clip(new ClipContext(this.getPos().add(0, 0.6, 0), this.getPos(), VISUAL, NONE, CollisionContext.empty())).getLocation();
-//            this.level.addParticle(new BloodGroundParticleOptions(this.color, this.getQuadSize(0.0F)), true, groundLevel.x, groundLevel.y, groundLevel.z, 0.0D, 0.0D, 0.0D);
+////            this.level.addParticle(new BloodSpatterParticleOptions(this.color, this.getQuadSize(0.0F)), true, groundLevel.x, groundLevel.y, groundLevel.z, 0.0D, 0.0D, 0.0D);
 //
 //            this.remove();
 //        }
     }
 
-    private boolean isCollidingWithWall() {
-        AABB box = new AABB(this.x - 0.1, this.y - 0.1, this.z - 0.1,
+    private void createBloodSpatter() {
+        AABB box = new AABB(
+                this.x - 0.1, this.y - 0.1, this.z - 0.1,
                 this.x + 1, this.y + 1, this.z + 1);
-//        box.clip()
-//                AABB.clip(box, )
-
 
         if (!this.level.noCollision(box)) {
-            BloodyBitsMod.LOGGER.info("is colliding with wall");
-//            var blockCollisions = this.level.getBlockCollisions(null, box);
-            var clipContext = new ClipContext(box.getMinPosition(), box.getMaxPosition(), ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, CollisionContext.empty());
+            BloodyBitsMod.LOGGER.info("is colliding with something.");
+            var clipContext = new ClipContext(box.getMinPosition(), box.getMaxPosition(), VISUAL, NONE, CollisionContext.empty());
             var blockHitResult = level.clip(clipContext);
-            var blockHitPos = blockHitResult.getBlockPos();
+            var location = blockHitResult.getLocation();
+            var direction = blockHitResult.getDirection().get3DDataValue();
+            var blockHitPos = blockHitResult.getBlockPos(); // TODO: Might want to get the center vec3 and just add 0.6 to whatever direction needs it.
             var blockHitDir = blockHitResult.getDirection();
-            BloodyBitsMod.LOGGER.info("Block hit pos: {}, block hit direction: {}", blockHitPos, blockHitDir);
-
-//            blockCollisions.forEach(voxelShape -> {
-//                box.getMinPosition()
-
-
-
-//                BloodyBitsMod.LOGGER.info("collision voxel shape: {}", voxelShape);
-//                BlockPos.betweenClosedStream(voxelShape.bounds()).forEach((blockPos) -> {
-//                    BloodyBitsMod.LOGGER.info("block pos: {}", blockPos);
-//                    var blockHitResult = voxelShape.clip(voxelShape.bounds().getMinPosition(), voxelShape.bounds().getMaxPosition(), blockPos);
-//                    if (blockHitResult != null) {
-//                        var blockHitPos = blockHitResult.getBlockPos();
-//                        var blockHitDirection = blockHitResult.getDirection();
-//
-//                        BloodyBitsMod.LOGGER.info("Block hit pos: {}, block hit direction: {}", blockHitPos, blockHitDirection);
-//                    }
-//                });
-
-
-
-
-//            });
-
-//            BlockPos.betweenClosedStream(box).forEach((blockPos) -> {
-//                BloodyBitsMod.LOGGER.info("collision block pos: {}", blockPos);
-//
-//            });
-//            var blockState = this.level.getBlockState(BlockPos.betweenClosedStream(box));
-//            BloodyBitsMod.LOGGER.info("Particle at pos {} is colliding.", box);
-
-
+            // TODO: Change the x, y, and z positions based on the direction.
+//            this.level.addParticle(
+//                    new BloodSpatterParticleOptions(this.color, direction, this.getQuadSize(0.0F)),
+//                    true, location.x, location.y, location.z,
+//                    0.0D, 0.0D, 0.0D);
+            BloodyBitsMod.LOGGER.info("Block hit pos 3d val: {}, block hit direction: {}", direction, blockHitDir);
+            BloodyBitsMod.LOGGER.info("hit location: {}", location);
+            this.remove();
         }
-
-        return !this.level.noCollision(box);
     }
 
     @Override
@@ -238,8 +209,11 @@ public class BloodSprayParticle extends TextureSheetParticle {
         }
 
         @Override
-        public Particle create(BloodParticleOptions options, ClientLevel level, double x, double y, double z, double dx, double dy, double dz) {
-            return new BloodSprayParticle(level, x, y, z, this.sprites, options.color(), options.scale(), dx, dy, dz);
+        public Particle create(BloodSprayParticleOptions options, ClientLevel level,
+                               double x, double y, double z,
+                               double dx, double dy, double dz) {
+            return new BloodSprayParticle(level, x, y, z, this.sprites, options.color(), options.scale(),
+                    options.direction().x, options.direction().y, options.direction().z);
         }
     }
 }

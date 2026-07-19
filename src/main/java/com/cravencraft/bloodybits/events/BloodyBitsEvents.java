@@ -4,14 +4,12 @@ import com.cravencraft.bloodybits.BloodyBitsMod;
 import com.cravencraft.bloodybits.config.CommonConfig;
 import com.cravencraft.bloodybits.entity.BloodSprayEntity;
 import com.cravencraft.bloodybits.network.messages.EntityMessage;
-import com.cravencraft.bloodybits.particle.BloodGroundParticleOptions;
-import com.cravencraft.bloodybits.particle.BloodParticleOptions;
+import com.cravencraft.bloodybits.particle.BloodSprayParticleOptions;
 import com.cravencraft.bloodybits.registries.EntityRegistry;
 import com.cravencraft.bloodybits.registries.ParticleRegistry;
 import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -50,25 +48,22 @@ public class BloodyBitsEvents {
             var z = player.getZ();
             var playerBlockPos = player.getOnPos();
             var playerFacingDirection = player.getDirection();
-            BloodyBitsMod.LOGGER.info("Player facing direction: {}", playerFacingDirection);
-            var normalizedDirection = playerFacingDirection.getNormal();
-            BloodyBitsMod.LOGGER.info("Player position: {}, {}, {}.", x, y, z);
-            BloodyBitsMod.LOGGER.info("Player facing direction: {}, {}, {}", normalizedDirection.getX(), normalizedDirection.getY(), normalizedDirection.getZ());
+            var lookAngle = player.getLookAngle();
 
             Vec3 groundLevel = level.clip(new ClipContext(playerBlockPos.getCenter().add(0, 0.6, 0), playerBlockPos.getCenter(), VISUAL, NONE, CollisionContext.empty())).getLocation();
 
             server.getPlayerList().getPlayers().forEach(serverPlayer -> (serverLevel)
                     .sendParticles(
                             serverPlayer,
-                            new BloodParticleOptions(ParticleRegistry.DEFAULT_BLOOD_COLOR, 1.0f),
+                            new BloodSprayParticleOptions(ParticleRegistry.DEFAULT_BLOOD_COLOR, lookAngle, 1.0f),
                             true,
                             x,
                             y,
                             z,
                             1,
-                            normalizedDirection.getX(),
-                            normalizedDirection.getY(),
-                            normalizedDirection.getZ(),
+                            lookAngle.x,
+                            lookAngle.y,
+                            lookAngle.z,
                             0.5
                     )
             );
@@ -153,10 +148,11 @@ public class BloodyBitsEvents {
 
             BloodyBitsMod.LOGGER.info("Attempting to send blood particle at position: {}", entityName);
 
+            // TODO: Add a proper direction value to send.
             server.getPlayerList().getPlayers().forEach(player -> (serverLevel)
                     .sendParticles(
                             player,
-                            new BloodParticleOptions(ParticleRegistry.DEFAULT_BLOOD_COLOR, 1.0f),
+                            new BloodSprayParticleOptions(ParticleRegistry.DEFAULT_BLOOD_COLOR, Vec3.ZERO, 1.0f),
                             true,
                             vec.x,
                             vec.y + aabb.getYsize() * 0.5,
