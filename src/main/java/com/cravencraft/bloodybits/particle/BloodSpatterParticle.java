@@ -1,5 +1,6 @@
 package com.cravencraft.bloodybits.particle;
 
+import com.cravencraft.bloodybits.BloodyBitsMod;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import net.minecraft.Util;
@@ -7,6 +8,7 @@ import net.minecraft.client.Camera;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.*;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
@@ -75,6 +77,9 @@ public void render(VertexConsumer buffer, Camera camera, float partialTick) {
     int fadeThreshold = lifetime - fadeoutTime; // Determines when the particle should start fading
     float quadSize = this.getQuadSize(partialTick); // Gets the quad size of the particle
     float f = this.age + partialTick; // Current age with the given tick
+
+    if (Direction.from3DDataValue(this.direction) != Direction.DOWN) return;
+    BloodyBitsMod.LOGGER.info("Direction is down. Rendering blood spatter particle");
 
     // If the current age is less than the splat time, then expand the quad size
     if (f <= SPLAT_IN_TIME) {
