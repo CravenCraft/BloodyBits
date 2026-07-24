@@ -1,6 +1,5 @@
 package com.cravencraft.bloodybits.particle;
 
-import com.cravencraft.bloodybits.BloodyBitsMod;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import net.minecraft.Util;
@@ -28,7 +27,7 @@ import java.util.List;
 import java.util.TreeSet;
 import java.util.function.Consumer;
 
-public class BloodSpatterParticle extends TextureSheetParticle {
+public class BloodSpatterParticleCopy extends TextureSheetParticle {
     private final SpriteSet spriteSet;
     private static final Vector3f ROTATION_VECTOR = Util.make(new Vector3f(0.5F, 0.5F, 0.5F), Vector3f::normalize);
     private static final Vector3f TRANSFORM_VECTOR = new Vector3f(-1.0F, -1.0F, 0.0F);
@@ -42,9 +41,9 @@ public class BloodSpatterParticle extends TextureSheetParticle {
 
     // First four parameters are self-explanatory. The SpriteSet parameter is provided by the
     // ParticleProvider, see below. You may also add additional parameters as needed, e.g. xSpeed/ySpeed/zSpeed.
-    public BloodSpatterParticle(ClientLevel level, double x, double y, double z,
-                                SpriteSet spriteSet, int color, int direction, float scale,
-                                double xSpeed, double ySpeed, double zSpeed) {
+    public BloodSpatterParticleCopy(ClientLevel level, double x, double y, double z,
+                                    SpriteSet spriteSet, int color, int direction, float scale,
+                                    double xSpeed, double ySpeed, double zSpeed) {
         super(level, x, y, z);
         this.xd = xSpeed;
         this.yd = ySpeed;
@@ -94,32 +93,27 @@ public void render(VertexConsumer buffer, Camera camera, float partialTick) {
         this.alpha = 1.0F - Mth.clamp((f - fadeThreshold) / fadeoutTime, 1f - INITIAL_ALPHA, 1F);
     }
 
-    // Will perform the operations defined in the lambda into arguments of the consumer's accept() method.
-    // This flips the quaternion upside down (on the y-axis), then places it on its side (on the x-axis).
-    // This would make a vertical standing image appear flat on the ground facing up.
-    Consumer<Quaternionf> quatConsumer = (quat) -> {
-        quat.mul(Axis.YP.rotation(-(float) Math.PI)); // I THINK tht Math.PI being negative here doesn't matter since it's a perfect 180 flip.
-        quat.mul(Axis.XP.rotation(DEGREES_90));
-        BloodyBitsMod.LOGGER.debug("Test Point");
+    Consumer<Quaternionf> quatConsumer = switch (this.direction) {
+        case UP -> (quat) -> {
+                quat.mul(Axis.YP.rotation((float) Math.PI));
+                quat.mul(Axis.XP.rotation(DEGREES_90));
+            };
+        case DOWN -> (quat) -> {
+            quat.mul(Axis.YP.rotation(-(float) Math.PI));
+            quat.mul(Axis.XP.rotation(DEGREES_90));
+        };
+        case NORTH -> null;
+        case SOUTH -> null;
+        case WEST -> null;
+        case EAST -> null;
     };
-
-    /************** Begin Test Area ************/
-//    int light = this.getLightColor(partialTick);
-//    float pU = 0.55f;
-//    float pV = 0.0625f;
-//
-//    buffer.addVertex(1, 1, 1)
-//            .setColor(this.rCol, this.gCol, this.bCol, this.alpha)
-//            .setUv(pU, pV)
-//            .setLight(light);
-    /************** End Test Area ************/
 
     this.renderRotatedParticle(buffer, camera, partialTick, quadSize, quatConsumer);
 }
 
     private static final float SPLAT_IN_TIME = 1.5f;
     private static final float MAX_PROJECTION_HEIGHT = 2.0f;
-    private static final double HEIGHT_BRACKET_EPSILON = 1.0E-4D; // 0.0001
+    private static final double HEIGHT_BRACKET_EPSILON = 1.0E-4D;
 
     private void renderRotatedParticle(VertexConsumer pConsumer, Camera camera, float partialTick, float quadSize, Consumer<Quaternionf> pQuaternion) {
         Vec3 cameraPos = camera.getPosition(); // The current camera position
@@ -141,7 +135,6 @@ public void render(VertexConsumer buffer, Camera camera, float partialTick) {
         // So, maybe this is setting the rotation of the spatter to face up?
         Quaternionf quaternion = (new Quaternionf()).setAngleAxis(0.0F, ROTATION_VECTOR.x(), ROTATION_VECTOR.y(), ROTATION_VECTOR.z());
 
-        // Performs the operations defined in the lambda expression of pQuaternion.
         pQuaternion.accept(quaternion); // Applies the new quaternion to the one in the argument.
 
         // Transforms the quaternion to a single location, which to my knowledge appears to be center and on top of
@@ -157,7 +150,6 @@ public void render(VertexConsumer buffer, Camera camera, float partialTick) {
         };
 
         // Applies the quaternion rotation and local positions to the cube.
-        // The local
         for (int i = 0; i < 4; ++i) {
             Vector3f vector3f = avector3f[i];
             vector3f.rotate(quaternion);
@@ -187,10 +179,7 @@ public void render(VertexConsumer buffer, Camera camera, float partialTick) {
         // Gets the light color (level?) of this particle
         int light = this.getLightColor(partialTick);
 
-        // Gets the center position of this particle in the level.
-        // TODO: Could potentially get the world min/max from this center. Need to look into why the camera position
-        //       is required so much here. Maybe in order to properly rotate the particle in relation to the camera
-        //       before applying the rest of the math?
+        // Gets the center position of this particle
         double centerX = Mth.lerp(partialTick, this.xo, this.x);
         double centerY = Mth.lerp(partialTick, this.yo, this.y);
         double centerZ = Mth.lerp(partialTick, this.zo, this.z);
@@ -202,13 +191,12 @@ public void render(VertexConsumer buffer, Camera camera, float partialTick) {
         // Gets the min/max values for the x and z axes based on what block positions contain the
         // total extent of the particle.
         // TODO: Will likely have to swap these out based on hit direction.
-
         int minBlockX = BlockPos.containing(worldExtentMin).getX();
         int maxBlockX = BlockPos.containing(worldExtentMax).getX();
         int minBlockZ = BlockPos.containing(worldExtentMin).getZ();
         int maxBlockZ = BlockPos.containing(worldExtentMax).getZ();
 
-        // Render the particle over each block contained within the min/max x/z coordinates.
+        // Render the particle at its respective position for the dimension that it happens to be contained within.
         for (int blockX = minBlockX; blockX <= maxBlockX; blockX++) {
             for (int blockZ = minBlockZ; blockZ <= maxBlockZ; blockZ++) {
                 this.renderColumnDecal(pConsumer, camera, blockX, blockZ, startY, endY, centerX, centerY, centerZ, worldExtentMin, worldExtentMax, quadSize, light);
@@ -231,7 +219,7 @@ public void render(VertexConsumer buffer, Camera camera, float partialTick) {
             float quadSize,
             int light
     ) {
-        var columnPos = new BlockPos.MutableBlockPos();
+        BlockPos.MutableBlockPos columnPos = new BlockPos.MutableBlockPos();
 
         for (int y = startY; y >= endY; y--) {
             columnPos.set(blockX, y, blockZ);
@@ -287,26 +275,21 @@ public void render(VertexConsumer buffer, Camera camera, float partialTick) {
         float minZ = surfacePos.getZ() + (float) bounds.minZ;
         float maxZ = surfacePos.getZ() + (float) bounds.maxZ;
 
-        minX = (float) Math.max(minX, worldExtentMin.x);
-        maxX = (float) Math.min(maxX, worldExtentMax.x);
-        minZ = (float) Math.max(minZ, worldExtentMin.z);
-        maxZ = (float) Math.min(maxZ, worldExtentMax.z);
-
-        // TODO: May be simplified by the above. Double check that.
-//        if (minX < worldExtentMin.x) minX = (float) worldExtentMin.x;
-//        if (maxX > worldExtentMax.x) {
-//            maxX = (float) worldExtentMax.x;
-//        }
-//        if (minZ < worldExtentMin.z) {
-//            minZ = (float) worldExtentMin.z;
-//        }
-//        if (maxZ > worldExtentMax.z) {
-//            maxZ = (float) worldExtentMax.z;
-//        }
-//        if (minX >= maxX || minZ >= maxZ) {
-//            return false;
-//        }
-
+        if (minX < worldExtentMin.x) {
+            minX = (float) worldExtentMin.x;
+        }
+        if (maxX > worldExtentMax.x) {
+            maxX = (float) worldExtentMax.x;
+        }
+        if (minZ < worldExtentMin.z) {
+            minZ = (float) worldExtentMin.z;
+        }
+        if (maxZ > worldExtentMax.z) {
+            maxZ = (float) worldExtentMax.z;
+        }
+        if (minX >= maxX || minZ >= maxZ) {
+            return false;
+        }
 
         List<AABB> boxes = shape.toAabbs();
         TreeSet<Double> heightBrackets = new TreeSet<>();
@@ -323,12 +306,9 @@ public void render(VertexConsumer buffer, Camera camera, float partialTick) {
 
             // Loop through each box that that particle intersects
             for (AABB box : boxes) {
-
-                // TODO: Keeping this as is for now, but will likely need to adjust it soon.
                 if (Math.abs(box.maxY - localTopY) > HEIGHT_BRACKET_EPSILON) {
                     continue;
                 }
-
                 // Get the surface 2D vector positions for the block.
                 float planeMinX = Math.max(minX, surfacePos.getX() + (float) box.minX);
                 float planeMaxX = Math.min(maxX, surfacePos.getX() + (float) box.maxX);
@@ -410,7 +390,7 @@ public void render(VertexConsumer buffer, Camera camera, float partialTick) {
         };
 
         // These values SHOULD be fine since I believe they're only determining how much to rotate the texture,
-        // which shouldn't affect rendering at different angles?
+        // which won't affect rendering at different angles.
         float cosYaw = Mth.cos(this.yawRotation);
         float sinYaw = Mth.sin(this.yawRotation);
 
@@ -447,10 +427,6 @@ public void render(VertexConsumer buffer, Camera camera, float partialTick) {
         }
     }
 
-    /*
-        Remember, it takes 4 vertices to create a 2D texture. Sooooo, this is gonna be called 4 times per
-        BlockPos that it interacts with? Or just 4 times total?
-     */
     private void makeCornerVertex(VertexConsumer pConsumer,
                                   Vector3f pVertex,
                                   float pU,
@@ -487,7 +463,7 @@ public void render(VertexConsumer buffer, Camera camera, float partialTick) {
                                        double x, double y, double z,
                                        double xSpeed, double ySpeed, double zSpeed) {
             // We don't use the type and speed, and pass in everything else. You may of course use them if needed.
-            return new BloodSpatterParticle(level, x, y, z, this.spriteSet, options.color(), options.direction(), options.scale(), xSpeed, ySpeed, zSpeed);
+            return new BloodSpatterParticleCopy(level, x, y, z, this.spriteSet, options.color(), options.direction(), options.scale(), xSpeed, ySpeed, zSpeed);
         }
 
 //        @Override
