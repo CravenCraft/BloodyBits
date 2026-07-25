@@ -39,6 +39,14 @@ public class BloodSpatterParticle extends TextureSheetParticle {
     private final Direction direction;
     private final float yawRotation;
     private final float zFightOffset;
+    private Vec3 worldExtentMin;
+    private Vec3 worldExtentMax;
+    private double centerX;
+    private double centerY;
+    private double centerZ;
+    private int light;
+    private int startDepth;
+    private int endDepth;
 
     // First four parameters are self-explanatory. The SpriteSet parameter is provided by the
     // ParticleProvider, see below. You may also add additional parameters as needed, e.g. xSpeed/ySpeed/zSpeed.
@@ -103,18 +111,22 @@ public void render(VertexConsumer buffer, Camera camera, float partialTick) {
         BloodyBitsMod.LOGGER.debug("Test Point");
     };
 
-    /************** Begin Test Area ************/
-//    int light = this.getLightColor(partialTick);
-//    float pU = 0.55f;
-//    float pV = 0.0625f;
-//
-//    buffer.addVertex(1, 1, 1)
-//            .setColor(this.rCol, this.gCol, this.bCol, this.alpha)
-//            .setUv(pU, pV)
-//            .setLight(light);
-    /************** End Test Area ************/
-
     this.renderRotatedParticle(buffer, camera, partialTick, quadSize, quatConsumer);
+
+    // TODO: Don't know why I have to have this loop OUTSIDE of the renderColumnDecal method.
+    // Gets the min/max values for the x and z axes based on what block positions contain the
+    // total extent of the particle.
+    int minBlockX = BlockPos.containing(this.worldExtentMin).getX();
+    int maxBlockX = BlockPos.containing(this.worldExtentMax).getX();
+    int minBlockZ = BlockPos.containing(this.worldExtentMin).getZ();
+    int maxBlockZ = BlockPos.containing(this.worldExtentMax).getZ();
+
+    // Render the particle over each block contained within the min/max x/z coordinates.
+    for (int blockX = minBlockX; blockX <= maxBlockX; blockX++) {
+        for (int blockZ = minBlockZ; blockZ <= maxBlockZ; blockZ++) {
+            this.renderColumnDecal(buffer, camera, blockX, blockZ, quadSize);
+        }
+    }
 }
 
     private static final float SPLAT_IN_TIME = 1.5f;
@@ -166,75 +178,46 @@ public void render(VertexConsumer buffer, Camera camera, float partialTick) {
         }
 
         // Looks like this just sets the very edge of where the particle should be rendered.
-        Vec3 worldExtentMin = new Vec3(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY);
-        Vec3 worldExtentMax = new Vec3(Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY);
+        this.worldExtentMin = new Vec3(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY);
+        this.worldExtentMax = new Vec3(Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY);
 
         // Go through each corner of the cube to determine the minimum and maximum corner values for all 3 axes
         for (Vector3f corner : avector3f) {
             Vec3 worldCorner = cameraPos.add(corner.x(), corner.y(), corner.z());
-            worldExtentMin = new Vec3(
-                    Math.min(worldExtentMin.x, worldCorner.x),
-                    Math.min(worldExtentMin.y, worldCorner.y),
-                    Math.min(worldExtentMin.z, worldCorner.z)
+            this.worldExtentMin = new Vec3(
+                    Math.min(this.worldExtentMin.x, worldCorner.x),
+                    Math.min(this.worldExtentMin.y, worldCorner.y),
+                    Math.min(this.worldExtentMin.z, worldCorner.z)
             );
-            worldExtentMax = new Vec3(
-                    Math.max(worldExtentMax.x, worldCorner.x),
-                    Math.max(worldExtentMax.y, worldCorner.y),
-                    Math.max(worldExtentMax.z, worldCorner.z)
+            this.worldExtentMax = new Vec3(
+                    Math.max(this.worldExtentMax.x, worldCorner.x),
+                    Math.max(this.worldExtentMax.y, worldCorner.y),
+                    Math.max(this.worldExtentMax.z, worldCorner.z)
             );
         }
 
         // Gets the light color (level?) of this particle
-        int light = this.getLightColor(partialTick);
+        this.light = this.getLightColor(partialTick);
 
         // Gets the center position of this particle in the level.
         // TODO: Could potentially get the world min/max from this center. Need to look into why the camera position
         //       is required so much here. Maybe in order to properly rotate the particle in relation to the camera
         //       before applying the rest of the math?
-        double centerX = Mth.lerp(partialTick, this.xo, this.x);
-        double centerY = Mth.lerp(partialTick, this.yo, this.y);
-        double centerZ = Mth.lerp(partialTick, this.zo, this.z);
+        this.centerX = Mth.lerp(partialTick, this.xo, this.x);
+        this.centerY = Mth.lerp(partialTick, this.yo, this.y);
+        this.centerZ = Mth.lerp(partialTick, this.zo, this.z);
 
-
-        int startY = Mth.floor(centerY + 1.0D);
-        int endY = Mth.floor(centerY - MAX_PROJECTION_HEIGHT);
-
-        // Gets the min/max values for the x and z axes based on what block positions contain the
-        // total extent of the particle.
-        // TODO: Will likely have to swap these out based on hit direction.
-
-        int minBlockX = BlockPos.containing(worldExtentMin).getX();
-        int maxBlockX = BlockPos.containing(worldExtentMax).getX();
-        int minBlockZ = BlockPos.containing(worldExtentMin).getZ();
-        int maxBlockZ = BlockPos.containing(worldExtentMax).getZ();
-
-        // Render the particle over each block contained within the min/max x/z coordinates.
-        for (int blockX = minBlockX; blockX <= maxBlockX; blockX++) {
-            for (int blockZ = minBlockZ; blockZ <= maxBlockZ; blockZ++) {
-                this.renderColumnDecal(pConsumer, camera, blockX, blockZ, startY, endY, centerX, centerY, centerZ, worldExtentMin, worldExtentMax, quadSize, light);
-            }
-        }
+        // Determine max depth
+        this.startDepth = Mth.floor(centerY + 1.0D);
+        this.endDepth = Mth.floor(centerY - MAX_PROJECTION_HEIGHT);
     }
 
-    private void renderColumnDecal(
-            VertexConsumer buffer,
-            Camera camera,
-            int blockX,
-            int blockZ,
-            int startY,
-            int endY,
-            double centerX,
-            double centerY,
-            double centerZ,
-            Vec3 worldExtentMin,
-            Vec3 worldExtentMax,
-            float quadSize,
-            int light
-    ) {
+    private void renderColumnDecal(VertexConsumer buffer, Camera camera, int blockX, int blockZ, float quadSize) {
         var columnPos = new BlockPos.MutableBlockPos();
 
-        for (int y = startY; y >= endY; y--) {
+        for (int y = this.startDepth; y >= this.endDepth; y--) {
             columnPos.set(blockX, y, blockZ);
+            // TODO: Check direction here
             BlockPos surfacePos = columnPos.below();
             BlockState blockState = this.level.getBlockState(surfacePos);
 
@@ -250,63 +233,24 @@ public void render(VertexConsumer buffer, Camera camera, float partialTick) {
                 continue;
             }
 
-            if (this.renderBlockDecal(
-                    buffer,
-                    camera,
-                    surfacePos,
-                    shape,
-                    centerX,
-                    centerY,
-                    centerZ,
-                    worldExtentMin,
-                    worldExtentMax,
-                    quadSize,
-                    light
-            )) {
+            if (this.renderBlockDecal(buffer, camera, surfacePos, shape, quadSize)) {
                 return;
             }
         }
     }
 
-    private boolean renderBlockDecal(
-            VertexConsumer buffer,
-            Camera camera,
-            BlockPos surfacePos,
-            VoxelShape shape,
-            double centerX,
-            double centerY,
-            double centerZ,
-            Vec3 worldExtentMin,
-            Vec3 worldExtentMax,
-            float quadSize,
-            int light
-    ) {
+    private boolean renderBlockDecal(VertexConsumer buffer, Camera camera, BlockPos surfacePos,
+                                     VoxelShape shape, float quadSize) {
         AABB bounds = shape.bounds();
         float minX = surfacePos.getX() + (float) bounds.minX;
         float maxX = surfacePos.getX() + (float) bounds.maxX;
         float minZ = surfacePos.getZ() + (float) bounds.minZ;
         float maxZ = surfacePos.getZ() + (float) bounds.maxZ;
 
-        minX = (float) Math.max(minX, worldExtentMin.x);
-        maxX = (float) Math.min(maxX, worldExtentMax.x);
-        minZ = (float) Math.max(minZ, worldExtentMin.z);
-        maxZ = (float) Math.min(maxZ, worldExtentMax.z);
-
-        // TODO: May be simplified by the above. Double check that.
-//        if (minX < worldExtentMin.x) minX = (float) worldExtentMin.x;
-//        if (maxX > worldExtentMax.x) {
-//            maxX = (float) worldExtentMax.x;
-//        }
-//        if (minZ < worldExtentMin.z) {
-//            minZ = (float) worldExtentMin.z;
-//        }
-//        if (maxZ > worldExtentMax.z) {
-//            maxZ = (float) worldExtentMax.z;
-//        }
-//        if (minX >= maxX || minZ >= maxZ) {
-//            return false;
-//        }
-
+        minX = (float) Math.max(minX, this.worldExtentMin.x);
+        maxX = (float) Math.min(maxX, this.worldExtentMax.x);
+        minZ = (float) Math.max(minZ, this.worldExtentMin.z);
+        maxZ = (float) Math.min(maxZ, this.worldExtentMax.z);
 
         List<AABB> boxes = shape.toAabbs();
         TreeSet<Double> heightBrackets = new TreeSet<>();
@@ -317,7 +261,7 @@ public void render(VertexConsumer buffer, Camera camera, float partialTick) {
         boolean renderedAny = false;
         for (double localTopY : heightBrackets) {
             double worldTopY = surfacePos.getY() + localTopY;
-            if (worldTopY > centerY + 0.25D) {
+            if (worldTopY > this.centerY + 0.25D) {
                 continue;
             }
 
@@ -339,7 +283,7 @@ public void render(VertexConsumer buffer, Camera camera, float partialTick) {
                     continue;
                 }
 
-                float drop = (float) (centerY - worldTopY);
+                float drop = (float) (this.centerY - worldTopY);
                 float alphaMultiplier = Mth.lerp(Mth.clamp(drop / MAX_PROJECTION_HEIGHT, 0.0F, 1.0F), 1.0F, 0.25F);
                 float clipOffset = 0; //0.005625f; // now incorporated in anti-zfight offset
                 this.renderFlatDecalPlane(
@@ -350,10 +294,7 @@ public void render(VertexConsumer buffer, Camera camera, float partialTick) {
                         planeMinZ,
                         planeMaxZ,
                         (float) worldTopY + clipOffset,
-                        centerX,
-                        centerZ,
                         quadSize,
-                        light,
                         alphaMultiplier
                 );
                 renderedAny = true;
@@ -372,10 +313,7 @@ public void render(VertexConsumer buffer, Camera camera, float partialTick) {
      * @param minZ
      * @param maxZ
      * @param surfaceY
-     * @param centerX
-     * @param centerZ
      * @param quadSize
-     * @param light
      * @param alphaMultiplier
      */
     private void renderFlatDecalPlane(
@@ -386,10 +324,7 @@ public void render(VertexConsumer buffer, Camera camera, float partialTick) {
             float minZ,
             float maxZ,
             float surfaceY,
-            double centerX,
-            double centerZ,
             float quadSize,
-            int light,
             float alphaMultiplier
     ) {
         // Just gets the given texture coordinates for this particle.
@@ -417,8 +352,8 @@ public void render(VertexConsumer buffer, Camera camera, float partialTick) {
         // Determines the corners
         for (Vec2 corner : corners) {
             // TODO: Will want to change these offsets based on the direction
-            float offsetX = corner.x - (float) centerX;
-            float offsetZ = corner.y - (float) centerZ;
+            float offsetX = corner.x - (float) this.centerX;
+            float offsetZ = corner.y - (float) this.centerZ;
 
             // The z-fighting to make the texture hoover ever so slightly above the block.
             //  TODO: Gonna want to create a variable to apply this to the vector argument for the vertex.
@@ -431,19 +366,13 @@ public void render(VertexConsumer buffer, Camera camera, float partialTick) {
             float uvLocalZ = offsetX * sinYaw + offsetZ * cosYaw;
             float u = (uvLocalX / (2.0F * halfSize) + 0.5F) * (u1 - u0) + u0;
             float v = (uvLocalZ / (2.0F * halfSize) + 0.5F) * (v1 - v0) + v0;
-
-            this.makeCornerVertex(
-                    buffer,
-                    new Vector3f(
-                            corner.x - (float) cameraPos.x,
-                            surfaceY - (float) cameraPos.y + zFightY,
-                            corner.y - (float) cameraPos.z
-                    ),
-                    u,
-                    v,
-                    light,
-                    alphaMultiplier
+            var vec3f = new Vector3f(
+                    corner.x - (float) cameraPos.x,
+                    surfaceY - (float) cameraPos.y + zFightY,
+                    corner.y - (float) cameraPos.z
             );
+
+            this.makeCornerVertex(buffer, vec3f, u, v, light, alphaMultiplier);
         }
     }
 
