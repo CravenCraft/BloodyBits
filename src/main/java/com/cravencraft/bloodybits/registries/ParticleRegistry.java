@@ -1,7 +1,7 @@
 package com.cravencraft.bloodybits.registries;
 
 import com.cravencraft.bloodybits.BloodyBitsMod;
-import com.cravencraft.bloodybits.particle.BloodSpatterParticleType;
+import com.cravencraft.bloodybits.particle.spatter.BloodSpatterParticleType;
 import com.cravencraft.bloodybits.particle.BloodSprayParticleType;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.particles.SimpleParticleType;

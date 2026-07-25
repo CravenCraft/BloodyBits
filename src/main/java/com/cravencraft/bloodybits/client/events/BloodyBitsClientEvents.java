@@ -2,7 +2,7 @@ package com.cravencraft.bloodybits.client.events;
 
 import com.cravencraft.bloodybits.BloodyBitsMod;
 import com.cravencraft.bloodybits.particle.BloodEmitterParticle;
-import com.cravencraft.bloodybits.particle.BloodSpatterParticle;
+import com.cravencraft.bloodybits.particle.spatter.BloodSpatterParticle;
 import com.cravencraft.bloodybits.particle.BloodSpatterParticleCopy;
 import com.cravencraft.bloodybits.particle.BloodSprayParticle;
 import com.cravencraft.bloodybits.registries.ParticleRegistry;

@@ -1,6 +1,7 @@
-package com.cravencraft.bloodybits.particle;
+package com.cravencraft.bloodybits.particle.spatter;
 
 import com.cravencraft.bloodybits.BloodyBitsMod;
+import com.cravencraft.bloodybits.particle.BloodSprayParticleOptions;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import net.minecraft.Util;
@@ -39,8 +40,11 @@ public class BloodSpatterParticle extends TextureSheetParticle {
     private final Direction direction;
     private final float yawRotation;
     private final float zFightOffset;
+    private float spatterQuadSize;
+    private Vec3 cameraPos;
     private Vec3 worldExtentMin;
     private Vec3 worldExtentMax;
+    private VertexConsumer vertexConsumer;
     private double centerX;
     private double centerY;
     private double centerZ;
@@ -66,7 +70,6 @@ public class BloodSpatterParticle extends TextureSheetParticle {
         this.spriteSet = spriteSet;
         this.direction = Direction.from3DDataValue(direction);
         this.fadeoutTime = 150;
-//        this.quadSize = 1.5f * scale;
         this.yawRotation = this.random.nextInt(4) * DEGREES_90;
 
         this.rCol = BloodSprayParticleOptions.red(color);
@@ -81,10 +84,12 @@ public class BloodSpatterParticle extends TextureSheetParticle {
     }
 
 @Override
-public void render(VertexConsumer buffer, Camera camera, float partialTick) {
+public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float partialTick) {
     int fadeThreshold = lifetime - fadeoutTime; // Determines when the particle should start fading
     float quadSize = this.getQuadSize(partialTick); // Gets the quad size of the particle
     float f = this.age + partialTick; // Current age with the given partial tick
+    this.cameraPos = camera.getPosition();
+    this.vertexConsumer = buffer;
 
     if (this.direction == Direction.NORTH ||
         this.direction == Direction.SOUTH ||
@@ -102,6 +107,8 @@ public void render(VertexConsumer buffer, Camera camera, float partialTick) {
         this.alpha = 1.0F - Mth.clamp((f - fadeThreshold) / fadeoutTime, 1f - INITIAL_ALPHA, 1F);
     }
 
+    this.spatterQuadSize = quadSize;
+
     // Will perform the operations defined in the lambda into arguments of the consumer's accept() method.
     // This flips the quaternion upside down (on the y-axis), then places it on its side (on the x-axis).
     // This would make a vertical standing image appear flat on the ground facing up.
@@ -111,43 +118,27 @@ public void render(VertexConsumer buffer, Camera camera, float partialTick) {
         BloodyBitsMod.LOGGER.debug("Test Point");
     };
 
-    this.renderRotatedParticle(buffer, camera, partialTick, quadSize, quatConsumer);
-
-    // TODO: Don't know why I have to have this loop OUTSIDE of the renderColumnDecal method.
-    // Gets the min/max values for the x and z axes based on what block positions contain the
-    // total extent of the particle.
-    int minBlockX = BlockPos.containing(this.worldExtentMin).getX();
-    int maxBlockX = BlockPos.containing(this.worldExtentMax).getX();
-    int minBlockZ = BlockPos.containing(this.worldExtentMin).getZ();
-    int maxBlockZ = BlockPos.containing(this.worldExtentMax).getZ();
-
-    // Render the particle over each block contained within the min/max x/z coordinates.
-    for (int blockX = minBlockX; blockX <= maxBlockX; blockX++) {
-        for (int blockZ = minBlockZ; blockZ <= maxBlockZ; blockZ++) {
-            this.renderColumnDecal(buffer, camera, blockX, blockZ, quadSize);
-        }
-    }
+    this.renderRotatedParticle(partialTick, quatConsumer);
+    this.renderColumnDecal();
 }
 
     private static final float SPLAT_IN_TIME = 1.5f;
     private static final float MAX_PROJECTION_HEIGHT = 2.0f;
     private static final double HEIGHT_BRACKET_EPSILON = 1.0E-4D; // 0.0001
 
-    private void renderRotatedParticle(VertexConsumer pConsumer, Camera camera, float partialTick, float quadSize, Consumer<Quaternionf> pQuaternion) {
-        Vec3 cameraPos = camera.getPosition(); // The current camera position
+    private void renderRotatedParticle(float partialTick, Consumer<Quaternionf> pQuaternion) {
+//        Vec3 cameraPos = camera.getPosition(); // The current camera position
 
         // Where the blood spatter x value is in relation to the camera.
-        float localX = (float) (Mth.lerp(partialTick, this.xo, this.x) - cameraPos.x());
+        float localX = (float) (Mth.lerp(partialTick, this.xo, this.x) - this.cameraPos.x());
 
         // Where the blood spatter y value is in relation to the camera. It is at least 0.01f higher to potentially avoid
         // clipping through the boxes. Looks like as the particle gets closer to the end of its life it rises ever so slightly as well.
         // Don't know why this is.
-        float localY = (float) (Mth.lerp(partialTick, this.yo, this.y) - cameraPos.y()) + 0.01f + (.005f * (this.age / (float) this.lifetime));
-
-//        float localY = (float) (Mth.lerp(partialTick, this.yo, this.y) - cameraPos.y()) + 10.01f + (.005f * (this.age / (float) this.lifetime));
+        float localY = (float) (Mth.lerp(partialTick, this.yo, this.y) - this.cameraPos.y()) + 0.01f + (.005f * (this.age / (float) this.lifetime));
 
         // Where the blood spatter z value is in relation to the camera.
-        float localZ = (float) (Mth.lerp(partialTick, this.zo, this.z) - cameraPos.z());
+        float localZ = (float) (Mth.lerp(partialTick, this.zo, this.z) - this.cameraPos.z());
 
         // To my knowledge, a quaternion represents a 3-dimensional object's location and rotation.
         // So, maybe this is setting the rotation of the spatter to face up?
@@ -173,7 +164,7 @@ public void render(VertexConsumer buffer, Camera camera, float partialTick) {
         for (int i = 0; i < 4; ++i) {
             Vector3f vector3f = avector3f[i];
             vector3f.rotate(quaternion);
-            vector3f.mul(quadSize * 0.5f); // vector is a 2x2 plane, cut in half
+            vector3f.mul(this.spatterQuadSize * 0.5f); // vector is a 2x2 plane, cut in half
             vector3f.add(localX, localY, localZ);
         }
 
@@ -212,35 +203,47 @@ public void render(VertexConsumer buffer, Camera camera, float partialTick) {
         this.endDepth = Mth.floor(centerY - MAX_PROJECTION_HEIGHT);
     }
 
-    private void renderColumnDecal(VertexConsumer buffer, Camera camera, int blockX, int blockZ, float quadSize) {
-        var columnPos = new BlockPos.MutableBlockPos();
+    private void renderColumnDecal() {
 
-        for (int y = this.startDepth; y >= this.endDepth; y--) {
-            columnPos.set(blockX, y, blockZ);
-            // TODO: Check direction here
-            BlockPos surfacePos = columnPos.below();
-            BlockState blockState = this.level.getBlockState(surfacePos);
+        // Gets the min/max values for the x and z axes based on what block positions contain the
+        // total extent of the particle.
+        int minBlockX = BlockPos.containing(this.worldExtentMin).getX();
+        int maxBlockX = BlockPos.containing(this.worldExtentMax).getX();
+        int minBlockZ = BlockPos.containing(this.worldExtentMin).getZ();
+        int maxBlockZ = BlockPos.containing(this.worldExtentMax).getZ();
 
-            // If the block underneath this one is invisible or empty, then the rest of the loop is skipped.
-            // TODO: Check direction here
-            if (blockState.getRenderShape() == RenderShape.INVISIBLE || blockState.getCollisionShape(this.level, surfacePos).isEmpty()) {
-                continue;
-            }
+        // Render the particle over each block contained within the min/max x/z coordinates.
+        for (int blockX = minBlockX; blockX <= maxBlockX; blockX++) {
+            for (int blockZ = minBlockZ; blockZ <= maxBlockZ; blockZ++) {
+                var columnPos = new BlockPos.MutableBlockPos();
 
-            // If the block has no shape (is not drawn?), then skip the rest of the loop.
-            VoxelShape shape = blockState.getShape(this.level, surfacePos, CollisionContext.empty());
-            if (shape.isEmpty()) {
-                continue;
-            }
+                for (int y = this.startDepth; y >= this.endDepth; y--) {
+                    columnPos.set(blockX, y, blockZ);
+                    // TODO: Check direction here
+                    BlockPos surfacePos = columnPos.below();
+                    BlockState blockState = this.level.getBlockState(surfacePos);
 
-            if (this.renderBlockDecal(buffer, camera, surfacePos, shape, quadSize)) {
-                return;
+                    // If the block underneath this one is invisible or empty, then the rest of the loop is skipped.
+                    // TODO: Check direction here
+                    if (blockState.getRenderShape() == RenderShape.INVISIBLE || blockState.getCollisionShape(this.level, surfacePos).isEmpty()) {
+                        continue;
+                    }
+
+                    // If the block has no shape (is not drawn?), then skip the rest of the loop.
+                    VoxelShape shape = blockState.getShape(this.level, surfacePos, CollisionContext.empty());
+                    if (shape.isEmpty()) {
+                        continue;
+                    }
+
+                    if (this.renderBlockDecal(surfacePos, shape)) {
+                        break; // TODO: This return is what causes the issue.
+                    }
+                }
             }
         }
     }
 
-    private boolean renderBlockDecal(VertexConsumer buffer, Camera camera, BlockPos surfacePos,
-                                     VoxelShape shape, float quadSize) {
+    private boolean renderBlockDecal(BlockPos surfacePos, VoxelShape shape) {
         AABB bounds = shape.bounds();
         float minX = surfacePos.getX() + (float) bounds.minX;
         float maxX = surfacePos.getX() + (float) bounds.maxX;
@@ -261,6 +264,7 @@ public void render(VertexConsumer buffer, Camera camera, float partialTick) {
         boolean renderedAny = false;
         for (double localTopY : heightBrackets) {
             double worldTopY = surfacePos.getY() + localTopY;
+
             if (worldTopY > this.centerY + 0.25D) {
                 continue;
             }
@@ -284,19 +288,12 @@ public void render(VertexConsumer buffer, Camera camera, float partialTick) {
                 }
 
                 float drop = (float) (this.centerY - worldTopY);
-                float alphaMultiplier = Mth.lerp(Mth.clamp(drop / MAX_PROJECTION_HEIGHT, 0.0F, 1.0F), 1.0F, 0.25F);
-                float clipOffset = 0; //0.005625f; // now incorporated in anti-zfight offset
-                this.renderFlatDecalPlane(
-                        buffer,
-                        camera,
-                        planeMinX,
-                        planeMaxX,
-                        planeMinZ,
-                        planeMaxZ,
-                        (float) worldTopY + clipOffset,
-                        quadSize,
-                        alphaMultiplier
-                );
+                float alphaMultiplier = Mth.lerp(
+                        Mth.clamp(drop / MAX_PROJECTION_HEIGHT, 0.0F, 1.0F),
+                        1.0F, 0.25F);
+                var corners = BloodSpatterUtils.createCorners(planeMinX, planeMaxX, planeMinZ, planeMaxZ);
+
+                this.renderFlatDecalPlane(corners, (float) worldTopY, alphaMultiplier);
                 renderedAny = true;
             }
         }
@@ -306,46 +303,21 @@ public void render(VertexConsumer buffer, Camera camera, float partialTick) {
     /**
      * TODO: Can likely modify the inputs of this method to be min and max values for the plane being modified.
      *
-     * @param buffer
-     * @param camera
-     * @param minX
-     * @param maxX
-     * @param minZ
-     * @param maxZ
+     * @param corners
      * @param surfaceY
-     * @param quadSize
      * @param alphaMultiplier
      */
-    private void renderFlatDecalPlane(
-            VertexConsumer buffer,
-            Camera camera,
-            float minX,
-            float maxX,
-            float minZ,
-            float maxZ,
-            float surfaceY,
-            float quadSize,
-            float alphaMultiplier
-    ) {
+    private void renderFlatDecalPlane(Vec2[] corners, float surfaceY, float alphaMultiplier) {
         // Just gets the given texture coordinates for this particle.
         float u0 = this.getU0();
         float u1 = this.getU1();
         float v0 = this.getV0();
         float v1 = this.getV1();
 
-        float halfSize = quadSize * 0.5F;
-        Vec3 cameraPos = camera.getPosition();
-        // Create the 2D box that will be drawn on the given block.
-        //  TODO: Will need to modify this based on direction.
-        Vec2[] corners = new Vec2[] {
-                new Vec2(minX, minZ),
-                new Vec2(minX, maxZ),
-                new Vec2(maxX, maxZ),
-                new Vec2(maxX, minZ),
-        };
+        float halfSize = this.spatterQuadSize * 0.5F;
 
-        // These values SHOULD be fine since I believe they're only determining how much to rotate the texture,
-        // which shouldn't affect rendering at different angles?
+        // These values SHOULD be fine since I believe they're only determining how much to rotate the texture
+        // for spatter randomization, which shouldn't affect rendering at different angles?
         float cosYaw = Mth.cos(this.yawRotation);
         float sinYaw = Mth.sin(this.yawRotation);
 
@@ -367,12 +339,12 @@ public void render(VertexConsumer buffer, Camera camera, float partialTick) {
             float u = (uvLocalX / (2.0F * halfSize) + 0.5F) * (u1 - u0) + u0;
             float v = (uvLocalZ / (2.0F * halfSize) + 0.5F) * (v1 - v0) + v0;
             var vec3f = new Vector3f(
-                    corner.x - (float) cameraPos.x,
-                    surfaceY - (float) cameraPos.y + zFightY,
-                    corner.y - (float) cameraPos.z
+                    corner.x - (float) this.cameraPos.x,
+                    surfaceY - (float) this.cameraPos.y + zFightY,
+                    corner.y - (float) this.cameraPos.z
             );
 
-            this.makeCornerVertex(buffer, vec3f, u, v, light, alphaMultiplier);
+            this.makeCornerVertex(vec3f, u, v, alphaMultiplier);
         }
     }
 
@@ -380,16 +352,12 @@ public void render(VertexConsumer buffer, Camera camera, float partialTick) {
         Remember, it takes 4 vertices to create a 2D texture. Sooooo, this is gonna be called 4 times per
         BlockPos that it interacts with? Or just 4 times total?
      */
-    private void makeCornerVertex(VertexConsumer pConsumer,
-                                  Vector3f pVertex,
-                                  float pU,
-                                  float pV,
-                                  int pPackedLight,
-                                  float alphaMultiplier) {
-        pConsumer.addVertex(pVertex.x(), pVertex.y(), pVertex.z())
+    private void makeCornerVertex(Vector3f pVertex, float pU, float pV, float alphaMultiplier) {
+        this.vertexConsumer
+                .addVertex(pVertex.x(), pVertex.y(), pVertex.z())
                 .setColor(this.rCol, this.gCol, this.bCol, this.alpha * alphaMultiplier)
                 .setUv(pU, pV)
-                .setLight(pPackedLight);
+                .setLight(this.light);
     }
 
     @NotNull

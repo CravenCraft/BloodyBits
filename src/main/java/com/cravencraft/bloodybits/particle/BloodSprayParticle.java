@@ -1,6 +1,8 @@
 package com.cravencraft.bloodybits.particle;
 
 import com.cravencraft.bloodybits.BloodyBitsMod;
+import com.cravencraft.bloodybits.particle.spatter.BloodSpatterParticle;
+import com.cravencraft.bloodybits.particle.spatter.BloodSpatterParticleOptions;
 import com.cravencraft.bloodybits.registries.ParticleRegistry;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Camera;
