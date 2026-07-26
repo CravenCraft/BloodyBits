@@ -63,7 +63,7 @@ public class BloodSpatterParticle extends TextureSheetParticle {
         this.zd = zSpeed;
         this.quadSize = 1.5f * scale;
         this.friction = 0.5f;
-        this.gravity = 1.0f;
+        this.gravity = 0.0f;
         this.lifetime = 300;
         this.setSize(1.0f, 1.0f);
         this.scale(3f);
@@ -107,6 +107,10 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
         this.alpha = 1.0F - Mth.clamp((f - fadeThreshold) / fadeoutTime, 1f - INITIAL_ALPHA, 1F);
     }
 
+    if (f > 60) {
+        BloodyBitsMod.LOGGER.info("BloodSpatterParticle: fadeoutTime=" + f);
+    }
+
     this.spatterQuadSize = quadSize;
 
     this.renderRotatedParticle(partialTick);
@@ -118,6 +122,7 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
     private static final double HEIGHT_BRACKET_EPSILON = 1.0E-4D; // 0.0001
 
     private void renderRotatedParticle(float partialTick) {
+        BloodyBitsMod.LOGGER.info("in renderRotatedParticle");
 //        Vec3 cameraPos = camera.getPosition(); // The current camera position
 
         // Will perform the operations defined in the lambda into arguments of the consumer's accept() method.
@@ -133,7 +138,13 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
         // Where the blood spatter y value is in relation to the camera. It is at least 0.01f higher to potentially avoid
         // clipping through the boxes. Looks like as the particle gets closer to the end of its life it rises ever so slightly as well.
         // Don't know why this is.
-        float localY = (float) (Mth.lerp(partialTick, this.yo, this.y) - this.cameraPos.y()) + 0.01f + (.005f * (this.age / (float) this.lifetime));
+        float localY;
+        if (this.direction == Direction.DOWN) {
+            localY = (float) (Mth.lerp(partialTick, this.yo, this.y) - this.cameraPos.y()) + 0.01f + (.005f * (this.age / (float) this.lifetime));
+        }
+        else {
+            localY = (float) (Mth.lerp(partialTick, this.yo, this.y) - this.cameraPos.y()) - 0.01f - (.005f * (this.age / (float) this.lifetime));
+        }
 
         // Where the blood spatter z value is in relation to the camera.
         float localZ = (float) (Mth.lerp(partialTick, this.zo, this.z) - this.cameraPos.z());
@@ -196,6 +207,10 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
         this.centerY = Mth.lerp(partialTick, this.yo, this.y);
         this.centerZ = Mth.lerp(partialTick, this.zo, this.z);
 
+        if (this.direction == Direction.UP) {
+            this.centerY += 0.5;
+        }
+
         // Determine max depth
         // TODO: For direction.UP probably wanna do Mth.ceil()
         if (this.direction == Direction.DOWN) {
@@ -210,6 +225,7 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
     }
 
     private void renderColumnDecal() {
+        BloodyBitsMod.LOGGER.info("in renderColumnDecal particle pos: {}", this.getPos());
 
         // Gets the min/max values for the x and z axes based on what block positions contain the
         // total extent of the particle.
@@ -229,14 +245,13 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
                     BlockPos surfacePos = new BlockPos(columnPos);
 
                     // TODO: This actually might not matter if we are going down from the top with Direction.UP
-//                    if (this.direction == Direction.DOWN) {
-//                        surfacePos = columnPos.below();
-//                    }
-//                    else if (this.direction == Direction.UP) {
-//                        surfacePos = columnPos.above();
-//                    }
+                    if (this.direction == Direction.DOWN) {
+                        surfacePos = columnPos.below();
+                    }
+                    else if (this.direction == Direction.UP) {
+                        surfacePos = columnPos.above();
+                    }
 
-                    surfacePos = columnPos.below();
                     BlockState blockState = this.level.getBlockState(surfacePos);
 
                     // If the block underneath this one is invisible or empty, then the rest of the loop is skipped.
@@ -260,6 +275,7 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
     }
 
     private boolean renderBlockDecal(BlockPos surfacePos, VoxelShape shape) {
+        BloodyBitsMod.LOGGER.info("in renderBlockDecal");
         AABB bounds = shape.bounds();
 
         // TODO: throw min/max dimensions into a util method.
@@ -285,7 +301,9 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
             double worldTopY = surfacePos.getY() + localTopY;
 
             if (this.direction == Direction.UP) {
-                worldTopY = surfacePos.getY() - localTopY;
+                // TODO: You don't necessarily need to use localTop here because that just accounts for the block's
+                //       height. If you're hitting it from the bottom, then you can just use the base y position.
+                worldTopY = surfacePos.getY();
                 if (worldTopY < this.centerY - 0.25D) {
                     continue;
                 }
@@ -329,7 +347,6 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
             }
     }
 
-
         return renderedAny;
     }
 
@@ -341,6 +358,7 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
      * @param alphaMultiplier
      */
     private void renderFlatDecalPlane(Vec2[] corners, float surfaceY, float alphaMultiplier) {
+        BloodyBitsMod.LOGGER.info("in renderFlatDecalPlane");
         // Just gets the given texture coordinates for this particle.
         float u0 = this.getU0();
         float u1 = this.getU1();
@@ -358,9 +376,13 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
         // Gotta flip it & draw it the opposite way for it being direction UP.
         var cornersList = List.of(corners);
 
+        if (direction == Direction.UP) {
+            cornersList = cornersList.reversed();
+        }
+
         // TODO: HERE. Reversing the list is the easiest way to flip the image. Now, just need to account for
         //       upside down coordinates and shapes.
-        for (Vec2 corner : cornersList.reversed()) {
+        for (Vec2 corner : cornersList) {
             // TODO: Will want to change these offsets based on the direction
             float offsetX = corner.x - (float) this.centerX;
             float offsetZ = corner.y - (float) this.centerZ;
@@ -368,7 +390,7 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
             // The z-fighting to make the texture hoover ever so slightly above the block.
             //  TODO: Gonna want to create a variable to apply this to the vector argument for the vertex.
             //        Which will honestly probably be done when reworking the for-loop for the corners above.
-            float zFightY = (zFightOffset + 0.08f) * Math.max(0.05f, alpha - 0.3f) * 0.05f;
+            float zFightY = (this.zFightOffset + 0.08f) * Math.max(0.05f, alpha - 0.3f) * 0.05f;
 
             float uvLocalX = offsetX * cosYaw - offsetZ * sinYaw;
             float uvLocalZ = offsetX * sinYaw + offsetZ * cosYaw;
@@ -386,10 +408,11 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
             else if (this.direction == Direction.UP) {
                 vec3f = new Vector3f(
                         corner.x - (float) this.cameraPos.x,
-                        surfaceY - (float) this.cameraPos.y - zFightY,
+                        surfaceY - (float) this.cameraPos.y - zFightY, // TODO: Look back over this knowing that BlockPos.y is the BOTTOM of the block.
                         corner.y - (float) this.cameraPos.z
                 );
             }
+            BloodyBitsMod.LOGGER.info("age: {}", this.age);
 
             this.makeCornerVertex(vec3f, u, v, alphaMultiplier);
         }
@@ -401,7 +424,7 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
      */
     private void makeCornerVertex(Vector3f pVertex, float pU, float pV, float alphaMultiplier) {
         this.vertexConsumer
-                .addVertex(pVertex.x(), pVertex.y() + 1, pVertex.z())
+                .addVertex(pVertex.x(), pVertex.y(), pVertex.z())
                 .setColor(this.rCol, this.gCol, this.bCol, this.alpha * alphaMultiplier)
                 .setUv(pU, pV)
                 .setLight(this.light);
