@@ -109,26 +109,24 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
 
     this.spatterQuadSize = quadSize;
 
-    // Will perform the operations defined in the lambda into arguments of the consumer's accept() method.
-    // This flips the quaternion upside down (on the y-axis), then places it on its side (on the x-axis).
-    // This would make a vertical standing image appear flat on the ground facing up.
-    Consumer<Quaternionf> quatConsumer = (quat) -> {
-        quat.mul(Axis.YP.rotation(-(float) Math.PI)); // I THINK tht Math.PI being negative here doesn't matter since it's a perfect 180 flip.
-        quat.mul(Axis.XP.rotation(DEGREES_90));
-        BloodyBitsMod.LOGGER.debug("Test Point");
-    };
-
-    this.renderRotatedParticle(partialTick, quatConsumer);
+    this.renderRotatedParticle(partialTick);
     this.renderColumnDecal();
 }
 
     private static final float SPLAT_IN_TIME = 1.5f;
-    private static final float MAX_PROJECTION_HEIGHT = 2.0f;
+    private static final float MAX_PROJECTION_DEPTH = 2.0f;
     private static final double HEIGHT_BRACKET_EPSILON = 1.0E-4D; // 0.0001
 
-    private void renderRotatedParticle(float partialTick, Consumer<Quaternionf> pQuaternion) {
+    private void renderRotatedParticle(float partialTick) {
 //        Vec3 cameraPos = camera.getPosition(); // The current camera position
 
+        // Will perform the operations defined in the lambda into arguments of the consumer's accept() method.
+        // This flips the quaternion upside down (on the y-axis), then places it on its side (on the x-axis).
+        // This would make a vertical standing image appear flat on the ground facing up.
+        Consumer<Quaternionf> quatConsumer = (quat) -> {
+            quat.mul(Axis.YN.rotation((float) Math.PI)); // -180 degrees
+            quat.mul(Axis.XP.rotation(DEGREES_90)); // +90 degrees
+        };
         // Where the blood spatter x value is in relation to the camera.
         float localX = (float) (Mth.lerp(partialTick, this.xo, this.x) - this.cameraPos.x());
 
@@ -145,7 +143,7 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
         Quaternionf quaternion = (new Quaternionf()).setAngleAxis(0.0F, ROTATION_VECTOR.x(), ROTATION_VECTOR.y(), ROTATION_VECTOR.z());
 
         // Performs the operations defined in the lambda expression of pQuaternion.
-        pQuaternion.accept(quaternion); // Applies the new quaternion to the one in the argument.
+        quatConsumer.accept(quaternion); // Applies the new quaternion to the one in the argument.
 
         // Transforms the quaternion to a single location, which to my knowledge appears to be center and on top of
         // the blocks.
@@ -199,8 +197,16 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
         this.centerZ = Mth.lerp(partialTick, this.zo, this.z);
 
         // Determine max depth
-        this.startDepth = Mth.floor(centerY + 1.0D);
-        this.endDepth = Mth.floor(centerY - MAX_PROJECTION_HEIGHT);
+        // TODO: For direction.UP probably wanna do Mth.ceil()
+        if (this.direction == Direction.DOWN) {
+            this.startDepth = Mth.floor(this.centerY + 1.0D);
+            this.endDepth = Mth.floor(this.centerY - MAX_PROJECTION_DEPTH);
+        }
+        else if (this.direction == Direction.UP) {
+            this.startDepth = Mth.floor(this.centerY + MAX_PROJECTION_DEPTH);
+            this.endDepth = Mth.floor(this.centerY - 1.0D);
+        }
+
     }
 
     private void renderColumnDecal() {
@@ -220,11 +226,20 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
                 for (int y = this.startDepth; y >= this.endDepth; y--) {
                     columnPos.set(blockX, y, blockZ);
                     // TODO: Check direction here
-                    BlockPos surfacePos = columnPos.below();
+                    BlockPos surfacePos = new BlockPos(columnPos);
+
+                    // TODO: This actually might not matter if we are going down from the top with Direction.UP
+//                    if (this.direction == Direction.DOWN) {
+//                        surfacePos = columnPos.below();
+//                    }
+//                    else if (this.direction == Direction.UP) {
+//                        surfacePos = columnPos.above();
+//                    }
+
+                    surfacePos = columnPos.below();
                     BlockState blockState = this.level.getBlockState(surfacePos);
 
                     // If the block underneath this one is invisible or empty, then the rest of the loop is skipped.
-                    // TODO: Check direction here
                     if (blockState.getRenderShape() == RenderShape.INVISIBLE || blockState.getCollisionShape(this.level, surfacePos).isEmpty()) {
                         continue;
                     }
@@ -239,12 +254,15 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
                         break; // TODO: This return is what causes the issue.
                     }
                 }
+
             }
         }
     }
 
     private boolean renderBlockDecal(BlockPos surfacePos, VoxelShape shape) {
         AABB bounds = shape.bounds();
+
+        // TODO: throw min/max dimensions into a util method.
         float minX = surfacePos.getX() + (float) bounds.minX;
         float maxX = surfacePos.getX() + (float) bounds.maxX;
         float minZ = surfacePos.getZ() + (float) bounds.minZ;
@@ -257,17 +275,30 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
 
         List<AABB> boxes = shape.toAabbs();
         TreeSet<Double> heightBrackets = new TreeSet<>();
+        boolean renderedAny = false;
+
         for (AABB box : boxes) {
             heightBrackets.add(box.maxY);
         }
 
-        boolean renderedAny = false;
         for (double localTopY : heightBrackets) {
             double worldTopY = surfacePos.getY() + localTopY;
 
-            if (worldTopY > this.centerY + 0.25D) {
-                continue;
+            if (this.direction == Direction.UP) {
+                worldTopY = surfacePos.getY() - localTopY;
+                if (worldTopY < this.centerY - 0.25D) {
+                    continue;
+                }
             }
+            else if (this.direction == Direction.DOWN) {
+                if (worldTopY > this.centerY + 0.25D) {
+                    continue;
+                }
+            }
+
+//            if (worldTopY > this.centerY + 0.25D) {
+//                continue;
+//            }
 
             // Loop through each box that that particle intersects
             for (AABB box : boxes) {
@@ -289,14 +320,16 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
 
                 float drop = (float) (this.centerY - worldTopY);
                 float alphaMultiplier = Mth.lerp(
-                        Mth.clamp(drop / MAX_PROJECTION_HEIGHT, 0.0F, 1.0F),
+                        Mth.clamp(drop / MAX_PROJECTION_DEPTH, 0.0F, 1.0F),
                         1.0F, 0.25F);
                 var corners = BloodSpatterUtils.createCorners(planeMinX, planeMaxX, planeMinZ, planeMaxZ);
 
                 this.renderFlatDecalPlane(corners, (float) worldTopY, alphaMultiplier);
                 renderedAny = true;
             }
-        }
+    }
+
+
         return renderedAny;
     }
 
@@ -322,7 +355,12 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
         float sinYaw = Mth.sin(this.yawRotation);
 
         // Determines the corners
-        for (Vec2 corner : corners) {
+        // Gotta flip it & draw it the opposite way for it being direction UP.
+        var cornersList = List.of(corners);
+
+        // TODO: HERE. Reversing the list is the easiest way to flip the image. Now, just need to account for
+        //       upside down coordinates and shapes.
+        for (Vec2 corner : cornersList.reversed()) {
             // TODO: Will want to change these offsets based on the direction
             float offsetX = corner.x - (float) this.centerX;
             float offsetZ = corner.y - (float) this.centerZ;
@@ -332,17 +370,26 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
             //        Which will honestly probably be done when reworking the for-loop for the corners above.
             float zFightY = (zFightOffset + 0.08f) * Math.max(0.05f, alpha - 0.3f) * 0.05f;
 
-            // I believe this just adjusts the texture coordinates for the vertex. Basically rotates the textures.
-            // Should be able to leave this alone so long as I modify the offsetX and offsetZ values appropriately.
             float uvLocalX = offsetX * cosYaw - offsetZ * sinYaw;
             float uvLocalZ = offsetX * sinYaw + offsetZ * cosYaw;
             float u = (uvLocalX / (2.0F * halfSize) + 0.5F) * (u1 - u0) + u0;
             float v = (uvLocalZ / (2.0F * halfSize) + 0.5F) * (v1 - v0) + v0;
-            var vec3f = new Vector3f(
-                    corner.x - (float) this.cameraPos.x,
-                    surfaceY - (float) this.cameraPos.y + zFightY,
-                    corner.y - (float) this.cameraPos.z
-            );
+
+            Vector3f vec3f = new Vector3f();
+            if (this.direction == Direction.DOWN) {
+                vec3f = new Vector3f(
+                        corner.x - (float) this.cameraPos.x,
+                        surfaceY - (float) this.cameraPos.y + zFightY,
+                        corner.y - (float) this.cameraPos.z
+                );
+            }
+            else if (this.direction == Direction.UP) {
+                vec3f = new Vector3f(
+                        corner.x - (float) this.cameraPos.x,
+                        surfaceY - (float) this.cameraPos.y - zFightY,
+                        corner.y - (float) this.cameraPos.z
+                );
+            }
 
             this.makeCornerVertex(vec3f, u, v, alphaMultiplier);
         }
@@ -354,7 +401,7 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
      */
     private void makeCornerVertex(Vector3f pVertex, float pU, float pV, float alphaMultiplier) {
         this.vertexConsumer
-                .addVertex(pVertex.x(), pVertex.y(), pVertex.z())
+                .addVertex(pVertex.x(), pVertex.y() + 1, pVertex.z())
                 .setColor(this.rCol, this.gCol, this.bCol, this.alpha * alphaMultiplier)
                 .setUv(pU, pV)
                 .setLight(this.light);

@@ -13,4 +13,6 @@ public class BloodSpatterUtils {
                 new Vec2(maxWidth, minHeight),
         };
     }
+
+    
 }
