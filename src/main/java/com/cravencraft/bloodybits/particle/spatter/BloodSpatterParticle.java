@@ -29,6 +29,14 @@ import java.util.List;
 import java.util.TreeSet;
 import java.util.function.Consumer;
 
+/**
+ * TODO: What I want spatters to do:
+ *       - Slowly pool bigger on the ground (DOWN).
+ *       - Slowly shrink on the ceiling (UP).
+ *       - Drip from the ceiling (UP).
+ *       - Slowly slide down the wall (NORTH, SOUTH, EAST, & WEST).
+ *       - Have occasional smaller drips slide down the wall at a faster pace (NORTH, SOUTH, EAST, & WEST).
+ */
 public class BloodSpatterParticle extends TextureSheetParticle {
     private final SpriteSet spriteSet;
     private static final Vector3f ROTATION_VECTOR = Util.make(new Vector3f(0.5F, 0.5F, 0.5F), Vector3f::normalize);
@@ -106,9 +114,9 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
         quadSize *= (float) Mth.smoothstep(1.0 - Math.max(f - fadeThreshold - 60, 0) / fadeoutTime);
         this.alpha = 1.0F - Mth.clamp((f - fadeThreshold) / fadeoutTime, 1f - INITIAL_ALPHA, 1F);
     }
-
+    BloodyBitsMod.LOGGER.info("BloodSpatterParticle: age=" + this.age);
     if (f > 60) {
-        BloodyBitsMod.LOGGER.info("BloodSpatterParticle: fadeoutTime=" + f);
+//        BloodyBitsMod.LOGGER.info("BloodSpatterParticle: fadeoutTime=" + f);
     }
 
     this.spatterQuadSize = quadSize;
@@ -122,39 +130,38 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
     private static final double HEIGHT_BRACKET_EPSILON = 1.0E-4D; // 0.0001
 
     private void renderRotatedParticle(float partialTick) {
-        BloodyBitsMod.LOGGER.info("in renderRotatedParticle");
-//        Vec3 cameraPos = camera.getPosition(); // The current camera position
+//        BloodyBitsMod.LOGGER.info("in renderRotatedParticle");
+
+        // Where the blood spatter particle is in relation to the camera.
+        float localX = (float) (Mth.lerp(partialTick, this.xo, this.x) - this.cameraPos.x());
+        float localY = (float) (Mth.lerp(partialTick, this.yo, this.y) - this.cameraPos.y());
+        float localZ = (float) (Mth.lerp(partialTick, this.zo, this.z) - this.cameraPos.z());
+
+
+        // Where the blood spatter y value is in relation to the camera. It is at least 0.01f higher to potentially avoid
+        // clipping through the boxes. Looks like as the particle gets closer to the end of its life it rises ever so slightly as well.
+        // Don't know why this is.
+
+        // TODO: Maybe not needed since we z-fight right before drawing the vertices?
+//        if (this.direction == Direction.DOWN) {
+//            localY = (float) (Mth.lerp(partialTick, this.yo, this.y) - this.cameraPos.y()) + 0.01f + (.005f * (this.age / (float) this.lifetime));
+//        }
+//        else {
+//            localY = (float) (Mth.lerp(partialTick, this.yo, this.y) - this.cameraPos.y()) - 0.01f - (.005f * (this.age / (float) this.lifetime));
+//        }
 
         // Will perform the operations defined in the lambda into arguments of the consumer's accept() method.
         // This flips the quaternion upside down (on the y-axis), then places it on its side (on the x-axis).
         // This would make a vertical standing image appear flat on the ground facing up.
         Consumer<Quaternionf> quatConsumer = (quat) -> {
-            quat.mul(Axis.YN.rotation((float) Math.PI)); // -180 degrees
-            quat.mul(Axis.XP.rotation(DEGREES_90)); // +90 degrees
+            quat.mul(Axis.YN.rotation((float) Math.PI));
+            quat.mul(Axis.XP.rotation(DEGREES_90));
         };
-        // Where the blood spatter x value is in relation to the camera.
-        float localX = (float) (Mth.lerp(partialTick, this.xo, this.x) - this.cameraPos.x());
 
-        // Where the blood spatter y value is in relation to the camera. It is at least 0.01f higher to potentially avoid
-        // clipping through the boxes. Looks like as the particle gets closer to the end of its life it rises ever so slightly as well.
-        // Don't know why this is.
-        float localY;
-        if (this.direction == Direction.DOWN) {
-            localY = (float) (Mth.lerp(partialTick, this.yo, this.y) - this.cameraPos.y()) + 0.01f + (.005f * (this.age / (float) this.lifetime));
-        }
-        else {
-            localY = (float) (Mth.lerp(partialTick, this.yo, this.y) - this.cameraPos.y()) - 0.01f - (.005f * (this.age / (float) this.lifetime));
-        }
-
-        // Where the blood spatter z value is in relation to the camera.
-        float localZ = (float) (Mth.lerp(partialTick, this.zo, this.z) - this.cameraPos.z());
-
-        // To my knowledge, a quaternion represents a 3-dimensional object's location and rotation.
-        // So, maybe this is setting the rotation of the spatter to face up?
         Quaternionf quaternion = (new Quaternionf()).setAngleAxis(0.0F, ROTATION_VECTOR.x(), ROTATION_VECTOR.y(), ROTATION_VECTOR.z());
 
         // Performs the operations defined in the lambda expression of pQuaternion.
-        quatConsumer.accept(quaternion); // Applies the new quaternion to the one in the argument.
+        quatConsumer.accept(quaternion);
 
         // Transforms the quaternion to a single location, which to my knowledge appears to be center and on top of
         // the blocks.
@@ -207,6 +214,7 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
         this.centerY = Mth.lerp(partialTick, this.yo, this.y);
         this.centerZ = Mth.lerp(partialTick, this.zo, this.z);
 
+        // NOTE: When spattering a ceiling, the spatter hits half a block lower than expected.
         if (this.direction == Direction.UP) {
             this.centerY += 0.5;
         }
@@ -218,14 +226,14 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
             this.endDepth = Mth.floor(this.centerY - MAX_PROJECTION_DEPTH);
         }
         else if (this.direction == Direction.UP) {
-            this.startDepth = Mth.floor(this.centerY + MAX_PROJECTION_DEPTH);
-            this.endDepth = Mth.floor(this.centerY - 1.0D);
+            this.startDepth = Mth.floor(this.centerY - 1.0D);
+            this.endDepth = Mth.floor(this.centerY + MAX_PROJECTION_DEPTH);
         }
 
     }
 
     private void renderColumnDecal() {
-        BloodyBitsMod.LOGGER.info("in renderColumnDecal particle pos: {}", this.getPos());
+//        BloodyBitsMod.LOGGER.info("in renderColumnDecal particle pos: {}", this.getPos());
 
         // Gets the min/max values for the x and z axes based on what block positions contain the
         // total extent of the particle.
@@ -239,17 +247,26 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
             for (int blockZ = minBlockZ; blockZ <= maxBlockZ; blockZ++) {
                 var columnPos = new BlockPos.MutableBlockPos();
 
-                for (int y = this.startDepth; y >= this.endDepth; y--) {
+                // TODO: Need to go from "high to low" for DOWN direction and "low to high" for UP direction.
+                int y = this.startDepth;
+                while (Math.abs(y - this.endDepth) > 0) {
                     columnPos.set(blockX, y, blockZ);
-                    // TODO: Check direction here
-                    BlockPos surfacePos = new BlockPos(columnPos);
+                    var surfacePos = new BlockPos(columnPos);
 
-                    // TODO: This actually might not matter if we are going down from the top with Direction.UP
-                    if (this.direction == Direction.DOWN) {
-                        surfacePos = columnPos.below();
-                    }
-                    else if (this.direction == Direction.UP) {
-                        surfacePos = columnPos.above();
+                    switch (this.direction) {
+                        case UP -> {
+                            y++;
+                            surfacePos = columnPos.above();
+                        }
+                        case DOWN -> {
+                            y--;
+                            surfacePos = columnPos.below();
+                        }
+                        case NORTH ->  y--;
+                        case SOUTH ->  y--;
+                        case EAST ->  y--;
+                        case WEST ->  y--;
+                        default -> y = this.endDepth; // Just immediately break out of the loop.
                     }
 
                     BlockState blockState = this.level.getBlockState(surfacePos);
@@ -260,7 +277,7 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
                     }
 
                     // If the block has no shape (is not drawn?), then skip the rest of the loop.
-                    VoxelShape shape = blockState.getShape(this.level, surfacePos, CollisionContext.empty());
+                    VoxelShape shape = blockState.getShape(this.level, surfacePos);
                     if (shape.isEmpty()) {
                         continue;
                     }
@@ -270,12 +287,43 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
                     }
                 }
 
+
+//                for (int y = this.startDepth; y >= this.endDepth; y--) {
+//                    columnPos.set(blockX, y, blockZ);
+//                    // TODO: Check direction here
+//                    BlockPos surfacePos = new BlockPos(columnPos);
+//
+//                    // TODO: This actually might not matter if we are going down from the top with Direction.UP
+//                    if (this.direction == Direction.DOWN) {
+//                        surfacePos = columnPos.below();
+//                    }
+//                    else if (this.direction == Direction.UP) {
+//                        surfacePos = columnPos.above();
+//                    }
+//
+//                    BlockState blockState = this.level.getBlockState(surfacePos);
+//
+//                    // If the block underneath this one is invisible or empty, then the rest of the loop is skipped.
+//                    if (blockState.getRenderShape() == RenderShape.INVISIBLE || blockState.getCollisionShape(this.level, surfacePos).isEmpty()) {
+//                        continue;
+//                    }
+//
+//                    // If the block has no shape (is not drawn?), then skip the rest of the loop.
+//                    VoxelShape shape = blockState.getShape(this.level, surfacePos, CollisionContext.empty());
+//                    if (shape.isEmpty()) {
+//                        continue;
+//                    }
+//
+//                    if (this.renderBlockDecal(surfacePos, shape)) {
+//                        break; // TODO: This return is what causes the issue.
+//                    }
+//                }
             }
         }
     }
 
     private boolean renderBlockDecal(BlockPos surfacePos, VoxelShape shape) {
-        BloodyBitsMod.LOGGER.info("in renderBlockDecal");
+//        BloodyBitsMod.LOGGER.info("in renderBlockDecal");
         AABB bounds = shape.bounds();
 
         // TODO: throw min/max dimensions into a util method.
@@ -294,16 +342,25 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
         boolean renderedAny = false;
 
         for (AABB box : boxes) {
-            heightBrackets.add(box.maxY);
+//            heightBrackets.add(box.maxY);
+            if (this.direction == Direction.UP) {
+                heightBrackets.add(box.minY);
+            }
+            else if (this.direction == Direction.DOWN) {
+                heightBrackets.add(box.maxY);
+            }
         }
 
+        // TODO: Think heightBrackets here loops through the max height of each box being drawn.
         for (double localTopY : heightBrackets) {
             double worldTopY = surfacePos.getY() + localTopY;
 
+            // We are just skipping if the worldTopY is greater (in the direction of the spat) than the particle center
+            // position. Don't want to spatter something further away than the particle itself.
             if (this.direction == Direction.UP) {
                 // TODO: You don't necessarily need to use localTop here because that just accounts for the block's
                 //       height. If you're hitting it from the bottom, then you can just use the base y position.
-                worldTopY = surfacePos.getY();
+                worldTopY = surfacePos.getY() + localTopY;
                 if (worldTopY < this.centerY - 0.25D) {
                     continue;
                 }
@@ -321,11 +378,24 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
             // Loop through each box that that particle intersects
             for (AABB box : boxes) {
 
-                // TODO: Keeping this as is for now, but will likely need to adjust it soon.
-                if (Math.abs(box.maxY - localTopY) > HEIGHT_BRACKET_EPSILON) {
-                    continue;
+                // TODO: Why break if there is a noticeable difference here?
+                //       Ok, so here we want to compare the values of the two to skip the box that does NOT have the
+                //       height value.
+                if (this.direction == Direction.UP) {
+                    if (Math.abs(box.minY - localTopY) > HEIGHT_BRACKET_EPSILON) {
+                        continue;
+                    }
+                }
+                else if (this.direction == Direction.DOWN) {
+                    if (Math.abs(box.maxY - localTopY) > HEIGHT_BRACKET_EPSILON) {
+                        continue;
+                    }
                 }
 
+
+                // TODO: Pick up here next time. There is something with the boxes and how we are determining how
+                //       spatters are rendered on top of them. I know now that in general blocks are rendered from
+                //       the bottom up. I think this code might be getting the top-most layer first to render?
                 // Get the surface 2D vector positions for the block.
                 float planeMinX = Math.max(minX, surfacePos.getX() + (float) box.minX);
                 float planeMaxX = Math.min(maxX, surfacePos.getX() + (float) box.maxX);
@@ -358,7 +428,7 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
      * @param alphaMultiplier
      */
     private void renderFlatDecalPlane(Vec2[] corners, float surfaceY, float alphaMultiplier) {
-        BloodyBitsMod.LOGGER.info("in renderFlatDecalPlane");
+//        BloodyBitsMod.LOGGER.info("in renderFlatDecalPlane");
         // Just gets the given texture coordinates for this particle.
         float u0 = this.getU0();
         float u1 = this.getU1();
@@ -409,10 +479,10 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
                 vec3f = new Vector3f(
                         corner.x - (float) this.cameraPos.x,
                         surfaceY - (float) this.cameraPos.y - zFightY, // TODO: Look back over this knowing that BlockPos.y is the BOTTOM of the block.
-                        corner.y - (float) this.cameraPos.z
+                            corner.y - (float) this.cameraPos.z
                 );
             }
-            BloodyBitsMod.LOGGER.info("age: {}", this.age);
+//            BloodyBitsMod.LOGGER.info("age: {}", this.age);
 
             this.makeCornerVertex(vec3f, u, v, alphaMultiplier);
         }

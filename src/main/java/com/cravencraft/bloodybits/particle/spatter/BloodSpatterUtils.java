@@ -1,6 +1,8 @@
 package com.cravencraft.bloodybits.particle.spatter;
 
+import net.minecraft.core.Direction;
 import net.minecraft.world.phys.Vec2;
+import net.minecraft.world.phys.Vec3;
 
 public class BloodSpatterUtils {
 
@@ -14,5 +16,20 @@ public class BloodSpatterUtils {
         };
     }
 
-    
+    /**
+     * Gets the
+     *
+     * @param distanceFromCamera
+     * @param hitDirection
+     * @return
+     */
+    public static Vec3 getSpatterDistanceFromCamera(Vec3 distanceFromCamera, Direction hitDirection) {
+        float xDistance = 0.0f;
+        float yDistance = 0.0f;
+        float zDistance = 0.0f;
+
+
+
+        return new Vec3(xDistance, yDistance, zDistance);
+    }
 }
