@@ -1,6 +1,5 @@
 package com.cravencraft.bloodybits.particle.spatter;
 
-import com.cravencraft.bloodybits.BloodyBitsMod;
 import com.cravencraft.bloodybits.particle.BloodSprayParticleOptions;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
@@ -16,7 +15,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
-import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
@@ -114,10 +112,10 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
         quadSize *= (float) Mth.smoothstep(1.0 - Math.max(f - fadeThreshold - 60, 0) / fadeoutTime);
         this.alpha = 1.0F - Mth.clamp((f - fadeThreshold) / fadeoutTime, 1f - INITIAL_ALPHA, 1F);
     }
-    BloodyBitsMod.LOGGER.info("BloodSpatterParticle: age=" + this.age);
-    if (f > 60) {
+//    BloodyBitsMod.LOGGER.info("BloodSpatterParticle: age=" + this.age);
+//    if (f > 60) {
 //        BloodyBitsMod.LOGGER.info("BloodSpatterParticle: fadeoutTime=" + f);
-    }
+//    }
 
     this.spatterQuadSize = quadSize;
 
@@ -136,19 +134,6 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
         float localX = (float) (Mth.lerp(partialTick, this.xo, this.x) - this.cameraPos.x());
         float localY = (float) (Mth.lerp(partialTick, this.yo, this.y) - this.cameraPos.y());
         float localZ = (float) (Mth.lerp(partialTick, this.zo, this.z) - this.cameraPos.z());
-
-
-        // Where the blood spatter y value is in relation to the camera. It is at least 0.01f higher to potentially avoid
-        // clipping through the boxes. Looks like as the particle gets closer to the end of its life it rises ever so slightly as well.
-        // Don't know why this is.
-
-        // TODO: Maybe not needed since we z-fight right before drawing the vertices?
-//        if (this.direction == Direction.DOWN) {
-//            localY = (float) (Mth.lerp(partialTick, this.yo, this.y) - this.cameraPos.y()) + 0.01f + (.005f * (this.age / (float) this.lifetime));
-//        }
-//        else {
-//            localY = (float) (Mth.lerp(partialTick, this.yo, this.y) - this.cameraPos.y()) - 0.01f - (.005f * (this.age / (float) this.lifetime));
-//        }
 
         // Will perform the operations defined in the lambda into arguments of the consumer's accept() method.
         // This flips the quaternion upside down (on the y-axis), then places it on its side (on the x-axis).
@@ -214,22 +199,17 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
         this.centerY = Mth.lerp(partialTick, this.yo, this.y);
         this.centerZ = Mth.lerp(partialTick, this.zo, this.z);
 
-        // NOTE: When spattering a ceiling, the spatter hits half a block lower than expected.
-        if (this.direction == Direction.UP) {
-            this.centerY += 0.5;
+        switch (this.direction) {
+            case UP -> {
+                this.centerY += 0.5;
+                this.startDepth = Mth.floor(this.centerY - 1.0D);
+                this.endDepth = Mth.floor(this.centerY + MAX_PROJECTION_DEPTH);
+            }
+            case DOWN -> {
+                this.startDepth = Mth.floor(this.centerY + 1.0D);
+                this.endDepth = Mth.floor(this.centerY - MAX_PROJECTION_DEPTH);
+            }
         }
-
-        // Determine max depth
-        // TODO: For direction.UP probably wanna do Mth.ceil()
-        if (this.direction == Direction.DOWN) {
-            this.startDepth = Mth.floor(this.centerY + 1.0D);
-            this.endDepth = Mth.floor(this.centerY - MAX_PROJECTION_DEPTH);
-        }
-        else if (this.direction == Direction.UP) {
-            this.startDepth = Mth.floor(this.centerY - 1.0D);
-            this.endDepth = Mth.floor(this.centerY + MAX_PROJECTION_DEPTH);
-        }
-
     }
 
     private void renderColumnDecal() {
@@ -237,36 +217,61 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
 
         // Gets the min/max values for the x and z axes based on what block positions contain the
         // total extent of the particle.
-        int minBlockX = BlockPos.containing(this.worldExtentMin).getX();
-        int maxBlockX = BlockPos.containing(this.worldExtentMax).getX();
-        int minBlockZ = BlockPos.containing(this.worldExtentMin).getZ();
-        int maxBlockZ = BlockPos.containing(this.worldExtentMax).getZ();
+
+        int minBlockWidth = 0;
+        int maxBlockWidth = 0;
+        int minBlockLength = 0;
+        int maxBlockLength = 0;
+
+        switch (this.direction) {
+            case UP, DOWN -> {
+                minBlockWidth = BlockPos.containing(this.worldExtentMin).getX();
+                maxBlockWidth = BlockPos.containing(this.worldExtentMax).getX();
+                minBlockLength = BlockPos.containing(this.worldExtentMin).getZ();
+                maxBlockLength = BlockPos.containing(this.worldExtentMax).getZ();
+            }
+        }
 
         // Render the particle over each block contained within the min/max x/z coordinates.
-        for (int blockX = minBlockX; blockX <= maxBlockX; blockX++) {
-            for (int blockZ = minBlockZ; blockZ <= maxBlockZ; blockZ++) {
+        for (int blockWidth = minBlockWidth; blockWidth <= maxBlockWidth; blockWidth++) {
+            for (int blockLength = minBlockLength; blockLength <= maxBlockLength; blockLength++) {
                 var columnPos = new BlockPos.MutableBlockPos();
+                var blockDepth = this.startDepth;
 
-                // TODO: Need to go from "high to low" for DOWN direction and "low to high" for UP direction.
-                int y = this.startDepth;
-                while (Math.abs(y - this.endDepth) > 0) {
-                    columnPos.set(blockX, y, blockZ);
-                    var surfacePos = new BlockPos(columnPos);
-
+                while (Math.abs(blockDepth - this.endDepth) > 0) {
+                    BlockPos surfacePos;
                     switch (this.direction) {
                         case UP -> {
-                            y++;
+                            columnPos.set(blockWidth, blockDepth, blockLength);
+                            blockDepth++;
                             surfacePos = columnPos.above();
                         }
                         case DOWN -> {
-                            y--;
+                            columnPos.set(blockWidth, blockDepth, blockLength);
+                            blockDepth--;
                             surfacePos = columnPos.below();
                         }
-                        case NORTH ->  y--;
-                        case SOUTH ->  y--;
-                        case EAST ->  y--;
-                        case WEST ->  y--;
-                        default -> y = this.endDepth; // Just immediately break out of the loop.
+                        case NORTH -> {
+                            blockDepth--;
+                            surfacePos = columnPos.north();
+                        }
+                        case SOUTH -> {
+                            blockDepth--;
+                            surfacePos = columnPos.south();
+                        }
+                        case EAST -> {
+                            blockDepth--;
+                            surfacePos = columnPos.east();
+                        }
+                        case WEST -> {
+                            blockDepth--;
+                            surfacePos = columnPos.west();
+                        }
+                        default -> {
+                            // Just immediately break out of the loop.
+                            blockDepth = this.endDepth;
+                            surfacePos = columnPos.below();
+                        }
                     }
 
                     BlockState blockState = this.level.getBlockState(surfacePos);
@@ -286,38 +291,6 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
                         break; // TODO: This return is what causes the issue.
                     }
                 }
-
-
-//                for (int y = this.startDepth; y >= this.endDepth; y--) {
-//                    columnPos.set(blockX, y, blockZ);
-//                    // TODO: Check direction here
-//                    BlockPos surfacePos = new BlockPos(columnPos);
-//
-//                    // TODO: This actually might not matter if we are going down from the top with Direction.UP
-//                    if (this.direction == Direction.DOWN) {
-//                        surfacePos = columnPos.below();
-//                    }
-//                    else if (this.direction == Direction.UP) {
-//                        surfacePos = columnPos.above();
-//                    }
-//
-//                    BlockState blockState = this.level.getBlockState(surfacePos);
-//
-//                    // If the block underneath this one is invisible or empty, then the rest of the loop is skipped.
-//                    if (blockState.getRenderShape() == RenderShape.INVISIBLE || blockState.getCollisionShape(this.level, surfacePos).isEmpty()) {
-//                        continue;
-//                    }
-//
-//                    // If the block has no shape (is not drawn?), then skip the rest of the loop.
-//                    VoxelShape shape = blockState.getShape(this.level, surfacePos, CollisionContext.empty());
-//                    if (shape.isEmpty()) {
-//                        continue;
-//                    }
-//
-//                    if (this.renderBlockDecal(surfacePos, shape)) {
-//                        break; // TODO: This return is what causes the issue.
-//                    }
-//                }
             }
         }
     }
@@ -325,97 +298,110 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
     private boolean renderBlockDecal(BlockPos surfacePos, VoxelShape shape) {
 //        BloodyBitsMod.LOGGER.info("in renderBlockDecal");
         AABB bounds = shape.bounds();
-
-        // TODO: throw min/max dimensions into a util method.
-        float minX = surfacePos.getX() + (float) bounds.minX;
-        float maxX = surfacePos.getX() + (float) bounds.maxX;
-        float minZ = surfacePos.getZ() + (float) bounds.minZ;
-        float maxZ = surfacePos.getZ() + (float) bounds.maxZ;
-
-        minX = (float) Math.max(minX, this.worldExtentMin.x);
-        maxX = (float) Math.min(maxX, this.worldExtentMax.x);
-        minZ = (float) Math.max(minZ, this.worldExtentMin.z);
-        maxZ = (float) Math.min(maxZ, this.worldExtentMax.z);
-
         List<AABB> boxes = shape.toAabbs();
-        TreeSet<Double> heightBrackets = new TreeSet<>();
+        TreeSet<Double> depthBrackets = new TreeSet<>();
         boolean renderedAny = false;
 
-        for (AABB box : boxes) {
-//            heightBrackets.add(box.maxY);
-            if (this.direction == Direction.UP) {
-                heightBrackets.add(box.minY);
+        float minWidth = 0;
+        float maxWidth = 0;
+        float minLength = 0;
+        float maxLength = 0;
+        switch (this.direction) {
+            case UP, DOWN -> {
+                minWidth = (float) Math.max(surfacePos.getX() + (float) bounds.minX, this.worldExtentMin.x);
+                maxWidth = (float) Math.min(surfacePos.getX() + (float) bounds.maxX, this.worldExtentMax.x);
+                minLength = (float) Math.max(surfacePos.getZ() + (float) bounds.minZ, this.worldExtentMin.z);
+                maxLength = (float) Math.min(surfacePos.getZ() + (float) bounds.maxZ, this.worldExtentMax.z);
             }
-            else if (this.direction == Direction.DOWN) {
-                heightBrackets.add(box.maxY);
+            case EAST, WEST -> {
+
+            }
+            case NORTH, SOUTH -> {
+                
+            }
+            default -> {
+                return false;
             }
         }
 
-        // TODO: Think heightBrackets here loops through the max height of each box being drawn.
-        for (double localTopY : heightBrackets) {
-            double worldTopY = surfacePos.getY() + localTopY;
+        for (AABB box : boxes) {
+            switch (this.direction) {
+                case UP -> depthBrackets.add(box.minY);
+                case DOWN -> depthBrackets.add(box.maxY);
+            }
+        }
 
-            // We are just skipping if the worldTopY is greater (in the direction of the spat) than the particle center
-            // position. Don't want to spatter something further away than the particle itself.
-            if (this.direction == Direction.UP) {
-                // TODO: You don't necessarily need to use localTop here because that just accounts for the block's
-                //       height. If you're hitting it from the bottom, then you can just use the base y position.
-                worldTopY = surfacePos.getY() + localTopY;
-                if (worldTopY < this.centerY - 0.25D) {
-                    continue;
+        // Looping through the depth established in the above loop. The first switch statement will check to see if
+        // the depth is too far from the particle itself. The inner loop will loop through the boxes of the blocks
+        // that the blood spatter particle is contacting, and it will skip values that don't match up with the current
+        // localDepth, which ensures that the box in the loop is the one that needs to be modified.
+        for (double localDepth : depthBrackets) {
+
+            double worldMaxDepth = 0.0;
+            switch(this.direction) {
+                case UP -> {
+                    worldMaxDepth = surfacePos.getY() + localDepth;
+                    if (worldMaxDepth < this.centerY - 0.25D) {
+                        continue;
+                    }
+                }
+                case DOWN -> {
+                    worldMaxDepth = surfacePos.getY() + localDepth;
+                    if (worldMaxDepth > this.centerY + 0.25D) {
+                        continue;
+                    }
                 }
             }
-            else if (this.direction == Direction.DOWN) {
-                if (worldTopY > this.centerY + 0.25D) {
-                    continue;
-                }
-            }
-
-//            if (worldTopY > this.centerY + 0.25D) {
-//                continue;
-//            }
 
             // Loop through each box that that particle intersects
             for (AABB box : boxes) {
-
-                // TODO: Why break if there is a noticeable difference here?
-                //       Ok, so here we want to compare the values of the two to skip the box that does NOT have the
-                //       height value.
-                if (this.direction == Direction.UP) {
-                    if (Math.abs(box.minY - localTopY) > HEIGHT_BRACKET_EPSILON) {
-                        continue;
+                // Skip current loop iteration if the box depth and localDepth values don't match.
+                switch (this.direction) {
+                    case UP -> {
+                        if (Math.abs(box.minY - localDepth) > HEIGHT_BRACKET_EPSILON) {
+                            continue;
+                        }
+                    }
+                    case DOWN -> {
+                        if (Math.abs(box.maxY - localDepth) > HEIGHT_BRACKET_EPSILON) {
+                            continue;
+                        }
                     }
                 }
-                else if (this.direction == Direction.DOWN) {
-                    if (Math.abs(box.maxY - localTopY) > HEIGHT_BRACKET_EPSILON) {
-                        continue;
+
+                float planeMinWidth = 0.0F;
+                float planeMaxWidth = 0.0F;
+                float planeMinLength = 0.0F;
+                float planeMaxLength = 0.0F;
+                float drop = 0.0F;
+
+                // Establish the minimum and maximum depth dimensions for the plane.
+                switch (this.direction) {
+                    case UP, DOWN -> {
+                        planeMinWidth = Math.max(minWidth, surfacePos.getX() + (float) box.minX);
+                        planeMaxWidth = Math.min(maxWidth, surfacePos.getX() + (float) box.maxX);
+                        planeMinLength = Math.max(minLength, surfacePos.getZ() + (float) box.minZ);
+                        planeMaxLength = Math.min(maxLength, surfacePos.getZ() + (float) box.maxZ);
+                        drop = (float) (this.centerY - worldMaxDepth);
                     }
                 }
 
-
-                // TODO: Pick up here next time. There is something with the boxes and how we are determining how
-                //       spatters are rendered on top of them. I know now that in general blocks are rendered from
-                //       the bottom up. I think this code might be getting the top-most layer first to render?
-                // Get the surface 2D vector positions for the block.
-                float planeMinX = Math.max(minX, surfacePos.getX() + (float) box.minX);
-                float planeMaxX = Math.min(maxX, surfacePos.getX() + (float) box.maxX);
-                float planeMinZ = Math.max(minZ, surfacePos.getZ() + (float) box.minZ);
-                float planeMaxZ = Math.min(maxZ, surfacePos.getZ() + (float) box.maxZ);
-
-                if (planeMinX >= planeMaxX || planeMinZ >= planeMaxZ) {
+                // Break if mins and maxes aren't properly setup.
+                if (planeMinWidth >= planeMaxWidth || planeMinLength >= planeMaxLength) {
                     continue;
                 }
 
-                float drop = (float) (this.centerY - worldTopY);
                 float alphaMultiplier = Mth.lerp(
                         Mth.clamp(drop / MAX_PROJECTION_DEPTH, 0.0F, 1.0F),
                         1.0F, 0.25F);
-                var corners = BloodSpatterUtils.createCorners(planeMinX, planeMaxX, planeMinZ, planeMaxZ);
 
-                this.renderFlatDecalPlane(corners, (float) worldTopY, alphaMultiplier);
+                var corners = BloodSpatterUtils.createCorners(planeMinWidth, planeMaxWidth,
+                        planeMinLength, planeMaxLength);
+
+                this.renderFlatDecalPlane(corners, (float) worldMaxDepth, alphaMultiplier);
                 renderedAny = true;
             }
-    }
+        }
 
         return renderedAny;
     }
@@ -424,10 +410,10 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
      * TODO: Can likely modify the inputs of this method to be min and max values for the plane being modified.
      *
      * @param corners
-     * @param surfaceY
+     * @param planeSurface
      * @param alphaMultiplier
      */
-    private void renderFlatDecalPlane(Vec2[] corners, float surfaceY, float alphaMultiplier) {
+    private void renderFlatDecalPlane(Vec2[] corners, float planeSurface, float alphaMultiplier) {
 //        BloodyBitsMod.LOGGER.info("in renderFlatDecalPlane");
         // Just gets the given texture coordinates for this particle.
         float u0 = this.getU0();
@@ -446,46 +432,50 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
         // Gotta flip it & draw it the opposite way for it being direction UP.
         var cornersList = List.of(corners);
 
+        // Want to reverse the list if we need to flip the image.
         if (direction == Direction.UP) {
             cornersList = cornersList.reversed();
         }
 
-        // TODO: HERE. Reversing the list is the easiest way to flip the image. Now, just need to account for
-        //       upside down coordinates and shapes.
         for (Vec2 corner : cornersList) {
-            // TODO: Will want to change these offsets based on the direction
-            float offsetX = corner.x - (float) this.centerX;
-            float offsetZ = corner.y - (float) this.centerZ;
+
+            float offsetWidth = 0.0F;
+            float offsetHeight = 0.0F;
+            switch (this.direction) {
+                case UP, DOWN -> {
+                    offsetWidth = corner.x - (float) this.centerX;
+                    offsetHeight = corner.y - (float) this.centerZ;
+                }
+            }
 
             // The z-fighting to make the texture hoover ever so slightly above the block.
-            //  TODO: Gonna want to create a variable to apply this to the vector argument for the vertex.
-            //        Which will honestly probably be done when reworking the for-loop for the corners above.
-            float zFightY = (this.zFightOffset + 0.08f) * Math.max(0.05f, alpha - 0.3f) * 0.05f;
+            float zFightDepth = (this.zFightOffset + 0.08f) * Math.max(0.05f, alpha - 0.3f) * 0.05f;
 
-            float uvLocalX = offsetX * cosYaw - offsetZ * sinYaw;
-            float uvLocalZ = offsetX * sinYaw + offsetZ * cosYaw;
+            float uvLocalX = offsetWidth * cosYaw - offsetHeight * sinYaw;
+            float uvLocalZ = offsetWidth * sinYaw + offsetHeight * cosYaw;
             float u = (uvLocalX / (2.0F * halfSize) + 0.5F) * (u1 - u0) + u0;
             float v = (uvLocalZ / (2.0F * halfSize) + 0.5F) * (v1 - v0) + v0;
 
-            Vector3f vec3f = new Vector3f();
-            if (this.direction == Direction.DOWN) {
-                vec3f = new Vector3f(
-                        corner.x - (float) this.cameraPos.x,
-                        surfaceY - (float) this.cameraPos.y + zFightY,
-                        corner.y - (float) this.cameraPos.z
-                );
-            }
-            else if (this.direction == Direction.UP) {
-                vec3f = new Vector3f(
-                        corner.x - (float) this.cameraPos.x,
-                        surfaceY - (float) this.cameraPos.y - zFightY, // TODO: Look back over this knowing that BlockPos.y is the BOTTOM of the block.
-                            corner.y - (float) this.cameraPos.z
-                );
-            }
-//            BloodyBitsMod.LOGGER.info("age: {}", this.age);
-
+            Vector3f vec3f = getCornerVector(planeSurface, corner, zFightDepth);
             this.makeCornerVertex(vec3f, u, v, alphaMultiplier);
         }
+    }
+
+    private @NotNull Vector3f getCornerVector(float planeSurface, Vec2 corner, float zFightDepth) {
+        Vector3f vec3f = new Vector3f();
+        switch (this.direction) {
+            case UP -> vec3f = new Vector3f(
+                    corner.x - (float) this.cameraPos.x,
+                    planeSurface - (float) this.cameraPos.y - zFightDepth, // TODO: Look back over this knowing that BlockPos.y is the BOTTOM of the block.
+                    corner.y - (float) this.cameraPos.z
+            );
+            case DOWN -> vec3f = new Vector3f(
+                    corner.x - (float) this.cameraPos.x,
+                    planeSurface - (float) this.cameraPos.y + zFightDepth,
+                    corner.y - (float) this.cameraPos.z
+            );
+        }
+        return vec3f;
     }
 
     /*
