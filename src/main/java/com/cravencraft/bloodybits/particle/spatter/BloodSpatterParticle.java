@@ -97,11 +97,6 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
     this.cameraPos = camera.getPosition();
     this.vertexConsumer = buffer;
 
-    if (this.direction == Direction.NORTH ||
-        this.direction == Direction.SOUTH ||
-        this.direction == Direction.EAST  ||
-        this.direction == Direction.WEST) return;
-
     // If the current age is less than the splat time, then expand the quad size
     if (f <= SPLAT_IN_TIME) {
         quadSize *= (f) / (SPLAT_IN_TIME * 2f) + .5f;
@@ -112,10 +107,6 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
         quadSize *= (float) Mth.smoothstep(1.0 - Math.max(f - fadeThreshold - 60, 0) / fadeoutTime);
         this.alpha = 1.0F - Mth.clamp((f - fadeThreshold) / fadeoutTime, 1f - INITIAL_ALPHA, 1F);
     }
-//    BloodyBitsMod.LOGGER.info("BloodSpatterParticle: age=" + this.age);
-//    if (f > 60) {
-//        BloodyBitsMod.LOGGER.info("BloodSpatterParticle: fadeoutTime=" + f);
-//    }
 
     this.spatterQuadSize = quadSize;
 
@@ -139,8 +130,18 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
         // This flips the quaternion upside down (on the y-axis), then places it on its side (on the x-axis).
         // This would make a vertical standing image appear flat on the ground facing up.
         Consumer<Quaternionf> quatConsumer = (quat) -> {
-            quat.mul(Axis.YN.rotation((float) Math.PI));
-            quat.mul(Axis.XP.rotation(DEGREES_90));
+
+            switch (this.direction) {
+                case UP, DOWN -> {
+                    quat.mul(Axis.YN.rotation((float) Math.PI));
+                    quat.mul(Axis.XP.rotation(DEGREES_90));
+                }
+                case NORTH, SOUTH -> quat.mul(Axis.ZP.rotation((float) Math.PI));
+                case EAST, WEST -> {
+                    quat.mul(Axis.XN.rotation((float) Math.PI));
+                    quat.mul(Axis.YP.rotation(DEGREES_90));
+                }
+            }
         };
 
         Quaternionf quaternion = (new Quaternionf()).setAngleAxis(0.0F, ROTATION_VECTOR.x(), ROTATION_VECTOR.y(), ROTATION_VECTOR.z());
@@ -209,6 +210,26 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
                 this.startDepth = Mth.floor(this.centerY + 1.0D);
                 this.endDepth = Mth.floor(this.centerY - MAX_PROJECTION_DEPTH);
             }
+            case NORTH ->  {
+                this.centerZ -= 0.25;
+                this.startDepth = Mth.floor(this.centerZ + 1.0D);
+                this.endDepth = Mth.floor(this.centerZ - MAX_PROJECTION_DEPTH);
+            }
+            case SOUTH ->  {
+                this.centerZ += 0.25;
+                this.startDepth = Mth.floor(this.centerZ - 1.0D);
+                this.endDepth = Mth.floor(this.centerZ + MAX_PROJECTION_DEPTH);
+            }
+            case EAST ->  {
+                this.centerX += 0.25;
+                this.startDepth = Mth.floor(this.centerX - 1.0D);
+                this.endDepth = Mth.floor(this.centerX + MAX_PROJECTION_DEPTH);
+            }
+            case WEST ->  {
+                this.centerX -= 0.25;
+                this.startDepth = Mth.floor(this.centerX + 1.0D);
+                this.endDepth = Mth.floor(this.centerX - MAX_PROJECTION_DEPTH);
+            }
         }
     }
 
@@ -227,6 +248,18 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
             case UP, DOWN -> {
                 minBlockWidth = BlockPos.containing(this.worldExtentMin).getX();
                 maxBlockWidth = BlockPos.containing(this.worldExtentMax).getX();
+                minBlockLength = BlockPos.containing(this.worldExtentMin).getZ();
+                maxBlockLength = BlockPos.containing(this.worldExtentMax).getZ();
+            }
+            case NORTH, SOUTH ->  {
+                minBlockWidth = BlockPos.containing(this.worldExtentMin).getX();
+                maxBlockWidth = BlockPos.containing(this.worldExtentMax).getX();
+                minBlockLength = BlockPos.containing(this.worldExtentMin).getY();
+                maxBlockLength = BlockPos.containing(this.worldExtentMax).getY();
+            }
+            case EAST, WEST ->  {
+                minBlockWidth = BlockPos.containing(this.worldExtentMin).getY();
+                maxBlockWidth = BlockPos.containing(this.worldExtentMax).getY();
                 minBlockLength = BlockPos.containing(this.worldExtentMin).getZ();
                 maxBlockLength = BlockPos.containing(this.worldExtentMax).getZ();
             }
@@ -252,18 +285,22 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
                             surfacePos = columnPos.below();
                         }
                         case NORTH -> {
+                            columnPos.set(blockWidth, blockLength, blockDepth);
                             blockDepth--;
                             surfacePos = columnPos.north();
                         }
                         case SOUTH -> {
-                            blockDepth--;
+                            columnPos.set(blockWidth, blockLength, blockDepth);
+                            blockDepth++;
                             surfacePos = columnPos.south();
                         }
                         case EAST -> {
-                            blockDepth--;
+                            columnPos.set(blockDepth, blockWidth, blockLength);
+                            blockDepth++;
                             surfacePos = columnPos.east();
                         }
                         case WEST -> {
+                            columnPos.set(blockDepth, blockWidth, blockLength);
                             blockDepth--;
                             surfacePos = columnPos.west();
                         }
@@ -313,11 +350,17 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
                 minLength = (float) Math.max(surfacePos.getZ() + (float) bounds.minZ, this.worldExtentMin.z);
                 maxLength = (float) Math.min(surfacePos.getZ() + (float) bounds.maxZ, this.worldExtentMax.z);
             }
-            case EAST, WEST -> {
-
-            }
             case NORTH, SOUTH -> {
-                
+                minWidth = (float) Math.max(surfacePos.getX() + (float) bounds.minX, this.worldExtentMin.x);
+                maxWidth = (float) Math.min(surfacePos.getX() + (float) bounds.maxX, this.worldExtentMax.x);
+                minLength = (float) Math.max(surfacePos.getY() + (float) bounds.minY, this.worldExtentMin.y);
+                maxLength = (float) Math.min(surfacePos.getY() + (float) bounds.maxY, this.worldExtentMax.y);
+            }
+            case EAST, WEST -> {
+                minWidth = (float) Math.max(surfacePos.getY() + (float) bounds.minY, this.worldExtentMin.y);
+                maxWidth = (float) Math.min(surfacePos.getY() + (float) bounds.maxY, this.worldExtentMax.y);
+                minLength = (float) Math.max(surfacePos.getZ() + (float) bounds.minZ, this.worldExtentMin.z);
+                maxLength = (float) Math.min(surfacePos.getZ() + (float) bounds.maxZ, this.worldExtentMax.z);
             }
             default -> {
                 return false;
@@ -328,6 +371,10 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
             switch (this.direction) {
                 case UP -> depthBrackets.add(box.minY);
                 case DOWN -> depthBrackets.add(box.maxY);
+                case NORTH -> depthBrackets.add(box.maxZ);
+                case SOUTH -> depthBrackets.add(box.minZ);
+                case EAST -> depthBrackets.add(box.minX);
+                case WEST -> depthBrackets.add(box.maxX);
             }
         }
 
@@ -351,6 +398,30 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
                         continue;
                     }
                 }
+                case NORTH -> {
+                    worldMaxDepth = surfacePos.getZ() + localDepth;
+                    if (worldMaxDepth > this.centerZ + 0.25D) {
+                        continue;
+                    }
+                }
+                case SOUTH -> {
+                    worldMaxDepth = surfacePos.getZ() + localDepth;
+                    if (worldMaxDepth < this.centerZ - 0.25D) {
+                        continue;
+                    }
+                }
+                case EAST -> {
+                    worldMaxDepth = surfacePos.getX() + localDepth;
+                    if (worldMaxDepth < this.centerX - 0.25D) {
+                        continue;
+                    }
+                }
+                case WEST -> {
+                    worldMaxDepth = surfacePos.getX() + localDepth;
+                    if (worldMaxDepth > this.centerX + 0.25D) {
+                        continue;
+                    }
+                }
             }
 
             // Loop through each box that that particle intersects
@@ -364,6 +435,26 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
                     }
                     case DOWN -> {
                         if (Math.abs(box.maxY - localDepth) > HEIGHT_BRACKET_EPSILON) {
+                            continue;
+                        }
+                    }
+                    case NORTH -> {
+                        if (Math.abs(box.maxZ - localDepth) > HEIGHT_BRACKET_EPSILON) {
+                            continue;
+                        }
+                    }
+                    case SOUTH -> {
+                        if (Math.abs(box.minZ - localDepth) > HEIGHT_BRACKET_EPSILON) {
+                            continue;
+                        }
+                    }
+                    case EAST -> {
+                        if (Math.abs(box.minX - localDepth) > HEIGHT_BRACKET_EPSILON) {
+                            continue;
+                        }
+                    }
+                    case WEST -> {
+                        if (Math.abs(box.maxX - localDepth) > HEIGHT_BRACKET_EPSILON) {
                             continue;
                         }
                     }
@@ -383,6 +474,20 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
                         planeMinLength = Math.max(minLength, surfacePos.getZ() + (float) box.minZ);
                         planeMaxLength = Math.min(maxLength, surfacePos.getZ() + (float) box.maxZ);
                         drop = (float) (this.centerY - worldMaxDepth);
+                    }
+                    case NORTH, SOUTH -> {
+                        planeMinWidth = Math.max(minWidth, surfacePos.getX() + (float) box.minX);
+                        planeMaxWidth = Math.min(maxWidth, surfacePos.getX() + (float) box.maxX);
+                        planeMinLength = Math.max(minLength, surfacePos.getY() + (float) box.minY);
+                        planeMaxLength = Math.min(maxLength, surfacePos.getY() + (float) box.maxY);
+                        drop = (float) (this.centerZ - worldMaxDepth);
+                    }
+                    case EAST, WEST -> {
+                        planeMinWidth = Math.max(minWidth, surfacePos.getY() + (float) box.minY);
+                        planeMaxWidth = Math.min(maxWidth, surfacePos.getY() + (float) box.maxY);
+                        planeMinLength = Math.max(minLength, surfacePos.getZ() + (float) box.minZ);
+                        planeMaxLength = Math.min(maxLength, surfacePos.getZ() + (float) box.maxZ);
+                        drop = (float) (this.centerX - worldMaxDepth);
                     }
                 }
 
@@ -433,7 +538,7 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
         var cornersList = List.of(corners);
 
         // Want to reverse the list if we need to flip the image.
-        if (direction == Direction.UP) {
+        if (direction == Direction.UP || this.direction == Direction.NORTH || direction == Direction.WEST) {
             cornersList = cornersList.reversed();
         }
 
@@ -444,6 +549,14 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
             switch (this.direction) {
                 case UP, DOWN -> {
                     offsetWidth = corner.x - (float) this.centerX;
+                    offsetHeight = corner.y - (float) this.centerZ;
+                }
+                case NORTH, SOUTH -> {
+                    offsetWidth = corner.x - (float) this.centerX;
+                    offsetHeight = corner.y - (float) this.centerY;
+                }
+                case EAST, WEST -> {
+                    offsetWidth = corner.x - (float) this.centerY;
                     offsetHeight = corner.y - (float) this.centerZ;
                 }
             }
@@ -466,12 +579,32 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
         switch (this.direction) {
             case UP -> vec3f = new Vector3f(
                     corner.x - (float) this.cameraPos.x,
-                    planeSurface - (float) this.cameraPos.y - zFightDepth, // TODO: Look back over this knowing that BlockPos.y is the BOTTOM of the block.
+                    planeSurface - (float) this.cameraPos.y - zFightDepth,
                     corner.y - (float) this.cameraPos.z
             );
             case DOWN -> vec3f = new Vector3f(
                     corner.x - (float) this.cameraPos.x,
                     planeSurface - (float) this.cameraPos.y + zFightDepth,
+                    corner.y - (float) this.cameraPos.z
+            );
+            case NORTH -> vec3f = new Vector3f(
+                    corner.x - (float) this.cameraPos.x,
+                    corner.y - (float) this.cameraPos.y,
+                    planeSurface - (float) this.cameraPos.z + zFightDepth
+            );
+            case SOUTH -> vec3f = new Vector3f(
+                    corner.x - (float) this.cameraPos.x,
+                    corner.y - (float) this.cameraPos.y,
+                    planeSurface - (float) this.cameraPos.z - zFightDepth
+            );
+            case EAST -> vec3f = new Vector3f(
+                    planeSurface - (float) this.cameraPos.x - zFightDepth,
+                     corner.x - (float) this.cameraPos.y,
+                    corner.y - (float) this.cameraPos.z
+            );
+            case WEST -> vec3f = new Vector3f(
+                    planeSurface - (float) this.cameraPos.x + zFightDepth,
+                    corner.x - (float) this.cameraPos.y,
                     corner.y - (float) this.cameraPos.z
             );
         }
