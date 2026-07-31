@@ -28,14 +28,12 @@ public class ParticleRegistry {
             | Math.round(BLOOD_COLOR.z * 255);
 
     public static final Supplier<BloodSpatterParticleType> BLOOD_SPATTER_PARTICLE;
-    public static final Supplier<BloodSpatterParticleType> BLOOD_SPATTER_PARTICLE_COPY;
     public static final Supplier<SimpleParticleType> BLOOD_SPRAY_PARTICLE;
     public static final Supplier<BloodSprayParticleType> BLOOD_EMITTER;
 
     static {
         BLOOD_SPRAY_PARTICLE = PARTICLE_TYPES.register("blood_spray_particles", () -> new SimpleParticleType(false));
         BLOOD_SPATTER_PARTICLE = PARTICLE_TYPES.register("blood_spatter_particles", () -> new BloodSpatterParticleType(false));
-        BLOOD_SPATTER_PARTICLE_COPY = PARTICLE_TYPES.register("blood_spatter_particles_copy", () -> new BloodSpatterParticleType(false));
         BLOOD_EMITTER = PARTICLE_TYPES.register("blood_emitter", () -> new BloodSprayParticleType(false));
     }
 }

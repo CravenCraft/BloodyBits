@@ -15,11 +15,8 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.level.ClipContext;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraft.world.phys.shapes.CollisionContext;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -28,35 +25,8 @@ import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.level.ExplosionEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 
-import java.util.List;
-
-import static net.minecraft.world.level.ClipContext.Block.VISUAL;
-import static net.minecraft.world.level.ClipContext.Fluid.NONE;
-
 @EventBusSubscriber(modid = BloodyBitsMod.MODID)
 public class BloodyBitsEvents {
-
-    @SubscribeEvent
-    public static void testBlockBoundingBox(PlayerInteractEvent.RightClickBlock event) {
-        var level = event.getLevel();
-        var server =  level.getServer();
-
-        if (level.isClientSide) return;
-
-        var faceDirection = event.getFace();
-        var blockPos = event.getPos();
-        var blockState = event.getLevel().getBlockState(blockPos);
-        var voxelShape = blockState.getShape(level, blockPos);
-        var bounds = voxelShape.bounds();
-        List<AABB> boxes = voxelShape.toAabbs();
-
-        BloodyBitsMod.LOGGER.debug("face direction: {}", faceDirection);
-        BloodyBitsMod.LOGGER.debug("block pos: {}", blockPos);
-        BloodyBitsMod.LOGGER.debug("block state: {}", blockState);
-        BloodyBitsMod.LOGGER.debug("voxel shape: {}", voxelShape);
-        BloodyBitsMod.LOGGER.debug("bounds: {}", bounds);
-        BloodyBitsMod.LOGGER.debug("boxes: {}", boxes);
-    }
 
     @SubscribeEvent
     public static void testBlockTextureOverlay(PlayerInteractEvent.RightClickBlock event) {
