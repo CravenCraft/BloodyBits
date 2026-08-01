@@ -56,7 +56,7 @@ public class BloodSprayParticle extends TextureSheetParticle {
         this.scale(scale * 2.5f);
         this.lifetime = 40;
         this.gravity = 0.75F;
-        this.angularVelocity = 0.1f;
+        this.angularVelocity = 0.01f;
         this.pickSprite(spriteSet);
 
         this.rCol = BloodSprayParticleOptions.red(color);
@@ -101,8 +101,8 @@ public class BloodSprayParticle extends TextureSheetParticle {
                 this.getBoundingBox(),
                 this.level,
                 List.of());
-        BloodyBitsMod.LOGGER.info("x: {} y: {} z: {}", this.x, this.y, this.z);
-        BloodyBitsMod.LOGGER.info("xd: {} yd: {} zd: {}",  this.xd, this.yd, this.zd);
+//        BloodyBitsMod.LOGGER.info("x: {} y: {} z: {}", this.x, this.y, this.z);
+//        BloodyBitsMod.LOGGER.info("xd: {} yd: {} zd: {}",  this.xd, this.yd, this.zd);
 
         if (previousColVec.x > 0.001 && currentColVec.x == 0.0) {
             this.createSpatterAtCollisionPoint(Direction.EAST.get3DDataValue());
