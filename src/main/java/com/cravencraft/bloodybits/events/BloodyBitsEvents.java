@@ -25,6 +25,8 @@ import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.level.ExplosionEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 
+import java.util.Random;
+
 @EventBusSubscriber(modid = BloodyBitsMod.MODID)
 public class BloodyBitsEvents {
 
@@ -44,6 +46,7 @@ public class BloodyBitsEvents {
             var playerBlockPos = player.getOnPos();
             var playerFacingDirection = player.getDirection();
             var lookAngle = player.getLookAngle();
+            BloodyBitsMod.LOGGER.info("player look angle: {}", lookAngle);
 
            server.getPlayerList().getPlayers().forEach(serverPlayer -> (serverLevel)
                     .sendParticles(
@@ -117,6 +120,7 @@ public class BloodyBitsEvents {
 
         AABB aabb = entity.isMultipartEntity() ? entity.getParts()[entity.getRandom().nextInt(entity.getParts().length)].getBoundingBox() : entity.getBoundingBox();
         Vec3 vec = aabb.getCenter();
+        BloodyBitsMod.LOGGER.info("entity aabb: {}", aabb);
         float damage = event.getContainer().getNewDamage();
 //        if (damage <= config.minDamage()) {
 //            return;
@@ -128,29 +132,33 @@ public class BloodyBitsEvents {
 
         damage = Math.min(damage, 2000);
         int count = (int) (damage)
-                + level.random.nextIntBetweenInclusive(0, (int) (2 * (damage)));
+                + level.random.nextIntBetweenInclusive(0, (int) (1.5 * (damage)));
 //        double speed = config.scaledBaseSpeed() + count * config.scaledSpeedPerParticle();
         double bbShove = Math.max(aabb.getXsize() * 0.5 - 0.5, 0);
         double scale = (aabb.getXsize() + 2) / 3f;
 //        level.addAlwaysVisibleParticle(ParticleRegistry.BLOOD_SPRAY_PARTICLE.get(), entity.getX(), entity.getY() + 3, entity.getZ(), 0, 0, 0);
         var server = level.getServer();
+        var rand = new Random().nextBoolean() ? 1 : -1;
+        BloodyBitsMod.LOGGER.info("rand: {}", rand);
+        Vec3 sprayVector = new Vec3(0.15 * rand, 0.1, 0.15 * rand);
 
         if (server == null) return;
 
         if (level instanceof ServerLevel serverLevel) {
 
             BloodyBitsMod.LOGGER.info("Attempting to send blood particle at position: {}", entityName);
+            BloodyBitsMod.LOGGER.info("blood particle offset at position: {}", sprayVector);
 
             // TODO: Add a proper direction value to send.
             server.getPlayerList().getPlayers().forEach(player -> (serverLevel)
                     .sendParticles(
                             player,
-                            new BloodSprayParticleOptions(ParticleRegistry.DEFAULT_BLOOD_COLOR, Vec3.ZERO, 1.0f),
+                            new BloodSprayParticleOptions(ParticleRegistry.DEFAULT_BLOOD_COLOR, sprayVector, 1.0f),
                             true,
                             vec.x,
                             vec.y + aabb.getYsize() * 0.5,
                             vec.z,
-                            count,
+                            1,
                             0.05 + bbShove,
                             0.1,
                             0.05 + bbShove,

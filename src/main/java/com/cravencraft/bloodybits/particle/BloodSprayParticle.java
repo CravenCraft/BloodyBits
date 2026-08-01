@@ -27,6 +27,7 @@ public class BloodSprayParticle extends TextureSheetParticle {
     private boolean mirrored;
     private boolean underwater;
     private Vec3 collisionVector;
+    private final float angularVelocity;
 
     public BloodSprayParticle(
             ClientLevel level,
@@ -46,12 +47,16 @@ public class BloodSprayParticle extends TextureSheetParticle {
         this.xd = xd;
         this.yd = yd;
         this.zd = zd;
+
+        BloodyBitsMod.LOGGER.info("BloodSprayParticle xd, yd, zd: {}, {}, {}",  xd, yd, zd);
         this.collisionVector = new Vec3(xd, yd, zd);
         BloodyBitsMod.LOGGER.info("initial blood spray particle collision vector: {}", this.collisionVector);
-        this.quadSize *= 1f + (float) Math.random();
+        this.quadSize *= 1.2f + (float) Math.random();
+        BloodyBitsMod.LOGGER.info("quad size: {}", this.quadSize);
         this.scale(scale * 2.5f);
         this.lifetime = 40;
-        this.gravity = 0.25F;
+        this.gravity = 0.75F;
+        this.angularVelocity = 0.1f;
         this.pickSprite(spriteSet);
 
         this.rCol = BloodSprayParticleOptions.red(color);
@@ -72,6 +77,8 @@ public class BloodSprayParticle extends TextureSheetParticle {
     @Override
     public void tick() {
         super.tick();
+        this.oRoll = this.roll;
+        this.roll += this.angularVelocity;
 
         if (this.underwater) {
             this.gravity *= .99f;
@@ -90,10 +97,12 @@ public class BloodSprayParticle extends TextureSheetParticle {
     private void checkBloodSprayLevelCollision() {
         var previousColVec = this.collisionVector;
         var currentColVec = Entity.collideBoundingBox(null,
-                new Vec3(previousColVec.x, previousColVec.y, previousColVec.z),
+                new Vec3(this.xd, this.yd, this.zd),
                 this.getBoundingBox(),
                 this.level,
                 List.of());
+        BloodyBitsMod.LOGGER.info("x: {} y: {} z: {}", this.x, this.y, this.z);
+        BloodyBitsMod.LOGGER.info("xd: {} yd: {} zd: {}",  this.xd, this.yd, this.zd);
 
         if (previousColVec.x > 0.001 && currentColVec.x == 0.0) {
             this.createSpatterAtCollisionPoint(Direction.EAST.get3DDataValue());
@@ -152,10 +161,10 @@ public class BloodSprayParticle extends TextureSheetParticle {
 //                this.mirrored = facingRight ^ this.decalDirection == DecalDirection.RIGHT;
 //            }
 //        }
-        if (underwater) {
-            alpha -= 0.005f;
+        if (this.underwater) {
+            this.alpha -= 0.005f;
             scale(1.005f);
-            if (alpha < .1) {
+            if (this.alpha < .1) {
                 remove();
                 return;
             }
