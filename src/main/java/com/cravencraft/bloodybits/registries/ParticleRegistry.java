@@ -1,6 +1,7 @@
 package com.cravencraft.bloodybits.registries;
 
 import com.cravencraft.bloodybits.BloodyBitsMod;
+import com.cravencraft.bloodybits.particle.drip.BloodDripParticleType;
 import com.cravencraft.bloodybits.particle.spatter.BloodSpatterParticleType;
 import com.cravencraft.bloodybits.particle.BloodSprayParticleType;
 import net.minecraft.core.particles.ParticleType;
@@ -27,13 +28,15 @@ public class ParticleRegistry {
             | (Math.round(BLOOD_COLOR.y * 255) << 8)
             | Math.round(BLOOD_COLOR.z * 255);
 
-    public static final Supplier<BloodSpatterParticleType> BLOOD_SPATTER_PARTICLE;
-    public static final Supplier<SimpleParticleType> BLOOD_SPRAY_PARTICLE;
     public static final Supplier<BloodSprayParticleType> BLOOD_EMITTER;
+    public static final Supplier<SimpleParticleType> BLOOD_SPRAY_PARTICLE;
+    public static final Supplier<BloodSpatterParticleType> BLOOD_SPATTER_PARTICLE;
+    public static final Supplier<BloodDripParticleType> BLOOD_DRIP_PARTICLE;
 
     static {
+        BLOOD_EMITTER = PARTICLE_TYPES.register("blood_emitter", () -> new BloodSprayParticleType(false));
         BLOOD_SPRAY_PARTICLE = PARTICLE_TYPES.register("blood_spray_particles", () -> new SimpleParticleType(false));
         BLOOD_SPATTER_PARTICLE = PARTICLE_TYPES.register("blood_spatter_particles", () -> new BloodSpatterParticleType(false));
-        BLOOD_EMITTER = PARTICLE_TYPES.register("blood_emitter", () -> new BloodSprayParticleType(false));
+        BLOOD_DRIP_PARTICLE = PARTICLE_TYPES.register("blood_drip_particles", () -> new BloodDripParticleType(false));
     }
 }

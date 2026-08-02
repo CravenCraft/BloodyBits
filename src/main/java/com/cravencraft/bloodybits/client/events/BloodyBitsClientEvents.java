@@ -2,6 +2,7 @@ package com.cravencraft.bloodybits.client.events;
 
 import com.cravencraft.bloodybits.BloodyBitsMod;
 import com.cravencraft.bloodybits.particle.BloodEmitterParticle;
+import com.cravencraft.bloodybits.particle.drip.BloodDripParticle;
 import com.cravencraft.bloodybits.particle.spatter.BloodSpatterParticle;
 import com.cravencraft.bloodybits.particle.BloodSprayParticle;
 import com.cravencraft.bloodybits.registries.ParticleRegistry;
@@ -19,14 +20,16 @@ public class BloodyBitsClientEvents {
     @SubscribeEvent
     public static void registerParticleProviders(RegisterParticleProvidersEvent event) {
         List<BloodEmitterParticle.VariantFactory> variants = new ArrayList<>();
+        event.registerSpriteSet(ParticleRegistry.BLOOD_EMITTER.get(), sprites -> new BloodEmitterParticle.Provider(variants));
         event.registerSpriteSet(ParticleRegistry.BLOOD_SPATTER_PARTICLE.get(), BloodSpatterParticle.Provider::new);
+
+        // TODO: Do I need to set this up this way, or can I register it like the others?
         event.registerSpriteSet(ParticleRegistry.BLOOD_SPRAY_PARTICLE.get(), sprites -> {
             var provider = new BloodSprayParticle.Provider(sprites);
             variants.add(provider);
             return provider;
         });
-        event.registerSpriteSet(ParticleRegistry.BLOOD_EMITTER.get(), sprites -> new BloodEmitterParticle.Provider(variants));
-
+        event.registerSpriteSet(ParticleRegistry.BLOOD_DRIP_PARTICLE.get(), BloodDripParticle.Provider::new);
     }
 
 }

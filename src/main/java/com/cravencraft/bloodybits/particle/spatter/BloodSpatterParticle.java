@@ -1,6 +1,9 @@
 package com.cravencraft.bloodybits.particle.spatter;
 
+import com.cravencraft.bloodybits.BloodyBitsMod;
 import com.cravencraft.bloodybits.particle.BloodSprayParticleOptions;
+import com.cravencraft.bloodybits.particle.drip.BloodDripParticleOptions;
+import com.cravencraft.bloodybits.registries.ParticleRegistry;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import net.minecraft.Util;
@@ -54,6 +57,7 @@ public class BloodSpatterParticle extends TextureSheetParticle {
     private double centerX;
     private double centerY;
     private double centerZ;
+    private int color;
     private int light;
     private int startDepth;
     private int endDepth;
@@ -67,7 +71,7 @@ public class BloodSpatterParticle extends TextureSheetParticle {
         this.xd = xSpeed;
         this.yd = ySpeed;
         this.zd = zSpeed;
-        this.quadSize = 1.5f * scale;
+//        this.quadSize = 1.5f * scale;
         this.friction = 0.5f;
         this.gravity = 0.0f;
         this.lifetime = 300;
@@ -77,7 +81,7 @@ public class BloodSpatterParticle extends TextureSheetParticle {
         this.direction = Direction.from3DDataValue(direction);
         this.fadeoutTime = 150;
         this.yawRotation = this.random.nextInt(4) * DEGREES_90;
-
+        this.color = color;
         this.rCol = BloodSprayParticleOptions.red(color);
         this.gCol = BloodSprayParticleOptions.green(color);
         this.bCol = BloodSprayParticleOptions.blue(color);
@@ -86,7 +90,7 @@ public class BloodSpatterParticle extends TextureSheetParticle {
 
         // We set the initial sprite here since ticking is not guaranteed to set the sprite
         // before the render method is called.
-        this.setSpriteFromAge(spriteSet);
+//        this.setSpriteFromAge(spriteSet);
     }
 
 @Override
@@ -109,6 +113,24 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
     }
 
     this.spatterQuadSize = quadSize;
+
+    if (this.age >= 30 && this.direction == Direction.UP) {
+        this.level.addParticle(
+                new BloodDripParticleOptions(this.color, Direction.UP.get3DDataValue(),
+                        this.getQuadSize(0.0F)),
+                true, this.x, this.y, this.z,
+                0.0D, 0.0D, 0.0D);
+//        this.yd -= 0.001f;
+//        var boundingBox = this.getBoundingBox();
+//        BloodyBitsMod.LOGGER.info("bounding box: {}", boundingBox);
+//        boundingBox = boundingBox.setMinY(boundingBox.minY - 1.1f);
+//        BloodyBitsMod.LOGGER.info("bounding box: {}", boundingBox);
+//        this.setBoundingBox(boundingBox);
+//        this.quadSize += 0.1f;
+//        this.bbHeight -= 0.1f;
+//        this.getBoundingBox().setMinY(boundingBox.minY - 0.01f);
+//        BloodyBitsMod.LOGGER.info("quad size: {}", quadSize);
+    }
 
     this.renderRotatedParticle(partialTick);
     this.renderColumnDecal();
@@ -177,6 +199,10 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
         // Go through each corner of the cube to determine the minimum and maximum corner values for all 3 axes
         for (Vector3f corner : avector3f) {
             Vec3 worldCorner = cameraPos.add(corner.x(), corner.y(), corner.z());
+            float slide = 0.0f;
+            if (this.age > 30) {
+                slide = 2.0f;
+            }
             this.worldExtentMin = new Vec3(
                     Math.min(this.worldExtentMin.x, worldCorner.x),
                     Math.min(this.worldExtentMin.y, worldCorner.y),
@@ -188,6 +214,12 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
                     Math.max(this.worldExtentMax.z, worldCorner.z)
             );
         }
+
+        BloodyBitsMod.LOGGER.info("world extent min before: {}", this.worldExtentMin);
+//        this.worldExtentMin = this.worldExtentMin.subtract(0, 1, 0);
+        BloodyBitsMod.LOGGER.info("world extent min after: {}", this.worldExtentMin);
+        BloodyBitsMod.LOGGER.info("world extent max: {}", this.worldExtentMax);
+        BloodyBitsMod.LOGGER.info("----------------------------------------------");
 
         // Gets the light color (level?) of this particle
         this.light = this.getLightColor(partialTick);
@@ -264,6 +296,11 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
                 maxBlockLength = BlockPos.containing(this.worldExtentMax).getZ();
             }
         }
+
+        BloodyBitsMod.LOGGER.info("minBlockWidth: {}", minBlockWidth);
+        BloodyBitsMod.LOGGER.info("maxBlockWidth: {}", maxBlockWidth);
+        BloodyBitsMod.LOGGER.info("minBlockLength: {}", minBlockLength);
+        BloodyBitsMod.LOGGER.info("maxBlockLength: {}", maxBlockLength);
 
         // Render the particle over each block contained within the min/max x/z coordinates.
         for (int blockWidth = minBlockWidth; blockWidth <= maxBlockWidth; blockWidth++) {
@@ -611,10 +648,6 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
         return vec3f;
     }
 
-    /*
-        Remember, it takes 4 vertices to create a 2D texture. Sooooo, this is gonna be called 4 times per
-        BlockPos that it interacts with? Or just 4 times total?
-     */
     private void makeCornerVertex(Vector3f pVertex, float pU, float pV, float alphaMultiplier) {
         this.vertexConsumer
                 .addVertex(pVertex.x(), pVertex.y(), pVertex.z())
@@ -651,6 +684,11 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
                     this.spriteSet, options.color(), options.direction(),
                     options.scale(), xSpeed, ySpeed, zSpeed);
         }
+//
+//        @SubscribeEvent
+//        public static void registerParticleProviders(RegisterParticleProvidersEvent event) {
+//            event.registerSpriteSet(ParticleRegistry.BLOOD_SPATTER_PARTICLE.get(), BloodSpatterParticle.Provider::new);
+//        }
 
 //        @Override
 //        public Particle create(BloodParticleOptions options, ClientLevel level, double x, double y, double z, double dx, double dy, double dz) {
