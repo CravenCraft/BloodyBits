@@ -61,6 +61,7 @@ public class BloodSpatterParticle extends TextureSheetParticle {
     private int light;
     private int startDepth;
     private int endDepth;
+    private boolean isDripping;
 
     // First four parameters are self-explanatory. The SpriteSet parameter is provided by the
     // ParticleProvider, see below. You may also add additional parameters as needed, e.g. xSpeed/ySpeed/zSpeed.
@@ -114,10 +115,9 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
 
     this.spatterQuadSize = quadSize;
 
-    if (this.age >= 30 && this.direction == Direction.UP) {
-        this.level.addParticle(
-                new BloodDripParticleOptions(this.color, Direction.UP.get3DDataValue(),
-                        this.getQuadSize(0.0F)),
+    if (this.age >= 30 && this.direction == Direction.UP && !isDripping) {
+        this.level.addAlwaysVisibleParticle(
+                new BloodDripParticleOptions(this.color, Direction.UP.get3DDataValue(), this.getQuadSize(0.0F)),
                 true, this.x, this.y, this.z,
                 0.0D, 0.0D, 0.0D);
 //        this.yd -= 0.001f;
@@ -130,6 +130,7 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
 //        this.bbHeight -= 0.1f;
 //        this.getBoundingBox().setMinY(boundingBox.minY - 0.01f);
 //        BloodyBitsMod.LOGGER.info("quad size: {}", quadSize);
+        this.isDripping = true;
     }
 
     this.renderRotatedParticle(partialTick);
@@ -215,11 +216,11 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
             );
         }
 
-        BloodyBitsMod.LOGGER.info("world extent min before: {}", this.worldExtentMin);
+//        BloodyBitsMod.LOGGER.info("world extent min before: {}", this.worldExtentMin);
 //        this.worldExtentMin = this.worldExtentMin.subtract(0, 1, 0);
-        BloodyBitsMod.LOGGER.info("world extent min after: {}", this.worldExtentMin);
-        BloodyBitsMod.LOGGER.info("world extent max: {}", this.worldExtentMax);
-        BloodyBitsMod.LOGGER.info("----------------------------------------------");
+//        BloodyBitsMod.LOGGER.info("world extent min after: {}", this.worldExtentMin);
+//        BloodyBitsMod.LOGGER.info("world extent max: {}", this.worldExtentMax);
+//        BloodyBitsMod.LOGGER.info("----------------------------------------------");
 
         // Gets the light color (level?) of this particle
         this.light = this.getLightColor(partialTick);
@@ -297,10 +298,10 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
             }
         }
 
-        BloodyBitsMod.LOGGER.info("minBlockWidth: {}", minBlockWidth);
-        BloodyBitsMod.LOGGER.info("maxBlockWidth: {}", maxBlockWidth);
-        BloodyBitsMod.LOGGER.info("minBlockLength: {}", minBlockLength);
-        BloodyBitsMod.LOGGER.info("maxBlockLength: {}", maxBlockLength);
+//        BloodyBitsMod.LOGGER.info("minBlockWidth: {}", minBlockWidth);
+//        BloodyBitsMod.LOGGER.info("maxBlockWidth: {}", maxBlockWidth);
+//        BloodyBitsMod.LOGGER.info("minBlockLength: {}", minBlockLength);
+//        BloodyBitsMod.LOGGER.info("maxBlockLength: {}", maxBlockLength);
 
         // Render the particle over each block contained within the min/max x/z coordinates.
         for (int blockWidth = minBlockWidth; blockWidth <= maxBlockWidth; blockWidth++) {

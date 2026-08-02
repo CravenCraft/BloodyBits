@@ -1,5 +1,6 @@
 package com.cravencraft.bloodybits.particle.drip;
 
+import com.cravencraft.bloodybits.BloodyBitsMod;
 import com.cravencraft.bloodybits.particle.BloodSprayParticleOptions;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Camera;
@@ -7,6 +8,7 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.*;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.Direction;
+import net.minecraft.world.phys.AABB;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.NotNull;
@@ -16,19 +18,24 @@ public class BloodDripParticle extends TextureSheetParticle {
     private final Direction direction;
     private float dripAmount;
 //    private final TextureAtlasSprite sprite;
+    private double ceiling;
+    private double floor;
+    private float thickness;
 
     protected BloodDripParticle(ClientLevel level, double x, double y, double z,
                                 SpriteSet spriteSet, int color, int direction, float scale) {
         super(level, x, y, z);
 
-        this.gravity = 0.0f;
+        this.gravity = 0.1f;
         this.dripAmount = 0.0F;
         this.lifetime = 270;
         this.direction = Direction.from3DDataValue(direction);
         this.rCol = BloodSprayParticleOptions.red(color);
         this.gCol = BloodSprayParticleOptions.green(color);
         this.bCol = BloodSprayParticleOptions.blue(color);
-
+        this.ceiling = y + 0.5F;
+        this.floor = y - 1;
+        this.thickness = 0.05F;
 
         this.pickSprite(spriteSet);
         this.sprite.getU0();
@@ -36,23 +43,40 @@ public class BloodDripParticle extends TextureSheetParticle {
 
     @Override
     public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float partialTick) {
-//        this.yd -= 0.01F;
+
+        var yPos = Math.max(this.y + 0.5F, this.floor);
+
+        this.thickness -= 0.0001F;
+        var bb = this.getBoundingBox();
+//        bb = bb.setMaxY(this.ceiling);
+//        this.setBoundingBox(bb);
+//        this.yo;
 //        float x = (float) this.x;
 //        float y = (float) this.y - dripAmount;
 //        float z = (float) this.z;
-
-        this.addVertex(buffer, camera, (float) this.x, (float) this.y - 0.5F, (float) z, this.sprite.getU1(), this.sprite.getV0(), partialTick);
-        this.addVertex(buffer, camera, (float) this.x - 0.1F, (float) this.y - 0.5F, (float) z, this.sprite.getU0(), this.sprite.getV0(), partialTick);
-        this.addVertex(buffer, camera, (float) this.x - 0.1F, (float) this.yo, (float) z, this.sprite.getU0(), this.sprite.getV1(), partialTick);
-        this.addVertex(buffer, camera, (float) this.x, (float) this.yo, (float) z, this.sprite.getU1(), this.sprite.getV1(), partialTick);
+        BloodyBitsMod.LOGGER.info("------- Rendering Blood Drip Particle -------");
+        this.addVertex(buffer, camera, (float) this.x, (float) yPos, (float) z, this.sprite.getU1(), this.sprite.getV0(), partialTick);
+        this.addVertex(buffer, camera, (float) this.x - 0.1f, (float) yPos, (float) z, this.sprite.getU0(), this.sprite.getV0(), partialTick);
+        this.addVertex(buffer, camera, (float) this.x - 0.1f, (float) this.ceiling, (float) z, this.sprite.getU0(), this.sprite.getV1(), partialTick);
+        this.addVertex(buffer, camera, (float) this.x, (float) this.ceiling, (float) z, this.sprite.getU1(), this.sprite.getV1(), partialTick);
     }
 
     private void addVertex(VertexConsumer buffer, Camera camera, float x, float y, float z, float u, float v, float partialTick) {
+        BloodyBitsMod.LOGGER.info("Adding blood drip particle to position: {}, {}, {}", x, y, z);
+        BloodyBitsMod.LOGGER.info("camera facing position: {}", camera.getPosition());
+        BloodyBitsMod.LOGGER.info("actual vertex pos: {}, {}, {}", (float) (x - camera.getPosition().x), (float) (y - camera.getPosition().y), (float) (z - camera.getPosition().z));
+        BloodyBitsMod.LOGGER.info("bounding box: {}", this.getBoundingBox());
         buffer
                 .addVertex((float) (x - camera.getPosition().x), (float) (y - camera.getPosition().y), (float) (z - camera.getPosition().z))
                 .setColor(this.rCol, this.gCol, this.bCol, this.alpha)
                 .setUv(u, v)
                 .setLight(this.getLightColor(partialTick));
+    }
+
+    @Override
+    public AABB getRenderBoundingBox(float partialTicks) {
+        float size = getQuadSize(partialTicks);
+        return new AABB(this.x - size, this.y - size, this.z - size, this.x + size, this.y + size + this.ceiling, this.z + size);
     }
 
     @Override
