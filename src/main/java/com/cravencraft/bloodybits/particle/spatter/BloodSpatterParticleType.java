@@ -21,6 +21,4 @@ public class BloodSpatterParticleType extends ParticleType<BloodSpatterParticleO
     public @NotNull StreamCodec<? super RegistryFriendlyByteBuf, BloodSpatterParticleOptions> streamCodec() {
         return BloodSpatterParticleOptions.STREAM_CODEC;
     }
-
-
 }

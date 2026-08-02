@@ -26,6 +26,7 @@ import net.neoforged.neoforge.event.level.ExplosionEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.Random;
+import java.util.stream.IntStream;
 
 @EventBusSubscriber(modid = BloodyBitsMod.MODID)
 public class BloodyBitsEvents {
@@ -114,57 +115,53 @@ public class BloodyBitsEvents {
         String entityName = (entity instanceof Player) ? "player" : entity.getEncodeId();
         entityName = (entityName == null) ? "" : entityName;
 
-        if (!(source.getEntity() instanceof Player)) return;
-//        try (var level = entity.level()) {
-//            if (!level.isClientSide()) return;
-
-        AABB aabb = entity.isMultipartEntity() ? entity.getParts()[entity.getRandom().nextInt(entity.getParts().length)].getBoundingBox() : entity.getBoundingBox();
+        AABB aabb = entity.isMultipartEntity() ?
+                entity.getParts()[entity.getRandom().nextInt(entity.getParts().length)].getBoundingBox() :
+                entity.getBoundingBox();
         Vec3 vec = aabb.getCenter();
         BloodyBitsMod.LOGGER.info("entity aabb: {}", aabb);
         float damage = event.getContainer().getNewDamage();
-//        if (damage <= config.minDamage()) {
-//            return;
-//        }
-        if (damage == Float.MAX_VALUE) {
-            // kill command
-            return;
-        }
 
-        damage = Math.min(damage, 2000);
-        int count = (int) (damage)
-                + level.random.nextIntBetweenInclusive(0, (int) (1.5 * (damage)));
+        if (damage == Float.MAX_VALUE) return;
+
+        damage = Math.min(damage, 50);
+        int count = (int) (damage) + level.random.nextIntBetweenInclusive(0, (int) damage);
 //        double speed = config.scaledBaseSpeed() + count * config.scaledSpeedPerParticle();
         double bbShove = Math.max(aabb.getXsize() * 0.5 - 0.5, 0);
         double scale = (aabb.getXsize() + 2) / 3f;
 //        level.addAlwaysVisibleParticle(ParticleRegistry.BLOOD_SPRAY_PARTICLE.get(), entity.getX(), entity.getY() + 3, entity.getZ(), 0, 0, 0);
         var server = level.getServer();
-        var rand = new Random().nextBoolean() ? 1 : -1;
-        BloodyBitsMod.LOGGER.info("rand: {}", rand);
-        Vec3 sprayVector = new Vec3(0.15 * rand, 0.1, 0.15 * rand);
+//        var rand = new Random().nextBoolean() ? 1 : -1;
+//        BloodyBitsMod.LOGGER.info("rand: {}", rand);
+//        Vec3 sprayVector = new Vec3(0.15 * rand, 0.1, 0.15 * rand);
 
         if (server == null) return;
 
         if (level instanceof ServerLevel serverLevel) {
 
             BloodyBitsMod.LOGGER.info("Attempting to send blood particle at position: {}", entityName);
-            BloodyBitsMod.LOGGER.info("blood particle offset at position: {}", sprayVector);
 
             // TODO: Add a proper direction value to send.
-            server.getPlayerList().getPlayers().forEach(player -> (serverLevel)
-                    .sendParticles(
-                            player,
-                            new BloodSprayParticleOptions(ParticleRegistry.DEFAULT_BLOOD_COLOR, sprayVector, 1.0f),
-                            true,
-                            vec.x,
-                            vec.y + aabb.getYsize() * 0.5,
-                            vec.z,
-                            1,
-                            0.05 + bbShove,
-                            0.1,
-                            0.05 + bbShove,
-                            0.5
-                    )
-            );
+            for (int i = 0; i < count; i++) {
+                var rand = new Random().nextBoolean() ? 1 : -1;
+                Vec3 sprayVector = new Vec3(0.15 * rand, 0.1, 0.15 * rand);
+                BloodyBitsMod.LOGGER.info("blood particle offset at position: {}", sprayVector);
+                server.getPlayerList().getPlayers().forEach(player -> (serverLevel)
+                        .sendParticles(
+                                player,
+                                new BloodSprayParticleOptions(ParticleRegistry.DEFAULT_BLOOD_COLOR, sprayVector, 1.0f),
+                                true,
+                                vec.x,
+                                vec.y + aabb.getYsize() * 0.5,
+                                vec.z,
+                                1,
+                                0.5,
+                                0.5,
+                                0.5,
+                                0.2
+                        )
+                );
+            }
         }
 
 
@@ -252,8 +249,8 @@ public class BloodyBitsEvents {
                     if (BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.size() >= CommonConfig.maxSpatters()) {
                         BloodSprayEntity oldest = BloodyBitsUtils.CLIENT_SIDE_BLOOD_SPRAYS.get(0);
                         if (oldest != null) {
-                            BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.get(0).discard();
-                            BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.remove(0);
+                            BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.getFirst().discard();
+                            BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.removeFirst();
                         }
                     }
 

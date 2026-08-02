@@ -51,12 +51,12 @@ public class BloodSprayParticle extends TextureSheetParticle {
         BloodyBitsMod.LOGGER.info("BloodSprayParticle xd, yd, zd: {}, {}, {}",  xd, yd, zd);
         this.collisionVector = new Vec3(xd, yd, zd);
         BloodyBitsMod.LOGGER.info("initial blood spray particle collision vector: {}", this.collisionVector);
-        this.quadSize *= 1.2f + (float) Math.random();
+        this.quadSize *= 0.25f + (float) Math.random();
         BloodyBitsMod.LOGGER.info("quad size: {}", this.quadSize);
         this.scale(scale * 2.5f);
         this.lifetime = 40;
-        this.gravity = 0.75F;
-        this.angularVelocity = 0.01f;
+        this.gravity = 1f;
+        this.angularVelocity = 0.075f;
         this.pickSprite(spriteSet);
 
         this.rCol = BloodSprayParticleOptions.red(color);
@@ -70,7 +70,7 @@ public class BloodSprayParticle extends TextureSheetParticle {
             this.xd *= 0.5f;
             this.yd *= 0.5f;
             this.zd *= 0.5f;
-            this.gravity *= .1f;
+            this.gravity *= .25f;
         }
     }
 
@@ -79,6 +79,7 @@ public class BloodSprayParticle extends TextureSheetParticle {
         super.tick();
         this.oRoll = this.roll;
         this.roll += this.angularVelocity;
+        this.quadSize += 0.01f;
 
         if (this.underwater) {
             this.gravity *= .99f;
@@ -204,7 +205,10 @@ public class BloodSprayParticle extends TextureSheetParticle {
             float v,
             int packedLight
     ) {
+
+
         Vector3f vector3f = new Vector3f(xOffset, yOffset, 0.0F).rotate(quaternion).mul(quadSize).add(x, y, z);
+        BloodyBitsMod.LOGGER.info("renderVertex: {}", vector3f);
         buffer.addVertex(vector3f.x(), vector3f.y(), vector3f.z())
                 .setUv(u, v)
                 .setColor(this.rCol, this.gCol, this.bCol, this.alpha)
@@ -228,7 +232,9 @@ public class BloodSprayParticle extends TextureSheetParticle {
         public Particle createParticle(SimpleParticleType particleType, ClientLevel level,
                                        double x, double y, double z,
                                        double dx, double dy, double dz) {
-            return new BloodSprayParticle(level, x, y, z, this.sprites, ParticleRegistry.DEFAULT_BLOOD_COLOR, 1f, dx, dy, dz);
+            return new BloodSprayParticle(level, x, y, z,
+                    this.sprites, ParticleRegistry.DEFAULT_BLOOD_COLOR,
+                    1f, dx, dy, dz);
         }
 
         @Override

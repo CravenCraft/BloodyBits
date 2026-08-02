@@ -13,10 +13,6 @@ import net.minecraft.network.codec.StreamCodec;
 
 public record BloodSpatterParticleOptions(int color, int direction, float scale) implements ParticleOptions {
 
-    public BloodSpatterParticleOptions(int color, int direction) {
-        this(color, direction, 1f);
-    }
-
     public static final MapCodec<BloodSpatterParticleOptions> CODEC = RecordCodecBuilder.mapCodec(instance ->
        instance.group(
                Codec.INT.optionalFieldOf("color", ParticleRegistry.DEFAULT_BLOOD_COLOR).forGetter(BloodSpatterParticleOptions::color),

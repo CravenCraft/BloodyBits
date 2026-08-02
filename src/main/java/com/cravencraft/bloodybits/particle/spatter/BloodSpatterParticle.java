@@ -36,12 +36,12 @@ import java.util.function.Consumer;
  *       - Have occasional smaller drips slide down the wall at a faster pace (NORTH, SOUTH, EAST, & WEST).
  */
 public class BloodSpatterParticle extends TextureSheetParticle {
-    private final SpriteSet spriteSet;
+//    private final SpriteSet spriteSet;
     private static final Vector3f ROTATION_VECTOR = Util.make(new Vector3f(0.5F, 0.5F, 0.5F), Vector3f::normalize);
     private static final Vector3f TRANSFORM_VECTOR = new Vector3f(-1.0F, -1.0F, 0.0F);
     private static final float DEGREES_90 = Mth.PI / 2f;
     private static final int FADEOUT_BUFFER = 20;
-    private static final float INITIAL_ALPHA = 0.7f;
+    private static final float INITIAL_ALPHA = 1.0f;
     private final int fadeoutTime;
     private final Direction direction;
     private final float yawRotation;
@@ -73,7 +73,7 @@ public class BloodSpatterParticle extends TextureSheetParticle {
         this.lifetime = 300;
         this.setSize(1.0f, 1.0f);
         this.scale(3f);
-        this.spriteSet = spriteSet;
+        this.pickSprite(spriteSet);
         this.direction = Direction.from3DDataValue(direction);
         this.fadeoutTime = 150;
         this.yawRotation = this.random.nextInt(4) * DEGREES_90;
@@ -647,7 +647,9 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
                                        double x, double y, double z,
                                        double xSpeed, double ySpeed, double zSpeed) {
             // We don't use the type and speed, and pass in everything else. You may of course use them if needed.
-            return new BloodSpatterParticle(level, x, y, z, this.spriteSet, options.color(), options.direction(), options.scale(), xSpeed, ySpeed, zSpeed);
+            return new BloodSpatterParticle(level, x, y, z,
+                    this.spriteSet, options.color(), options.direction(),
+                    options.scale(), xSpeed, ySpeed, zSpeed);
         }
 
 //        @Override
