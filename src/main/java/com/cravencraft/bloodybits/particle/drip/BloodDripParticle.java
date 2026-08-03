@@ -6,13 +6,13 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Camera;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.*;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.Direction;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Vector3f;
 
 public class BloodDripParticle extends TextureSheetParticle {
     private final Direction direction;
@@ -44,9 +44,18 @@ public class BloodDripParticle extends TextureSheetParticle {
     @Override
     public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float partialTick) {
 
+//        if (this.direction ==  Direction.UP) {
+//            var yPos = Math.max(this.y + 0.5F, this.floor);
+//            if (this.yd != 0) {
+//                var shrinkAmount = (float) (this.thickness / Math.abs((this.ceiling - this.floor) / this.yd));
+//                this.thickness -= shrinkAmount;
+//            }
+//
+//            super.render(buffer, camera, partialTick);
+//        }
+
         var yPos = Math.max(this.y + 0.5F, this.floor);
         if (this.yd != 0) {
-            var rate = Math.abs((this.ceiling - this.floor) / this.yd);
             var shrinkAmount = (float) (this.thickness / Math.abs((this.ceiling - this.floor) / this.yd));
             this.thickness -= shrinkAmount;
         }
@@ -60,22 +69,38 @@ public class BloodDripParticle extends TextureSheetParticle {
 //        float z = (float) this.z;
         BloodyBitsMod.LOGGER.info("yd: {} thickness: {}", this.yd, this.thickness);
 //        BloodyBitsMod.LOGGER.info("------- Rendering Blood Drip Particle -------");
-        this.addVertex(buffer, camera, (float) this.x + this.thickness, (float) yPos, (float) z, this.sprite.getU1(), this.sprite.getV0(), partialTick);
-        this.addVertex(buffer, camera, (float) this.x - this.thickness, (float) yPos, (float) z, this.sprite.getU0(), this.sprite.getV0(), partialTick);
-        this.addVertex(buffer, camera, (float) this.x - this.thickness, (float) this.ceiling, (float) z, this.sprite.getU0(), this.sprite.getV1(), partialTick);
-        this.addVertex(buffer, camera, (float) this.x + this.thickness, (float) this.ceiling, (float) z, this.sprite.getU1(), this.sprite.getV1(), partialTick);
+        this.renderVertex(buffer, camera, (float) this.x + this.thickness, (float) yPos, (float) z, this.sprite.getU1(), this.sprite.getV0(), partialTick);
+        this.renderVertex(buffer, camera, (float) this.x - this.thickness, (float) yPos, (float) z, this.sprite.getU0(), this.sprite.getV0(), partialTick);
+        this.renderVertex(buffer, camera, (float) this.x - this.thickness, (float) this.ceiling, (float) z, this.sprite.getU0(), this.sprite.getV1(), partialTick);
+        this.renderVertex(buffer, camera, (float) this.x + this.thickness, (float) this.ceiling, (float) z, this.sprite.getU1(), this.sprite.getV1(), partialTick);
     }
 
-    private void addVertex(VertexConsumer buffer, Camera camera, float x, float y, float z, float u, float v, float partialTick) {
+    private void renderVertex(VertexConsumer buffer, Camera camera, float x, float y, float z, float u, float v, float partialTick) {
 //        BloodyBitsMod.LOGGER.info("Adding blood drip particle to position: {}, {}, {}", x, y, z);
 //        BloodyBitsMod.LOGGER.info("camera facing position: {}", camera.getPosition());
 //        BloodyBitsMod.LOGGER.info("actual vertex pos: {}, {}, {}", (float) (x - camera.getPosition().x), (float) (y - camera.getPosition().y), (float) (z - camera.getPosition().z));
 //        BloodyBitsMod.LOGGER.info("bounding box: {}", this.getBoundingBox());
-        buffer
-                .addVertex((float) (x - camera.getPosition().x), (float) (y - camera.getPosition().y), (float) (z - camera.getPosition().z))
-                .setColor(this.rCol, this.gCol, this.bCol, this.alpha)
-                .setUv(u, v)
-                .setLight(this.getLightColor(partialTick));
+
+        if (this.direction == Direction.UP) {
+
+            Vector3f front = new Vector3f(
+                    (float) (x - camera.getPosition().x),
+                    (float) (y - camera.getPosition().y),
+                    (float) (z - camera.getPosition().z));
+
+            buffer.addVertex(front)
+                    .setUv(u, v)
+                    .setColor(this.rCol, this.gCol, this.bCol, this.alpha)
+                    .setLight(this.getLightColor(partialTick));
+        }
+        else {
+            buffer
+                    .addVertex((float) (x - camera.getPosition().x), (float) (y - camera.getPosition().y), (float) (z - camera.getPosition().z))
+                    .setColor(this.rCol, this.gCol, this.bCol, this.alpha)
+                    .setUv(u, v)
+                    .setLight(this.getLightColor(partialTick));
+        }
+
     }
 
     @Override
