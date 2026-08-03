@@ -1,9 +1,7 @@
 package com.cravencraft.bloodybits.particle.drip;
 
-import com.cravencraft.bloodybits.BloodyBitsMod;
 import com.cravencraft.bloodybits.particle.BloodSprayParticleOptions;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.math.Axis;
 import net.minecraft.client.Camera;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.*;
@@ -14,7 +12,6 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import java.util.ArrayList;
@@ -33,7 +30,7 @@ public class BloodDripParticle extends TextureSheetParticle {
                                 SpriteSet spriteSet, int color, int direction, float scale) {
         super(level, x, y, z);
 
-        this.gravity = 0.5f;
+        this.gravity = 0.25f;
         this.dripAmount = 0.0F;
         this.lifetime = 270;
         this.direction = Direction.from3DDataValue(direction);
@@ -45,48 +42,29 @@ public class BloodDripParticle extends TextureSheetParticle {
         this.thickness = 0.05F;
 
         this.pickSprite(spriteSet);
-        this.sprite.getU0();
     }
 
     @Override
     public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float partialTick) {
-
-//        if (this.direction ==  Direction.UP) {
-//            Quaternionf quaternionf = new Quaternionf();
-//            this.getFacingCameraMode().setRotation(quaternionf, camera, partialTick);
-//            if (this.roll != 0.0F) {
-//                quaternionf.rotateZ(Mth.lerp(partialTick, this.oRoll, this.roll));
-//            }
-//
-////            var yPos = Math.max(this.y + 0.5F, this.floor);
-////            if (this.yd != 0) {
-////                var shrinkAmount = (float) (this.thickness / Math.abs((this.ceiling - this.floor) / this.yd));
-////                this.thickness -= shrinkAmount;
-////            }
-////
-////            super.render(buffer, camera, partialTick);
-//        }
 
         var yPos = Math.max(this.y + 0.5F, this.floor);
         if (this.yd != 0) {
             var shrinkAmount = (float) (this.thickness / Math.abs((this.ceiling - this.floor) / this.yd));
             this.thickness -= shrinkAmount;
         }
-//        this.thickness -= 0.0001F;
-//        var bb = this.getBoundingBox();
-//        bb = bb.setMaxY(this.ceiling);
-//        this.setBoundingBox(bb);
-//        this.yo;
-//        float x = (float) this.x;
-//        float y = (float) this.y - dripAmount;
-//        float z = (float) this.z;
-//        BloodyBitsMod.LOGGER.info("yd: {} thickness: {}", this.yd, this.thickness);
-//        BloodyBitsMod.LOGGER.info("------- Rendering Blood Drip Particle -------");
 
+        // Vectors for the x-axis blood drip.
         Vector3f xVector1;
         Vector3f xVector2;
         Vector3f xVector3;
         Vector3f xVector4;
+
+        // Vectors for the z-axis blood drip.
+        Vector3f zVector1;
+        Vector3f zVector2;
+        Vector3f zVector3;
+        Vector3f zVector4;
+
         // TODO: Simplify this in the future. Maybe find a way to use rotations?
         if (this.direction == Direction.UP) {
 
@@ -107,10 +85,10 @@ public class BloodDripParticle extends TextureSheetParticle {
             this.renderVertex(buffer, camera, xVector1.x, xVector1.y, xVector1.z, this.sprite.getU1(), this.sprite.getV0(), partialTick);
 
             // Render Z-Axis blood drip
-            var zVector1 = new Vector3f((float) (this.x - camera.getPosition().x), (float) (yPos - camera.getPosition().y), (float) ((this.z + this.thickness) - camera.getPosition().z));
-            var zVector2 = new Vector3f((float) (this.x - camera.getPosition().x), (float) (yPos - camera.getPosition().y), (float) ((this.z - this.thickness) - camera.getPosition().z));
-            var zVector3 = new Vector3f((float) (this.x - camera.getPosition().x), (float) (this.ceiling - camera.getPosition().y), (float) ((this.z - this.thickness) - camera.getPosition().z));
-            var zVector4 = new Vector3f((float) (this.x - camera.getPosition().x), (float) (this.ceiling - camera.getPosition().y), (float) ((this.z + this.thickness) - camera.getPosition().z));
+            zVector1 = new Vector3f((float) (this.x - camera.getPosition().x), (float) (yPos - camera.getPosition().y), (float) ((this.z + this.thickness) - camera.getPosition().z));
+            zVector2 = new Vector3f((float) (this.x - camera.getPosition().x), (float) (yPos - camera.getPosition().y), (float) ((this.z - this.thickness) - camera.getPosition().z));
+            zVector3 = new Vector3f((float) (this.x - camera.getPosition().x), (float) (this.ceiling - camera.getPosition().y), (float) ((this.z - this.thickness) - camera.getPosition().z));
+            zVector4 = new Vector3f((float) (this.x - camera.getPosition().x), (float) (this.ceiling - camera.getPosition().y), (float) ((this.z + this.thickness) - camera.getPosition().z));
 
             this.renderVertex(buffer, camera, zVector1.x, zVector1.y, zVector1.z, this.sprite.getU1(), this.sprite.getV0(), partialTick);
             this.renderVertex(buffer, camera, zVector2.x, zVector2.y, zVector2.z, this.sprite.getU0(), this.sprite.getV0(), partialTick);
@@ -129,10 +107,6 @@ public class BloodDripParticle extends TextureSheetParticle {
     }
 
     private void renderVertex(VertexConsumer buffer, Camera camera, float x, float y, float z, float u, float v, float partialTick) {
-//        BloodyBitsMod.LOGGER.info("Adding blood drip particle to position: {}, {}, {}", x, y, z);
-//        BloodyBitsMod.LOGGER.info("camera facing position: {}", camera.getPosition());
-//        BloodyBitsMod.LOGGER.info("actual vertex pos: {}, {}, {}", (float) (x - camera.getPosition().x), (float) (y - camera.getPosition().y), (float) (z - camera.getPosition().z));
-//        BloodyBitsMod.LOGGER.info("bounding box: {}", this.getBoundingBox());
         buffer
                 .addVertex(x, y, z)
                 .setColor(this.rCol, this.gCol, this.bCol, this.alpha)
