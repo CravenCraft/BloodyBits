@@ -11,13 +11,13 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 
-public record BloodDripParticleOptions(int color, int direction, float scale) implements ParticleOptions {
+public record BloodDripParticleOptions(int color, int direction, float alpha) implements ParticleOptions {
 
     public static final MapCodec<BloodDripParticleOptions> CODEC = RecordCodecBuilder.mapCodec(instance ->
        instance.group(
                Codec.INT.optionalFieldOf("color", ParticleRegistry.DEFAULT_BLOOD_COLOR).forGetter(BloodDripParticleOptions::color),
                Codec.INT.optionalFieldOf("location", Direction.DOWN.get3DDataValue()).forGetter(BloodDripParticleOptions::direction),
-               Codec.FLOAT.optionalFieldOf("scale", 1f).forGetter(BloodDripParticleOptions::scale)
+               Codec.FLOAT.optionalFieldOf("alpha", 1f).forGetter(BloodDripParticleOptions::alpha)
        ).apply(instance, BloodDripParticleOptions::new)
     );
 
@@ -27,7 +27,7 @@ public record BloodDripParticleOptions(int color, int direction, float scale) im
             ByteBufCodecs.VAR_INT,
             BloodDripParticleOptions::direction,
             ByteBufCodecs.FLOAT,
-            BloodDripParticleOptions::scale,
+            BloodDripParticleOptions::alpha,
             BloodDripParticleOptions::new
     );
 

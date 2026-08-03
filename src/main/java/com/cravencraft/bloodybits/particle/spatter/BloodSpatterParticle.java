@@ -3,7 +3,6 @@ package com.cravencraft.bloodybits.particle.spatter;
 import com.cravencraft.bloodybits.BloodyBitsMod;
 import com.cravencraft.bloodybits.particle.BloodSprayParticleOptions;
 import com.cravencraft.bloodybits.particle.drip.BloodDripParticleOptions;
-import com.cravencraft.bloodybits.registries.ParticleRegistry;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import net.minecraft.Util;
@@ -61,7 +60,8 @@ public class BloodSpatterParticle extends TextureSheetParticle {
     private int light;
     private int startDepth;
     private int endDepth;
-    private boolean isDripping;
+    private boolean shouldDrip;
+    private int dripAge;
 
     // First four parameters are self-explanatory. The SpriteSet parameter is provided by the
     // ParticleProvider, see below. You may also add additional parameters as needed, e.g. xSpeed/ySpeed/zSpeed.
@@ -72,7 +72,7 @@ public class BloodSpatterParticle extends TextureSheetParticle {
         this.xd = xSpeed;
         this.yd = ySpeed;
         this.zd = zSpeed;
-//        this.quadSize = 1.5f * scale;
+        this.quadSize = 1.5f * scale;
         this.friction = 0.5f;
         this.gravity = 0.0f;
         this.lifetime = 300;
@@ -88,54 +88,54 @@ public class BloodSpatterParticle extends TextureSheetParticle {
         this.bCol = BloodSprayParticleOptions.blue(color);
         this.alpha = INITIAL_ALPHA;
         this.zFightOffset = this.random.nextFloat();
+//        this.shouldDrip = true;
 
         // We set the initial sprite here since ticking is not guaranteed to set the sprite
         // before the render method is called.
 //        this.setSpriteFromAge(spriteSet);
     }
 
-@Override
-public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float partialTick) {
-    int fadeThreshold = lifetime - fadeoutTime; // Determines when the particle should start fading
-    float quadSize = this.getQuadSize(partialTick); // Gets the quad size of the particle
-    float f = this.age + partialTick; // Current age with the given partial tick
-    this.cameraPos = camera.getPosition();
-    this.vertexConsumer = buffer;
+    @Override
+    public void tick() {
+        super.tick();
 
-    // If the current age is less than the splat time, then expand the quad size
-    if (f <= SPLAT_IN_TIME) {
-        quadSize *= (f) / (SPLAT_IN_TIME * 2f) + .5f;
+        this.createDrip();
     }
 
-    // If the current age reaches the fadeThreshold, then decrease the quad size while fading the alpha.
-    if (f > fadeThreshold) {
-        quadSize *= (float) Mth.smoothstep(1.0 - Math.max(f - fadeThreshold - 60, 0) / fadeoutTime);
-        this.alpha = 1.0F - Mth.clamp((f - fadeThreshold) / fadeoutTime, 1f - INITIAL_ALPHA, 1F);
+    @Override
+    public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float partialTick) {
+            BloodyBitsMod.LOGGER.info("particle age: {}", this.age);
+        int fadeThreshold = lifetime - fadeoutTime; // Determines when the particle should start fading
+        float quadSize = this.getQuadSize(partialTick); // Gets the quad size of the particle
+        float f = this.age + partialTick; // Current age with the given partial tick
+        this.cameraPos = camera.getPosition();
+        this.vertexConsumer = buffer;
+
+        // If the current age is less than the splat time, then expand the quad size
+        if (f <= SPLAT_IN_TIME) {
+            quadSize *= (f) / (SPLAT_IN_TIME * 2f) + .5f;
+        }
+
+        // If the current age reaches the fadeThreshold, then decrease the quad size while fading the alpha.
+        if (f > fadeThreshold) {
+            quadSize *= (float) Mth.smoothstep(1.0 - Math.max(f - fadeThreshold - 60, 0) / fadeoutTime);
+            this.alpha = 1.0F - Mth.clamp((f - fadeThreshold) / fadeoutTime, 1f - INITIAL_ALPHA, 1F);
+        }
+
+        this.spatterQuadSize = quadSize;
+//        this.createDrip();
+
+    //    if (this.age >= 30 && this.direction == Direction.UP && !shouldDrip) {
+    //        this.level.addAlwaysVisibleParticle(
+    //                new BloodDripParticleOptions(this.color, Direction.UP.get3DDataValue(), this.getQuadSize(0.0F)),
+    //                true, this.x, this.y, this.z,
+    //                0.0D, 0.0D, 0.0D);
+    //        this.shouldDrip = true;
+    //    }
+
+        this.renderRotatedParticle(partialTick);
+        this.renderColumnDecal();
     }
-
-    this.spatterQuadSize = quadSize;
-
-    if (this.age >= 30 && this.direction == Direction.UP && !isDripping) {
-        this.level.addAlwaysVisibleParticle(
-                new BloodDripParticleOptions(this.color, Direction.UP.get3DDataValue(), this.getQuadSize(0.0F)),
-                true, this.x, this.y, this.z,
-                0.0D, 0.0D, 0.0D);
-//        this.yd -= 0.001f;
-//        var boundingBox = this.getBoundingBox();
-//        BloodyBitsMod.LOGGER.info("bounding box: {}", boundingBox);
-//        boundingBox = boundingBox.setMinY(boundingBox.minY - 1.1f);
-//        BloodyBitsMod.LOGGER.info("bounding box: {}", boundingBox);
-//        this.setBoundingBox(boundingBox);
-//        this.quadSize += 0.1f;
-//        this.bbHeight -= 0.1f;
-//        this.getBoundingBox().setMinY(boundingBox.minY - 0.01f);
-//        BloodyBitsMod.LOGGER.info("quad size: {}", quadSize);
-        this.isDripping = true;
-    }
-
-    this.renderRotatedParticle(partialTick);
-    this.renderColumnDecal();
-}
 
     private static final float SPLAT_IN_TIME = 1.5f;
     private static final float MAX_PROJECTION_DEPTH = 2.0f;
@@ -657,6 +657,28 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
                 .setLight(this.light);
     }
 
+    private void createDrip() {
+
+        if (this.shouldDrip) {
+            if (this.direction == Direction.UP) {
+                this.level.addAlwaysVisibleParticle(
+                        new BloodDripParticleOptions(this.color, Direction.UP.get3DDataValue(), this.alpha),
+                        true, this.x, this.y, this.z,
+                        0.0D, 0.0D, 0.0D);
+                this.shouldDrip = false;
+                this.dripAge = 0;
+            }
+        }
+        else {
+            if (this.dripAge < 25) {
+                this.dripAge++;
+            }
+            else {
+                this.shouldDrip = Math.random() > 0.99;
+            }
+        }
+    }
+
     @NotNull
     @Override
     public ParticleRenderType getRenderType() {
@@ -685,15 +707,5 @@ public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float
                     this.spriteSet, options.color(), options.direction(),
                     options.scale(), xSpeed, ySpeed, zSpeed);
         }
-//
-//        @SubscribeEvent
-//        public static void registerParticleProviders(RegisterParticleProvidersEvent event) {
-//            event.registerSpriteSet(ParticleRegistry.BLOOD_SPATTER_PARTICLE.get(), BloodSpatterParticle.Provider::new);
-//        }
-
-//        @Override
-//        public Particle create(BloodParticleOptions options, ClientLevel level, double x, double y, double z, double dx, double dy, double dz) {
-//            return new BloodParticle(level, x, y, z, this.sprites, this.decalType, this.decalDirection, options.color(), options.scale(), dx, dy, dz);
-//        }
     }
 }

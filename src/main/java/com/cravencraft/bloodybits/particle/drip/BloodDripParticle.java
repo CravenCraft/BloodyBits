@@ -6,7 +6,6 @@ import net.minecraft.client.Camera;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.*;
 import net.minecraft.core.Direction;
-import net.minecraft.util.Mth;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
@@ -14,24 +13,17 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class BloodDripParticle extends TextureSheetParticle {
-    private static final float DEGREES_90 = Mth.PI / 2f;
     private final Direction direction;
-    private float dripAmount;
-//    private final TextureAtlasSprite sprite;
     private double ceiling;
     private double floor;
     private float thickness;
 
     protected BloodDripParticle(ClientLevel level, double x, double y, double z,
-                                SpriteSet spriteSet, int color, int direction, float scale) {
+                                SpriteSet spriteSet, int color, int direction, float alpha) {
         super(level, x, y, z);
 
         this.gravity = 0.25f;
-        this.dripAmount = 0.0F;
         this.lifetime = 270;
         this.direction = Direction.from3DDataValue(direction);
         this.rCol = BloodSprayParticleOptions.red(color);
@@ -40,6 +32,7 @@ public class BloodDripParticle extends TextureSheetParticle {
         this.ceiling = y + 0.5F;
         this.floor = y - 2;
         this.thickness = 0.05F;
+        this.alpha = alpha;
 
         this.pickSprite(spriteSet);
     }
@@ -47,11 +40,14 @@ public class BloodDripParticle extends TextureSheetParticle {
     @Override
     public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float partialTick) {
 
-        var yPos = Math.max(this.y + 0.5F, this.floor);
-        if (this.yd != 0) {
-            var shrinkAmount = (float) (this.thickness / Math.abs((this.ceiling - this.floor) / this.yd));
-            this.thickness -= shrinkAmount;
+        if (this.thickness <= 0.0001F) {
+            this.remove();
+            return;
         }
+
+        var yPos = Math.max(this.y + 0.5F, this.floor);
+        var shrinkAmount = (float) (this.thickness / Math.abs((this.ceiling - this.floor) / this.yd));
+        this.thickness -= shrinkAmount;
 
         // Vectors for the x-axis blood drip.
         Vector3f xVector1;
@@ -115,40 +111,6 @@ public class BloodDripParticle extends TextureSheetParticle {
 
     }
 
-    private List<Vector3f> createBloodDripXVectors(float dripLength, Camera camera) {
-        var dripVectors = new ArrayList<Vector3f>(4);
-
-        var vector1 = new Vector3f(
-                (float) ((this.x + this.thickness) - camera.getPosition().x),
-                (float) (dripLength - camera.getPosition().y),
-                (float) (this.z - camera.getPosition().z));
-        var vector2 = new Vector3f(
-                (float) ((this.x - this.thickness) - camera.getPosition().x),
-                (float) (dripLength - camera.getPosition().y),
-                (float) (this.z - camera.getPosition().z));
-        var vector3 = new Vector3f(
-                (float) ((this.x - this.thickness) - camera.getPosition().x),
-                (float) (this.ceiling - camera.getPosition().y),
-                (float) (this.z - camera.getPosition().z));
-        var vector4 = new Vector3f(
-                (float) ((this.x + this.thickness) - camera.getPosition().x),
-                (float) (this.ceiling - camera.getPosition().y),
-                (float) (this.z - camera.getPosition().z));
-
-        dripVectors.add(vector1);
-        dripVectors.add(vector2);
-        dripVectors.add(vector3);
-        dripVectors.add(vector4);
-
-        return dripVectors;
-    }
-
-    private List<Vector3f> createBloodDripZVectors(float x, float dripLength, float z) {
-        var dripVectors = new ArrayList<Vector3f>(4);
-
-        return dripVectors;
-    }
-
     @Override
     public AABB getRenderBoundingBox(float partialTicks) {
         float size = getQuadSize(partialTicks);
@@ -173,7 +135,7 @@ public class BloodDripParticle extends TextureSheetParticle {
                                                  double x, double y, double z,
                                                  double xSpeed, double ySpeed, double zSpeed) {
             return new BloodDripParticle(level, x, y, z, this.spriteSet,
-                    options.color(), options.direction(), options.scale());
+                    options.color(), options.direction(), options.alpha());
         }
     }
 }
