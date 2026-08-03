@@ -26,7 +26,7 @@ public class BloodDripParticle extends TextureSheetParticle {
                                 SpriteSet spriteSet, int color, int direction, float scale) {
         super(level, x, y, z);
 
-        this.gravity = 0.1f;
+        this.gravity = 0.5f;
         this.dripAmount = 0.0F;
         this.lifetime = 270;
         this.direction = Direction.from3DDataValue(direction);
@@ -34,7 +34,7 @@ public class BloodDripParticle extends TextureSheetParticle {
         this.gCol = BloodSprayParticleOptions.green(color);
         this.bCol = BloodSprayParticleOptions.blue(color);
         this.ceiling = y + 0.5F;
-        this.floor = y - 1;
+        this.floor = y - 2;
         this.thickness = 0.05F;
 
         this.pickSprite(spriteSet);
@@ -45,27 +45,32 @@ public class BloodDripParticle extends TextureSheetParticle {
     public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float partialTick) {
 
         var yPos = Math.max(this.y + 0.5F, this.floor);
-
-        this.thickness -= 0.0001F;
-        var bb = this.getBoundingBox();
+        if (this.yd != 0) {
+            var rate = Math.abs((this.ceiling - this.floor) / this.yd);
+            var shrinkAmount = (float) (this.thickness / Math.abs((this.ceiling - this.floor) / this.yd));
+            this.thickness -= shrinkAmount;
+        }
+//        this.thickness -= 0.0001F;
+//        var bb = this.getBoundingBox();
 //        bb = bb.setMaxY(this.ceiling);
 //        this.setBoundingBox(bb);
 //        this.yo;
 //        float x = (float) this.x;
 //        float y = (float) this.y - dripAmount;
 //        float z = (float) this.z;
-        BloodyBitsMod.LOGGER.info("------- Rendering Blood Drip Particle -------");
-        this.addVertex(buffer, camera, (float) this.x, (float) yPos, (float) z, this.sprite.getU1(), this.sprite.getV0(), partialTick);
-        this.addVertex(buffer, camera, (float) this.x - 0.1f, (float) yPos, (float) z, this.sprite.getU0(), this.sprite.getV0(), partialTick);
-        this.addVertex(buffer, camera, (float) this.x - 0.1f, (float) this.ceiling, (float) z, this.sprite.getU0(), this.sprite.getV1(), partialTick);
-        this.addVertex(buffer, camera, (float) this.x, (float) this.ceiling, (float) z, this.sprite.getU1(), this.sprite.getV1(), partialTick);
+        BloodyBitsMod.LOGGER.info("yd: {} thickness: {}", this.yd, this.thickness);
+//        BloodyBitsMod.LOGGER.info("------- Rendering Blood Drip Particle -------");
+        this.addVertex(buffer, camera, (float) this.x + this.thickness, (float) yPos, (float) z, this.sprite.getU1(), this.sprite.getV0(), partialTick);
+        this.addVertex(buffer, camera, (float) this.x - this.thickness, (float) yPos, (float) z, this.sprite.getU0(), this.sprite.getV0(), partialTick);
+        this.addVertex(buffer, camera, (float) this.x - this.thickness, (float) this.ceiling, (float) z, this.sprite.getU0(), this.sprite.getV1(), partialTick);
+        this.addVertex(buffer, camera, (float) this.x + this.thickness, (float) this.ceiling, (float) z, this.sprite.getU1(), this.sprite.getV1(), partialTick);
     }
 
     private void addVertex(VertexConsumer buffer, Camera camera, float x, float y, float z, float u, float v, float partialTick) {
-        BloodyBitsMod.LOGGER.info("Adding blood drip particle to position: {}, {}, {}", x, y, z);
-        BloodyBitsMod.LOGGER.info("camera facing position: {}", camera.getPosition());
-        BloodyBitsMod.LOGGER.info("actual vertex pos: {}, {}, {}", (float) (x - camera.getPosition().x), (float) (y - camera.getPosition().y), (float) (z - camera.getPosition().z));
-        BloodyBitsMod.LOGGER.info("bounding box: {}", this.getBoundingBox());
+//        BloodyBitsMod.LOGGER.info("Adding blood drip particle to position: {}, {}, {}", x, y, z);
+//        BloodyBitsMod.LOGGER.info("camera facing position: {}", camera.getPosition());
+//        BloodyBitsMod.LOGGER.info("actual vertex pos: {}, {}, {}", (float) (x - camera.getPosition().x), (float) (y - camera.getPosition().y), (float) (z - camera.getPosition().z));
+//        BloodyBitsMod.LOGGER.info("bounding box: {}", this.getBoundingBox());
         buffer
                 .addVertex((float) (x - camera.getPosition().x), (float) (y - camera.getPosition().y), (float) (z - camera.getPosition().z))
                 .setColor(this.rCol, this.gCol, this.bCol, this.alpha)
