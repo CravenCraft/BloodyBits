@@ -1,6 +1,7 @@
 package com.cravencraft.bloodybits.particle.spatter;
 
 import com.cravencraft.bloodybits.BloodyBitsMod;
+import com.cravencraft.bloodybits.config.ClientConfig;
 import com.cravencraft.bloodybits.particle.BloodSprayParticleOptions;
 import com.cravencraft.bloodybits.particle.drip.BloodDripParticleOptions;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -20,6 +21,7 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
+import org.checkerframework.checker.units.qual.C;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Quaternionf;
@@ -74,12 +76,12 @@ public class BloodSpatterParticle extends TextureSheetParticle {
         this.zd = zSpeed;
         this.quadSize = 1.5f * scale;
         this.gravity = 0.0f;
-        this.lifetime = 300;
+        this.lifetime = ClientConfig.getBloodSpatterLifeTime();
         this.setSize(1.0f, 1.0f);
         this.scale(3f);
         this.pickSprite(spriteSet);
         this.direction = Direction.from3DDataValue(direction);
-        this.fadeoutTime = 150;
+        this.fadeoutTime = ClientConfig.getBloodSpatterLifeTime() / 2;
         this.yawRotation = this.random.nextInt(4) * DEGREES_90;
         this.color = color;
         this.rCol = BloodSprayParticleOptions.red(color);
@@ -97,6 +99,11 @@ public class BloodSpatterParticle extends TextureSheetParticle {
     @Override
     public void tick() {
         super.tick();
+
+        var blockPos = BlockPos.containing(this.centerX, this.centerY, this.centerZ);
+        if (this.level.isRainingAt(blockPos) || this.level.isWaterAt(blockPos)) {
+            this.age += 10;
+        }
 
         this.createDrip();
     }

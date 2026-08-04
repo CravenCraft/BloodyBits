@@ -49,10 +49,12 @@ public class ClientConfig {
 
     private static ModConfigSpec.BooleanValue SHOW_MOB_DAMAGE;
     private static ModConfigSpec.IntValue AVAILABLE_TEXTURES_PER_ENTITY;
+    private static ModConfigSpec.IntValue BLOOD_SPATTER_LIFETIME;
 
     public static boolean showEntityDamage() { return false; }
 
     public static int availableTexturesPerEntity() { return AVAILABLE_TEXTURES_PER_ENTITY.get(); }
+    public static int getBloodSpatterLifeTime() { return BLOOD_SPATTER_LIFETIME.get(); }
     public static HashMap<String, List<String>> entityBloodColors() { return ENTITY_BLOOD_COLORS; }
 
     public static List<? extends String> burnDamageSources() { return BURN_DAMAGE_SOURCE.get(); }
@@ -71,6 +73,9 @@ public class ClientConfig {
                         "Resource packs can be created to add additional textures for entities, override existing textures, or to\n" +
                         "even create textures for entities that have none (only applies when show_entity_damage is true).")
                 .defineInRange("available_textures_per_entity", 25, 0, 100);
+
+        BLOOD_SPATTER_LIFETIME = BUILDER.comment("The maximum lifetime (in ticks) that a blood spatter will remain on screen for.")
+                .defineInRange("blood_spatter_lifetime", 600, 0, 10000);
 
         BURN_DAMAGE_SOURCE = BUILDER.comment("List of the damage sources that will display burn damage for the entities (only applies when show_entity_damage is true).")
                 .defineListAllowEmpty("burn_damage_sources",

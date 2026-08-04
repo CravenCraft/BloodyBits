@@ -135,9 +135,9 @@ public class BloodyBitsEvents {
             for (int i = 0; i < count; i++) {
 
                 Vec3 sprayVector = new Vec3(
-                        BloodyBitsUtils.applyRandomSign(level.random.nextIntBetweenInclusive(1, count) * 0.025f),
-                        level.random.nextIntBetweenInclusive(1, count) * 0.025f,
-                        BloodyBitsUtils.applyRandomSign(level.random.nextIntBetweenInclusive(1, count) * 0.025f)
+                        BloodyBitsUtils.applyRandomSign(level.random.nextIntBetweenInclusive(1, count) * 0.05f),
+                        level.random.nextIntBetweenInclusive(1, count) * 0.05f,
+                        BloodyBitsUtils.applyRandomSign(level.random.nextIntBetweenInclusive(1, count) * 0.05f)
                 );
 
                 server.getPlayerList().getPlayers().forEach(player -> (serverLevel)
