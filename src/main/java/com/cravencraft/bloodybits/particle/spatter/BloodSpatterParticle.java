@@ -1,6 +1,5 @@
 package com.cravencraft.bloodybits.particle.spatter;
 
-import com.cravencraft.bloodybits.BloodyBitsMod;
 import com.cravencraft.bloodybits.config.ClientConfig;
 import com.cravencraft.bloodybits.particle.BloodSprayParticleOptions;
 import com.cravencraft.bloodybits.particle.drip.BloodDripParticleOptions;
@@ -21,7 +20,6 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
-import org.checkerframework.checker.units.qual.C;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Quaternionf;
@@ -33,10 +31,6 @@ import java.util.function.Consumer;
 
 /**
  * TODO: What I want spatters to do:
- *       - Slowly pool bigger on the ground (DOWN).
- *       - Slowly shrink on the ceiling (UP).
- *       - Drip from the ceiling (UP).
- *       - Slowly slide down the wall (NORTH, SOUTH, EAST, & WEST).
  *       - Have occasional smaller drips slide down the wall at a faster pace (NORTH, SOUTH, EAST, & WEST).
  */
 public class BloodSpatterParticle extends TextureSheetParticle {
@@ -128,15 +122,6 @@ public class BloodSpatterParticle extends TextureSheetParticle {
         }
 
         this.spatterQuadSize = quadSize;
-//        this.createDrip();
-
-    //    if (this.age >= 30 && this.direction == Direction.UP && !shouldDrip) {
-    //        this.level.addAlwaysVisibleParticle(
-    //                new BloodDripParticleOptions(this.color, Direction.UP.get3DDataValue(), this.getQuadSize(0.0F)),
-    //                true, this.x, this.y, this.z,
-    //                0.0D, 0.0D, 0.0D);
-    //        this.shouldDrip = true;
-    //    }
 
         this.renderRotatedParticle(partialTick);
         this.renderColumnDecal();
@@ -221,19 +206,9 @@ public class BloodSpatterParticle extends TextureSheetParticle {
             );
         }
 
-//        BloodyBitsMod.LOGGER.info("world extent min before: {}", this.worldExtentMin);
-//        this.worldExtentMin = this.worldExtentMin.subtract(0, 1, 0);
-//        BloodyBitsMod.LOGGER.info("world extent min after: {}", this.worldExtentMin);
-//        BloodyBitsMod.LOGGER.info("world extent max: {}", this.worldExtentMax);
-//        BloodyBitsMod.LOGGER.info("----------------------------------------------");
-
-        // Gets the light color (level?) of this particle
         this.light = this.getLightColor(partialTick);
 
         // Gets the center position of this particle in the level.
-        // TODO: Could potentially get the world min/max from this center. Need to look into why the camera position
-        //       is required so much here. Maybe in order to properly rotate the particle in relation to the camera
-        //       before applying the rest of the math?
         this.centerX = Mth.lerp(partialTick, this.xo, this.x);
         this.centerY = Mth.lerp(partialTick, this.yo, this.y);
         this.centerZ = Mth.lerp(partialTick, this.zo, this.z);
@@ -272,11 +247,9 @@ public class BloodSpatterParticle extends TextureSheetParticle {
     }
 
     private void renderColumnDecal() {
-//        BloodyBitsMod.LOGGER.info("in renderColumnDecal particle pos: {}", this.getPos());
 
         // Gets the min/max values for the x and z axes based on what block positions contain the
         // total extent of the particle.
-
         int minBlockWidth = 0;
         int maxBlockWidth = 0;
         int minBlockLength = 0;
@@ -302,11 +275,6 @@ public class BloodSpatterParticle extends TextureSheetParticle {
                 maxBlockLength = BlockPos.containing(this.worldExtentMax).getZ();
             }
         }
-
-//        BloodyBitsMod.LOGGER.info("minBlockWidth: {}", minBlockWidth);
-//        BloodyBitsMod.LOGGER.info("maxBlockWidth: {}", maxBlockWidth);
-//        BloodyBitsMod.LOGGER.info("minBlockLength: {}", minBlockLength);
-//        BloodyBitsMod.LOGGER.info("maxBlockLength: {}", maxBlockLength);
 
         // Render the particle over each block contained within the min/max x/z coordinates.
         for (int blockWidth = minBlockWidth; blockWidth <= maxBlockWidth; blockWidth++) {
@@ -368,7 +336,7 @@ public class BloodSpatterParticle extends TextureSheetParticle {
                     }
 
                     if (this.renderBlockDecal(surfacePos, shape)) {
-                        break; // TODO: This return is what causes the issue.
+                        break;
                     }
                 }
             }
@@ -376,16 +344,15 @@ public class BloodSpatterParticle extends TextureSheetParticle {
     }
 
     private boolean renderBlockDecal(BlockPos surfacePos, VoxelShape shape) {
-//        BloodyBitsMod.LOGGER.info("in renderBlockDecal");
         AABB bounds = shape.bounds();
         List<AABB> boxes = shape.toAabbs();
         TreeSet<Double> depthBrackets = new TreeSet<>();
         boolean renderedAny = false;
 
-        float minWidth = 0;
-        float maxWidth = 0;
-        float minLength = 0;
-        float maxLength = 0;
+        float minWidth;
+        float maxWidth;
+        float minLength;
+        float maxLength;
         switch (this.direction) {
             case UP, DOWN -> {
                 minWidth = (float) Math.max(surfacePos.getX() + (float) bounds.minX, this.worldExtentMin.x);
@@ -562,7 +529,6 @@ public class BloodSpatterParticle extends TextureSheetParticle {
      * @param alphaMultiplier
      */
     private void renderFlatDecalPlane(Vec2[] corners, float planeSurface, float alphaMultiplier) {
-//        BloodyBitsMod.LOGGER.info("in renderFlatDecalPlane");
         // Just gets the given texture coordinates for this particle.
         float u0 = this.getU0();
         float u1 = this.getU1();
