@@ -4,6 +4,7 @@ import com.cravencraft.bloodybits.BloodyBitsMod;
 import com.cravencraft.bloodybits.particle.spatter.BloodSpatterParticle;
 import com.cravencraft.bloodybits.particle.spatter.BloodSpatterParticleOptions;
 import com.cravencraft.bloodybits.registries.ParticleRegistry;
+import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Camera;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -19,10 +20,11 @@ import org.jetbrains.annotations.NotNull;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
+import java.util.HexFormat;
 import java.util.List;
 
 public class BloodSprayParticle extends TextureSheetParticle {
-    private final int color;
+    private final String color;
     float scaleTransition;
     private boolean mirrored;
     private boolean underwater;
@@ -35,7 +37,7 @@ public class BloodSprayParticle extends TextureSheetParticle {
             double yCoord,
             double zCoord,
             SpriteSet spriteSet,
-            int color,
+            String color,
             float scale,
             double xd,
             double yd,
@@ -58,10 +60,9 @@ public class BloodSprayParticle extends TextureSheetParticle {
         this.gravity = 1f;
         this.angularVelocity = 0.075f;
         this.pickSprite(spriteSet);
-
-        this.rCol = BloodSprayParticleOptions.red(color);
-        this.gCol = BloodSprayParticleOptions.green(color);
-        this.bCol = BloodSprayParticleOptions.blue(color);
+        this.rCol = BloodyBitsUtils.normalizeColorValue(HexFormat.fromHexDigits(color, 1, 3));
+        this.gCol = BloodyBitsUtils.normalizeColorValue(HexFormat.fromHexDigits(color, 3, 5));
+        this.bCol = BloodyBitsUtils.normalizeColorValue(HexFormat.fromHexDigits(color.substring(5)));
 
         this.scaleTransition = 1f + (float) Math.random();
         this.mirrored = level.random.nextBoolean();
@@ -208,7 +209,7 @@ public class BloodSprayParticle extends TextureSheetParticle {
 
 
         Vector3f vector3f = new Vector3f(xOffset, yOffset, 0.0F).rotate(quaternion).mul(quadSize).add(x, y, z);
-        BloodyBitsMod.LOGGER.info("renderVertex: {}", vector3f);
+//        BloodyBitsMod.LOGGER.info("renderVertex: {}", vector3f);
         buffer.addVertex(vector3f.x(), vector3f.y(), vector3f.z())
                 .setUv(u, v)
                 .setColor(this.rCol, this.gCol, this.bCol, this.alpha)

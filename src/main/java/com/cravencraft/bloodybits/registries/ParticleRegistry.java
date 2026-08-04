@@ -22,12 +22,7 @@ public class ParticleRegistry {
         PARTICLE_TYPES.register(bus);
     }
 
-    public static final Vector3f BLOOD_COLOR = new Vector3f(0.5f, 0.0f, 0.05f);
-    public static final int DEFAULT_BLOOD_COLOR = 0xFF000000
-            | (Math.round(BLOOD_COLOR.x * 255) << 16)
-            | (Math.round(BLOOD_COLOR.y * 255) << 8)
-            | Math.round(BLOOD_COLOR.z * 255);
-
+    public static final String DEFAULT_BLOOD_COLOR = "#96000F";
     public static final Supplier<BloodSprayParticleType> BLOOD_EMITTER;
     public static final Supplier<SimpleParticleType> BLOOD_SPRAY_PARTICLE;
     public static final Supplier<BloodSpatterParticleType> BLOOD_SPATTER_PARTICLE;

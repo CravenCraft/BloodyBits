@@ -3,6 +3,7 @@ package com.cravencraft.bloodybits.particle.spatter;
 import com.cravencraft.bloodybits.config.ClientConfig;
 import com.cravencraft.bloodybits.particle.BloodSprayParticleOptions;
 import com.cravencraft.bloodybits.particle.drip.BloodDripParticleOptions;
+import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import net.minecraft.Util;
@@ -25,6 +26,7 @@ import org.jetbrains.annotations.Nullable;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
+import java.util.HexFormat;
 import java.util.List;
 import java.util.TreeSet;
 import java.util.function.Consumer;
@@ -52,7 +54,7 @@ public class BloodSpatterParticle extends TextureSheetParticle {
     private double centerX;
     private double centerY;
     private double centerZ;
-    private int color;
+    private final String color;
     private int light;
     private int startDepth;
     private int endDepth;
@@ -62,7 +64,7 @@ public class BloodSpatterParticle extends TextureSheetParticle {
     // First four parameters are self-explanatory. The SpriteSet parameter is provided by the
     // ParticleProvider, see below. You may also add additional parameters as needed, e.g. xSpeed/ySpeed/zSpeed.
     public BloodSpatterParticle(ClientLevel level, double x, double y, double z,
-                                SpriteSet spriteSet, int color, int direction, float scale,
+                                SpriteSet spriteSet, String color, int direction, float scale,
                                 double xSpeed, double ySpeed, double zSpeed) {
         super(level, x, y, z);
         this.xd = xSpeed;
@@ -78,9 +80,9 @@ public class BloodSpatterParticle extends TextureSheetParticle {
         this.fadeoutTime = ClientConfig.getBloodSpatterLifeTime() / 2;
         this.yawRotation = this.random.nextInt(4) * DEGREES_90;
         this.color = color;
-        this.rCol = BloodSprayParticleOptions.red(color);
-        this.gCol = BloodSprayParticleOptions.green(color);
-        this.bCol = BloodSprayParticleOptions.blue(color);
+        this.rCol = BloodyBitsUtils.normalizeColorValue(HexFormat.fromHexDigits(color, 1, 3));
+        this.gCol = BloodyBitsUtils.normalizeColorValue(HexFormat.fromHexDigits(color, 3, 5));
+        this.bCol = BloodyBitsUtils.normalizeColorValue(HexFormat.fromHexDigits(color.substring(5)));
         this.alpha = INITIAL_ALPHA;
         this.zFightOffset = this.random.nextFloat();
 //        this.shouldDrip = true;

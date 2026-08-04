@@ -1,6 +1,7 @@
 package com.cravencraft.bloodybits.particle.drip;
 
 import com.cravencraft.bloodybits.particle.BloodSprayParticleOptions;
+import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Camera;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -13,6 +14,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
+import java.util.HexFormat;
+
 public class BloodDripParticle extends TextureSheetParticle {
     private final Direction direction;
     private double ceiling;
@@ -20,15 +23,15 @@ public class BloodDripParticle extends TextureSheetParticle {
     private float thickness;
 
     protected BloodDripParticle(ClientLevel level, double x, double y, double z,
-                                SpriteSet spriteSet, int color, int direction, float alpha) {
+                                SpriteSet spriteSet, String color, int direction, float alpha) {
         super(level, x, y, z);
 
         this.gravity = 0.25f;
         this.lifetime = 270;
         this.direction = Direction.from3DDataValue(direction);
-        this.rCol = BloodSprayParticleOptions.red(color);
-        this.gCol = BloodSprayParticleOptions.green(color);
-        this.bCol = BloodSprayParticleOptions.blue(color);
+        this.rCol = BloodyBitsUtils.normalizeColorValue(HexFormat.fromHexDigits(color, 1, 3));
+        this.gCol = BloodyBitsUtils.normalizeColorValue(HexFormat.fromHexDigits(color, 3, 5));
+        this.bCol = BloodyBitsUtils.normalizeColorValue(HexFormat.fromHexDigits(color.substring(5)));
         this.ceiling = y + 0.5F;
         this.floor = y - 2;
         this.thickness = 0.05F;

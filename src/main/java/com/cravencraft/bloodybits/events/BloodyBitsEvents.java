@@ -3,8 +3,10 @@ package com.cravencraft.bloodybits.events;
 import com.cravencraft.bloodybits.BloodyBitsMod;
 import com.cravencraft.bloodybits.config.CommonConfig;
 import com.cravencraft.bloodybits.entity.BloodSprayEntity;
+import com.cravencraft.bloodybits.model.BloodModel;
 import com.cravencraft.bloodybits.network.messages.EntityMessage;
 import com.cravencraft.bloodybits.particle.BloodSprayParticleOptions;
+import com.cravencraft.bloodybits.registries.BloodModelRegistry;
 import com.cravencraft.bloodybits.registries.EntityRegistry;
 import com.cravencraft.bloodybits.registries.ParticleRegistry;
 import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
@@ -24,9 +26,6 @@ import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.level.ExplosionEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
-
-import java.util.Random;
-import java.util.stream.IntStream;
 
 @EventBusSubscriber(modid = BloodyBitsMod.MODID)
 public class BloodyBitsEvents {
@@ -112,6 +111,17 @@ public class BloodyBitsEvents {
 
         if (level.isClientSide()) return;
 
+        String bloodColor = ParticleRegistry.DEFAULT_BLOOD_COLOR;
+        for (BloodModel bloodModel : BloodModelRegistry.getBloodModels()) {
+            var entityType = entity.getType();
+            var isInTag = entityType.is(bloodModel.entityTag());
+//            entityType.getDescriptionId()
+            if (isInTag) {
+                BloodyBitsMod.LOGGER.info("entity tag found: {}", bloodModel.entityTag());
+                bloodColor = bloodModel.color();
+            }
+        }
+
         String entityName = (entity instanceof Player) ? "player" : entity.getEncodeId();
         entityName = (entityName == null) ? "" : entityName;
 
@@ -140,10 +150,11 @@ public class BloodyBitsEvents {
                         BloodyBitsUtils.applyRandomSign(level.random.nextIntBetweenInclusive(1, count) * 0.05f)
                 );
 
+                String finalBloodColor = bloodColor;
                 server.getPlayerList().getPlayers().forEach(player -> (serverLevel)
                         .sendParticles(
                                 player,
-                                new BloodSprayParticleOptions(ParticleRegistry.DEFAULT_BLOOD_COLOR, sprayVector, 1.0f),
+                                new BloodSprayParticleOptions(finalBloodColor, sprayVector, 1.0f),
                                 true,
                                 vec.x,
                                 vec.y + aabb.getYsize() * 0.5,

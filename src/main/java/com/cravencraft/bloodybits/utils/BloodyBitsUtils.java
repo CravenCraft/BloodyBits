@@ -77,6 +77,10 @@ public class BloodyBitsUtils {
         return damageHexColor;
     }
 
+    public static float normalizeColorValue(int colorValue) {
+        return colorValue / 255f;
+    }
+
     public static float applyRandomSign(float number) {
         return (new Random().nextBoolean() ? 1 : -1) * number;
     }
