@@ -73,7 +73,6 @@ public class BloodSpatterParticle extends TextureSheetParticle {
         this.yd = ySpeed;
         this.zd = zSpeed;
         this.quadSize = 1.5f * scale;
-        this.friction = 0.5f;
         this.gravity = 0.0f;
         this.lifetime = 300;
         this.setSize(1.0f, 1.0f);
@@ -104,7 +103,6 @@ public class BloodSpatterParticle extends TextureSheetParticle {
 
     @Override
     public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float partialTick) {
-            BloodyBitsMod.LOGGER.info("particle age: {}", this.age);
         int fadeThreshold = lifetime - fadeoutTime; // Determines when the particle should start fading
         float quadSize = this.getQuadSize(partialTick); // Gets the quad size of the particle
         float f = this.age + partialTick; // Current age with the given partial tick

@@ -119,33 +119,27 @@ public class BloodyBitsEvents {
                 entity.getParts()[entity.getRandom().nextInt(entity.getParts().length)].getBoundingBox() :
                 entity.getBoundingBox();
         Vec3 vec = aabb.getCenter();
-        BloodyBitsMod.LOGGER.info("entity aabb: {}", aabb);
         float damage = event.getContainer().getNewDamage();
 
         if (damage == Float.MAX_VALUE) return;
 
         damage = Math.min(damage, 50);
-        int count = (int) (damage) + level.random.nextIntBetweenInclusive(0, (int) damage);
-//        double speed = config.scaledBaseSpeed() + count * config.scaledSpeedPerParticle();
+        int count = level.random.nextIntBetweenInclusive(1, (int) damage);
         double bbShove = Math.max(aabb.getXsize() * 0.5 - 0.5, 0);
         double scale = (aabb.getXsize() + 2) / 3f;
-//        level.addAlwaysVisibleParticle(ParticleRegistry.BLOOD_SPRAY_PARTICLE.get(), entity.getX(), entity.getY() + 3, entity.getZ(), 0, 0, 0);
         var server = level.getServer();
-//        var rand = new Random().nextBoolean() ? 1 : -1;
-//        BloodyBitsMod.LOGGER.info("rand: {}", rand);
-//        Vec3 sprayVector = new Vec3(0.15 * rand, 0.1, 0.15 * rand);
 
         if (server == null) return;
 
         if (level instanceof ServerLevel serverLevel) {
-
-            BloodyBitsMod.LOGGER.info("Attempting to send blood particle at position: {}", entityName);
-
-            // TODO: Add a proper direction value to send.
             for (int i = 0; i < count; i++) {
-                var rand = new Random().nextBoolean() ? 1 : -1;
-                Vec3 sprayVector = new Vec3(0.15 * rand, 0.1, 0.15 * rand);
-                BloodyBitsMod.LOGGER.info("blood particle offset at position: {}", sprayVector);
+
+                Vec3 sprayVector = new Vec3(
+                        BloodyBitsUtils.applyRandomSign(level.random.nextIntBetweenInclusive(1, count) * 0.025f),
+                        level.random.nextIntBetweenInclusive(1, count) * 0.025f,
+                        BloodyBitsUtils.applyRandomSign(level.random.nextIntBetweenInclusive(1, count) * 0.025f)
+                );
+
                 server.getPlayerList().getPlayers().forEach(player -> (serverLevel)
                         .sendParticles(
                                 player,
@@ -163,27 +157,6 @@ public class BloodyBitsEvents {
                 );
             }
         }
-
-
-//        }
-//        catch (Exception e) {
-//            BloodyBitsMod.LOGGER.error("Failed to load entity damage", e);
-//        }
-
-//        if (!event.getEntity().level().isClientSide() && !CommonConfig.blackListEntities().contains(entityName) && !CommonConfig.blackListDamageSources().contains(event.getSource().type().msgId())) {
-//            int maxDamage = (int) Math.min(20, event.getOriginalDamage());
-//            createBloodSpray(entity, event.getSource(), maxDamage, false);
-//        }
-
-        // TODO: This is just for damage textures, and is also client side only. So, need to add this
-        //       to the client events class when I finally get around to polishing that feature.
-        // For adding damage textures to the given entity. Ensure no blacklisted injury sources are added.
-//            if (!ClientConfig.blackListInjurySources().contains(event.getSource().type().msgId())) {
-//                boolean isBurn = ClientConfig.burnDamageSources().contains(event.getSource().type().msgId());
-//
-//                BloodyBitsPacketHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> entity),
-//                        new EntityDamageMessage(entity.getId(), event.getAmount(), !isBurn, isBurn));
-//            }
     }
 
     // TODO: Rework this. This is a cool feature to have. Just want it to be slightly less random. Set up a minimum and
