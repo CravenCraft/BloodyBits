@@ -1,7 +1,7 @@
 package com.cravencraft.bloodybits.events;
 
 import com.cravencraft.bloodybits.BloodyBitsMod;
-import com.cravencraft.bloodybits.config.ClientConfig;
+import com.cravencraft.bloodybits.config.CommonConfig;
 import com.cravencraft.bloodybits.model.BloodType;
 import com.cravencraft.bloodybits.client.particle.spray.BloodSprayParticleOptions;
 import com.cravencraft.bloodybits.registries.BloodTypeRegistry;
@@ -19,6 +19,7 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.event.config.ModConfigEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.level.ExplosionEvent;
@@ -26,8 +27,25 @@ import net.neoforged.neoforge.event.level.ExplosionEvent;
 @EventBusSubscriber(modid = BloodyBitsMod.MODID)
 public class BloodyBitsEvents {
 
+    public static boolean isConfigLoaded;
+
+    @SubscribeEvent
+    public static void isConfigLoaded(ModConfigEvent.Loading event) {
+        BloodyBitsMod.LOGGER.info("Bloody Bits config is loading. prev val: {}", isConfigLoaded);
+        isConfigLoaded = true;
+    }
+
+    @SubscribeEvent
+    public static void isConfigReloading(ModConfigEvent.Reloading event) {
+        BloodyBitsMod.LOGGER.info("Bloody Bits config is reloading. prev val: {}", isConfigLoaded);
+        isConfigLoaded = true;
+    }
+
     @SubscribeEvent
     public static void testBlockTextureOverlay(PlayerInteractEvent.RightClickBlock event) {
+
+        if (!isConfigLoaded) return;
+
         var level = event.getLevel();
         var server =  level.getServer();
 
@@ -70,6 +88,8 @@ public class BloodyBitsEvents {
     @SubscribeEvent
     public static void bloodOnEntityDamage(LivingDamageEvent.Post event) {
 
+        if (!isConfigLoaded) return;
+
         if (event.getEntity().level() instanceof ServerLevel serverLevel) {
             createBloodParticles(serverLevel, event.getEntity(), event.getSource().type(), event.getNewDamage());
         }
@@ -110,6 +130,8 @@ public class BloodyBitsEvents {
      */
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void creeperExplosionEvent(ExplosionEvent.Detonate event) {
+        if (!isConfigLoaded) return;
+
         if (event.getLevel() instanceof ServerLevel serverLevel &&
                 event.getExplosion().getDirectSourceEntity() instanceof Creeper creeper) {
 
@@ -122,7 +144,7 @@ public class BloodyBitsEvents {
     private static void createBloodParticles(ServerLevel serverLevel, LivingEntity entity,
                                              DamageType damageType, float damageAmount) {
 
-        if (ClientConfig.blackListInjurySources().contains(damageType.msgId())) return;
+        if (CommonConfig.blackListInjurySources().contains(damageType.msgId())) return;
 
         String bloodColor = ParticleRegistry.DEFAULT_BLOOD_COLOR;
         for (BloodType bloodType : BloodTypeRegistry.getBloodTypes()) {

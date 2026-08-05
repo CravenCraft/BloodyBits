@@ -62,7 +62,7 @@ runs {
 
     server {
         systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
-        argument '--nogui'
+
     }
 
     // This run config launches GameTestServer and runs all registered gametests, then exits.

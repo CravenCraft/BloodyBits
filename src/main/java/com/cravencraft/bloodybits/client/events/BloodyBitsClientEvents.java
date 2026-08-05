@@ -31,5 +31,4 @@ public class BloodyBitsClientEvents {
         });
         event.registerSpriteSet(ParticleRegistry.BLOOD_DRIP_PARTICLE.get(), BloodDripParticle.Provider::new);
     }
-
 }

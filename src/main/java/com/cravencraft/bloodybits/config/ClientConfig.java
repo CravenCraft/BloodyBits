@@ -2,8 +2,6 @@ package com.cravencraft.bloodybits.config;
 
 import net.neoforged.neoforge.common.ModConfigSpec;
 
-import java.util.List;
-
 public class ClientConfig {
     public static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
 
@@ -12,13 +10,11 @@ public class ClientConfig {
 
 
     private static final ModConfigSpec.IntValue BLOOD_SPATTER_LIFETIME;
-    private static final ModConfigSpec.ConfigValue<List<? extends String>> BLACKLIST_INJURY_SOURCES;
     private static final ModConfigSpec.DoubleValue BLOOD_SPATTER_SOUND_VOLUME;
 
 
     public static int getBloodSpatterLifeTime() { return BLOOD_SPATTER_LIFETIME.get(); }
     public static double bloodSpatterSoundVolume() { return BLOOD_SPATTER_SOUND_VOLUME.get(); }
-    public static List<? extends String> blackListInjurySources() { return BLACKLIST_INJURY_SOURCES.get(); }
 
     public static final ModConfigSpec SPEC;
 
@@ -30,12 +26,6 @@ public class ClientConfig {
 
         BLOOD_SPATTER_SOUND_VOLUME = BUILDER.comment("How loud the blood spatters are.")
                 .defineInRange("blood_spatter_sound_volume", 0.75, 0, 1.0);
-        BLACKLIST_INJURY_SOURCES = BUILDER.comment("List of the damage sources that will not cause an entity to bleed.")
-                .defineListAllowEmpty("blacklist_bleed_sources",
-                        List.of("drown", "starve", "dryOut", "freeze", "fellOutOfWorld",
-                                "burn", "lava", "hotFloor", "onFire", "inFire"),
-                        () -> "",
-                        it -> it instanceof String);
 
         //        BURN_DAMAGE_SOURCE = BUILDER.comment("List of the damage sources that will display burn damage for the entities (only applies when show_entity_damage is true).")
 //                .defineListAllowEmpty("burn_damage_sources",
