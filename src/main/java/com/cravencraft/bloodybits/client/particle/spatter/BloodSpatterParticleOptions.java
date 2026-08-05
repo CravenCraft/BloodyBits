@@ -1,4 +1,4 @@
-package com.cravencraft.bloodybits.particle.spatter;
+package com.cravencraft.bloodybits.client.particle.spatter;
 
 import com.cravencraft.bloodybits.registries.ParticleRegistry;
 import com.mojang.serialization.Codec;

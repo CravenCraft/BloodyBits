@@ -1,7 +1,7 @@
 package com.cravencraft.bloodybits.model;
 
 import com.cravencraft.bloodybits.BloodyBitsMod;
-import com.cravencraft.bloodybits.registries.BloodModelRegistry;
+import com.cravencraft.bloodybits.registries.BloodTypeRegistry;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
@@ -20,17 +20,17 @@ import java.util.List;
 import java.util.Map;
 
 @EventBusSubscriber
-public class BloodModelReloadListener extends SimpleJsonResourceReloadListener {
+public class BloodTypeReloadListener extends SimpleJsonResourceReloadListener {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
     public static final String DIRECTORY = "blood_colors";
 
-    public BloodModelReloadListener() {
+    public BloodTypeReloadListener() {
         super(GSON, DIRECTORY);
     }
 
     @SubscribeEvent
     public static void onAddReloadListener(AddReloadListenerEvent event) {
-        event.addListener(new BloodModelReloadListener());
+        event.addListener(new BloodTypeReloadListener());
     }
 
     @Override
@@ -39,22 +39,19 @@ public class BloodModelReloadListener extends SimpleJsonResourceReloadListener {
                          @NotNull ProfilerFiller profiler) {
 
         DynamicOps<JsonElement> ops = this.makeConditionalOps();
-        List<BloodModel> bloodModels = new ArrayList<>();
+        List<BloodType> bloodTypes = new ArrayList<>();
 
         for (Map.Entry<ResourceLocation, JsonElement> entry : object.entrySet()) {
 
-            BloodModel.CODEC.parse(ops, entry.getValue())
-                    .resultOrPartial(error -> BloodyBitsMod.LOGGER.error("Failed to parse blood color {}: {}", entry.getKey(), error))
-                    .ifPresent(bloodModels::add);
+            BloodType.CODEC.parse(ops, entry.getValue())
+                    .resultOrPartial(error -> BloodyBitsMod.LOGGER.error("Failed to parse blood color {}: {}",
+                            entry.getKey(), error))
+                    .ifPresent(bloodTypes::add);
 
-            GSON.fromJson(entry.getValue(), BloodModel.class);
-
-//            BloodModel.CODEC.parse(ops, entry.getValue())
-//                    .resultOrPartial(error -> BloodyBitsMod.LOGGER.error("Failed to parse blood type {}: {}", entry.getKey(), error))
-//                    .ifPresent(bloodModels::add);
+            GSON.fromJson(entry.getValue(), BloodType.class);
         }
 
-        BloodModelRegistry.load(bloodModels);
-        BloodyBitsMod.LOGGER.info("Loaded {} blood type(s)", bloodModels.size());
+        BloodTypeRegistry.load(bloodTypes);
+        BloodyBitsMod.LOGGER.info("Loaded {} blood type(s)", bloodTypes.size());
     }
 }

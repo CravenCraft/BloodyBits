@@ -1,7 +1,7 @@
-package com.cravencraft.bloodybits.particle.spatter;
+package com.cravencraft.bloodybits.client.particle.spatter;
 
 import com.cravencraft.bloodybits.config.ClientConfig;
-import com.cravencraft.bloodybits.particle.drip.BloodDripParticleOptions;
+import com.cravencraft.bloodybits.client.particle.drip.BloodDripParticleOptions;
 import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
@@ -510,7 +510,7 @@ public class BloodSpatterParticle extends TextureSheetParticle {
                         Mth.clamp(drop / MAX_PROJECTION_DEPTH, 0.0F, 1.0F),
                         1.0F, 0.25F);
 
-                var corners = BloodSpatterUtils.createCorners(planeMinWidth, planeMaxWidth,
+                var corners = BloodyBitsUtils.createCorners(planeMinWidth, planeMaxWidth,
                         planeMinLength, planeMaxLength);
 
                 this.renderFlatDecalPlane(corners, (float) worldMaxDepth, alphaMultiplier);

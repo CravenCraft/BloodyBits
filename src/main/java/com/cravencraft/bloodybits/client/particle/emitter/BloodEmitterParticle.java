@@ -1,6 +1,6 @@
-package com.cravencraft.bloodybits.particle.emitter;
+package com.cravencraft.bloodybits.client.particle.emitter;
 
-import com.cravencraft.bloodybits.particle.spray.BloodSprayParticleOptions;
+import com.cravencraft.bloodybits.client.particle.spray.BloodSprayParticleOptions;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleProvider;

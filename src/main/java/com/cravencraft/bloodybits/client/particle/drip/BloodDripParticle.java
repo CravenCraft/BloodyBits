@@ -1,4 +1,4 @@
-package com.cravencraft.bloodybits.particle.drip;
+package com.cravencraft.bloodybits.client.particle.drip;
 
 import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
 import com.mojang.blaze3d.vertex.VertexConsumer;

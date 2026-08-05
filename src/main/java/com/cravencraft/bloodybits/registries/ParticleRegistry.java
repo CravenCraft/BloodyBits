@@ -1,9 +1,9 @@
 package com.cravencraft.bloodybits.registries;
 
 import com.cravencraft.bloodybits.BloodyBitsMod;
-import com.cravencraft.bloodybits.particle.drip.BloodDripParticleType;
-import com.cravencraft.bloodybits.particle.spatter.BloodSpatterParticleType;
-import com.cravencraft.bloodybits.particle.spray.BloodSprayParticleType;
+import com.cravencraft.bloodybits.client.particle.drip.BloodDripParticleType;
+import com.cravencraft.bloodybits.client.particle.spatter.BloodSpatterParticleType;
+import com.cravencraft.bloodybits.client.particle.spray.BloodSprayParticleType;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -17,7 +17,7 @@ public class ParticleRegistry {
     private static final DeferredRegister<ParticleType<?>> PARTICLE_TYPES =
             DeferredRegister.create(BuiltInRegistries.PARTICLE_TYPE, BloodyBitsMod.MODID);
 
-    public static void registerParticles(IEventBus bus) {
+    public static void register(IEventBus bus) {
         PARTICLE_TYPES.register(bus);
     }
 

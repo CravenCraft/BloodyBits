@@ -1,8 +1,6 @@
 package com.cravencraft.bloodybits;
 
 import com.cravencraft.bloodybits.config.ClientConfig;
-import com.cravencraft.bloodybits.config.CommonConfig;
-import com.cravencraft.bloodybits.registries.EntityRegistry;
 import com.cravencraft.bloodybits.registries.ParticleRegistry;
 import com.cravencraft.bloodybits.sounds.BloodyBitsSounds;
 import com.mojang.logging.LogUtils;
@@ -23,17 +21,10 @@ public class BloodyBitsMod {
 
     public BloodyBitsMod(IEventBus modEventBus, ModContainer modContainer) {
 
-        ParticleRegistry.registerParticles(modEventBus);
-        EntityRegistry.register(modEventBus);
+        ParticleRegistry.register(modEventBus);
         BloodyBitsSounds.register(modEventBus);
 
-        // Register ourselves for server and other game events we are interested in.
-        // Note that this is necessary if and only if we want *this* class (SimpleStamina) to respond directly to events.
-        // Do not add this line if there are no @SubscribeEvent-annotated functions in this class, like onServerStarting() below.
-//        NeoForge.EVENT_BUS.register(this);
-
         // Register our mod's ModConfigSpec so that FML can create and load the config file for us
-        modContainer.registerConfig(ModConfig.Type.COMMON, CommonConfig.SPEC);
         modContainer.registerConfig(ModConfig.Type.CLIENT, ClientConfig.SPEC, String.format("%s-client.toml", BloodyBitsMod.MODID));
         modContainer.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
     }

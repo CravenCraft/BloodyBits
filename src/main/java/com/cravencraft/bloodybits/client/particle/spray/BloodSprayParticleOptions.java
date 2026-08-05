@@ -1,4 +1,4 @@
-package com.cravencraft.bloodybits.particle.spray;
+package com.cravencraft.bloodybits.client.particle.spray;
 
 import com.cravencraft.bloodybits.registries.ParticleRegistry;
 import com.mojang.serialization.Codec;

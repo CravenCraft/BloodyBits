@@ -1,9 +1,10 @@
-package com.cravencraft.bloodybits.particle.spray;
+package com.cravencraft.bloodybits.client.particle.spray;
 
 import com.cravencraft.bloodybits.BloodyBitsMod;
-import com.cravencraft.bloodybits.particle.emitter.BloodEmitterParticle;
-import com.cravencraft.bloodybits.particle.spatter.BloodSpatterParticle;
-import com.cravencraft.bloodybits.particle.spatter.BloodSpatterParticleOptions;
+import com.cravencraft.bloodybits.client.particle.emitter.BloodEmitterParticle;
+import com.cravencraft.bloodybits.client.particle.spatter.BloodSpatterParticle;
+import com.cravencraft.bloodybits.client.particle.spatter.BloodSpatterParticleOptions;
+import com.cravencraft.bloodybits.config.ClientConfig;
 import com.cravencraft.bloodybits.registries.ParticleRegistry;
 import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -13,6 +14,8 @@ import net.minecraft.client.particle.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.SimpleParticleType;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
@@ -23,6 +26,7 @@ import org.joml.Vector3f;
 
 import java.util.HexFormat;
 import java.util.List;
+import java.util.Random;
 
 public class BloodSprayParticle extends TextureSheetParticle {
     private final String color;
@@ -31,6 +35,7 @@ public class BloodSprayParticle extends TextureSheetParticle {
     private boolean underwater;
     private Vec3 collisionVector;
     private final float angularVelocity;
+    private SoundEvent soundEvent;
 
     public BloodSprayParticle(
             ClientLevel level,
@@ -143,6 +148,11 @@ public class BloodSprayParticle extends TextureSheetParticle {
                 new BloodSpatterParticleOptions(this.color, collisionDirection, this.getQuadSize(0.0F)),
                 true, this.x, this.y, this.z,
                 0.0D, 0.0D, 0.0D);
+
+        this.soundEvent = BloodyBitsUtils.getRandomSound(new Random().nextInt(3));
+        var volume = (float) ClientConfig.bloodSpatterSoundVolume();
+        var pitch = BloodyBitsUtils.getRandomPitch();
+        this.level.playLocalSound(this.x, this.y, this.z, this.soundEvent, SoundSource.AMBIENT, volume, pitch, true);
 
         this.remove();
     }
