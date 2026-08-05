@@ -5,7 +5,7 @@ import com.cravencraft.bloodybits.config.CommonConfig;
 import com.cravencraft.bloodybits.entity.BloodSprayEntity;
 import com.cravencraft.bloodybits.model.BloodModel;
 import com.cravencraft.bloodybits.network.messages.EntityMessage;
-import com.cravencraft.bloodybits.particle.BloodSprayParticleOptions;
+import com.cravencraft.bloodybits.particle.spray.BloodSprayParticleOptions;
 import com.cravencraft.bloodybits.registries.BloodModelRegistry;
 import com.cravencraft.bloodybits.registries.EntityRegistry;
 import com.cravencraft.bloodybits.registries.ParticleRegistry;

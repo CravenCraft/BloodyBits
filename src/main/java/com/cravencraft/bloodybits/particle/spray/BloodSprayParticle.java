@@ -1,6 +1,7 @@
-package com.cravencraft.bloodybits.particle;
+package com.cravencraft.bloodybits.particle.spray;
 
 import com.cravencraft.bloodybits.BloodyBitsMod;
+import com.cravencraft.bloodybits.particle.emitter.BloodEmitterParticle;
 import com.cravencraft.bloodybits.particle.spatter.BloodSpatterParticle;
 import com.cravencraft.bloodybits.particle.spatter.BloodSpatterParticleOptions;
 import com.cravencraft.bloodybits.registries.ParticleRegistry;
@@ -222,28 +223,24 @@ public class BloodSprayParticle extends TextureSheetParticle {
     }
 
     @OnlyIn(Dist.CLIENT)
-    public static class Provider implements ParticleProvider<SimpleParticleType>, BloodEmitterParticle.VariantFactory {
-        private final SpriteSet sprites;
+        public record Provider(SpriteSet sprites)
+            implements ParticleProvider<SimpleParticleType>, BloodEmitterParticle.VariantFactory {
 
-        public Provider(SpriteSet spriteSet) {
-            this.sprites = spriteSet;
-        }
+            @Override
+            public Particle createParticle(SimpleParticleType particleType, ClientLevel level,
+                                           double x, double y, double z,
+                                           double dx, double dy, double dz) {
+                return new BloodSprayParticle(level, x, y, z,
+                        this.sprites, ParticleRegistry.DEFAULT_BLOOD_COLOR,
+                        1f, dx, dy, dz);
+            }
 
-        @Override
-        public Particle createParticle(SimpleParticleType particleType, ClientLevel level,
-                                       double x, double y, double z,
-                                       double dx, double dy, double dz) {
-            return new BloodSprayParticle(level, x, y, z,
-                    this.sprites, ParticleRegistry.DEFAULT_BLOOD_COLOR,
-                    1f, dx, dy, dz);
+            @Override
+            public Particle create(BloodSprayParticleOptions options, ClientLevel level,
+                                   double x, double y, double z,
+                                   double dx, double dy, double dz) {
+                return new BloodSprayParticle(level, x, y, z, this.sprites, options.color(), options.scale(),
+                        options.direction().x, options.direction().y, options.direction().z);
+            }
         }
-
-        @Override
-        public Particle create(BloodSprayParticleOptions options, ClientLevel level,
-                               double x, double y, double z,
-                               double dx, double dy, double dz) {
-            return new BloodSprayParticle(level, x, y, z, this.sprites, options.color(), options.scale(),
-                    options.direction().x, options.direction().y, options.direction().z);
-        }
-    }
 }

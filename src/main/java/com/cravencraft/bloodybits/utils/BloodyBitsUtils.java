@@ -59,23 +59,23 @@ public class BloodyBitsUtils {
         return astring;
     }
 
-    public static String getEntityDamageHexColor(String entityName) {
-        String damageHexColor = "#c80000";
-
-        // TODO: Figure out how you're actually going to show damage on solid entities.
-        if (CommonConfig.solidEntities().contains(entityName)) {
-            damageHexColor = "#ffffff";
-        }
-        else {
-            for (Map.Entry<String, List<String>> mapElement : ClientConfig.entityBloodColors().entrySet()) {
-                if (mapElement.getValue().contains(Objects.requireNonNull(entityName))) {
-                    damageHexColor = mapElement.getKey();
-                    break;
-                }
-            }
-        }
-        return damageHexColor;
-    }
+//    public static String getEntityDamageHexColor(String entityName) {
+//        String damageHexColor = "#c80000";
+//
+//        // TODO: Figure out how you're actually going to show damage on solid entities.
+//        if (CommonConfig.solidEntities().contains(entityName)) {
+//            damageHexColor = "#ffffff";
+//        }
+//        else {
+//            for (Map.Entry<String, List<String>> mapElement : ClientConfig.entityBloodColors().entrySet()) {
+//                if (mapElement.getValue().contains(Objects.requireNonNull(entityName))) {
+//                    damageHexColor = mapElement.getKey();
+//                    break;
+//                }
+//            }
+//        }
+//        return damageHexColor;
+//    }
 
     public static float normalizeColorValue(int colorValue) {
         return colorValue / 255f;

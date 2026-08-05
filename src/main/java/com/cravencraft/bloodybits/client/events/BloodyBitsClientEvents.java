@@ -1,10 +1,10 @@
 package com.cravencraft.bloodybits.client.events;
 
 import com.cravencraft.bloodybits.BloodyBitsMod;
-import com.cravencraft.bloodybits.particle.BloodEmitterParticle;
+import com.cravencraft.bloodybits.particle.emitter.BloodEmitterParticle;
 import com.cravencraft.bloodybits.particle.drip.BloodDripParticle;
 import com.cravencraft.bloodybits.particle.spatter.BloodSpatterParticle;
-import com.cravencraft.bloodybits.particle.BloodSprayParticle;
+import com.cravencraft.bloodybits.particle.spray.BloodSprayParticle;
 import com.cravencraft.bloodybits.registries.ParticleRegistry;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;

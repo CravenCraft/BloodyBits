@@ -3,13 +3,12 @@ package com.cravencraft.bloodybits.registries;
 import com.cravencraft.bloodybits.BloodyBitsMod;
 import com.cravencraft.bloodybits.particle.drip.BloodDripParticleType;
 import com.cravencraft.bloodybits.particle.spatter.BloodSpatterParticleType;
-import com.cravencraft.bloodybits.particle.BloodSprayParticleType;
+import com.cravencraft.bloodybits.particle.spray.BloodSprayParticleType;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredRegister;
-import org.joml.Vector3f;
 
 import java.util.function.Supplier;
 

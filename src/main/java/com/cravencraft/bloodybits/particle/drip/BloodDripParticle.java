@@ -1,6 +1,5 @@
 package com.cravencraft.bloodybits.particle.drip;
 
-import com.cravencraft.bloodybits.particle.BloodSprayParticleOptions;
 import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Camera;
@@ -11,7 +10,6 @@ import net.minecraft.world.phys.AABB;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
 import java.util.HexFormat;
@@ -126,17 +124,11 @@ public class BloodDripParticle extends TextureSheetParticle {
     }
 
     @OnlyIn(Dist.CLIENT)
-    public static class Provider implements ParticleProvider<BloodDripParticleOptions> {
-        private final SpriteSet spriteSet;
-
-        public Provider(SpriteSet spriteSet) {
-            this.spriteSet = spriteSet;
-        }
+    public record Provider(SpriteSet spriteSet) implements ParticleProvider<BloodDripParticleOptions> {
 
         @Override
-        public @Nullable Particle createParticle(@NotNull BloodDripParticleOptions options, @NotNull ClientLevel level,
-                                                 double x, double y, double z,
-                                                 double xSpeed, double ySpeed, double zSpeed) {
+        public Particle createParticle(@NotNull BloodDripParticleOptions options, @NotNull ClientLevel level,
+                                       double x, double y, double z, double xSpeed, double ySpeed, double zSpeed) {
             return new BloodDripParticle(level, x, y, z, this.spriteSet,
                     options.color(), options.direction(), options.alpha());
         }

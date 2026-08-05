@@ -1,4 +1,4 @@
-package com.cravencraft.bloodybits.particle;
+package com.cravencraft.bloodybits.particle.spray;
 
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.particles.ParticleType;

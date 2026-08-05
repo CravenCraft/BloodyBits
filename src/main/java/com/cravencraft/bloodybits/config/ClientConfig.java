@@ -1,54 +1,11 @@
 package com.cravencraft.bloodybits.config;
 
-import com.cravencraft.bloodybits.BloodyBitsMod;
-import com.cravencraft.bloodybits.model.BloodModel;
-import com.google.gson.FieldNamingPolicy;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.neoforge.common.ModConfigSpec;
-import org.apache.commons.io.FileUtils;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.HashMap;
 import java.util.List;
 
-
 public class ClientConfig {
-
-    // TODO: Either here or in the common config add an option for blood explosion and spatter volume sounds.
-    public static final Gson GSON = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).setPrettyPrinting().create();
     public static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
-
-    private static final String BLOOD_BLACK = "#323232";
-    private static final String BLOOD_BLUE = "#2acbf7";
-    private static final String BLOOD_GREEN = "#01c801";
-    private static final String BLOOD_GREY = "#c8c8c8";
-    private static final String BLOOD_PURPLE = "#c832ff";
-    private static final String BLOOD_ORANGE = "#fac832";
-
-    private static final List<String> DEFAULT_BLOOD_BLACK_ENTITIES = List.of("minecraft:wither_skeleton", "minecraft:wither");
-    private static final List<String> DEFAULT_BLOOD_BLUE_ENTITIES = List.of("minecraft:allay", "minecraft:warden");
-    private static final List<String> DEFAULT_BLOOD_GREEN_ENTITIES = List.of("minecraft:spider", "minecraft:cave_spider", "minecraft:creeper", "minecraft:bee", "minecraft:slime");
-    private static final List<String> DEFAULT_BLOOD_GREY_ENTITIES = List.of("minecraft:skeleton", "minecraft:skeleton_horse", "minecraft:snow_golem", "minecraft:shulker", "minecraft:stray");
-    private static final List<String> DEFAULT_BLOOD_PURPLE_ENTITIES = List.of("minecraft:enderman", "minecraft:shulker", "minecraft:ender_dragon", "minecraft:endermite");
-    private static final List<String> DEFAULT_BLOOD_ORANGE_ENTITIES = List.of("minecraft:magma_cube", "minecraft:blaze");
-    private static final HashMap<String, List<String>> DEFAULT_ENTITY_BLOOD_COLORS = new HashMap<>();
-    private static HashMap<String, List<String>> ENTITY_BLOOD_COLORS;
-
-//    private static final List<BloodModel> BLOOD_MODELS = List.of(
-//            new BloodModel("blood_black", BLOOD_BLACK, DEFAULT_BLOOD_BLACK_ENTITIES),
-//            new BloodModel("blood_blue", BLOOD_BLUE, DEFAULT_BLOOD_BLUE_ENTITIES),
-//            new BloodModel("blood_green", BLOOD_GREEN, DEFAULT_BLOOD_GREEN_ENTITIES),
-//            new BloodModel("blood_grey", BLOOD_GREY, DEFAULT_BLOOD_GREY_ENTITIES),
-//            new BloodModel("blood_purple", BLOOD_PURPLE, DEFAULT_BLOOD_PURPLE_ENTITIES),
-//            new BloodModel("blood_orange", BLOOD_ORANGE, DEFAULT_BLOOD_ORANGE_ENTITIES)
-//    );
 
     private static final String BURN_DAMAGE_COLOR = "#323232";
 
@@ -65,7 +22,6 @@ public class ClientConfig {
 
     public static int availableTexturesPerEntity() { return AVAILABLE_TEXTURES_PER_ENTITY.get(); }
     public static int getBloodSpatterLifeTime() { return BLOOD_SPATTER_LIFETIME.get(); }
-    public static HashMap<String, List<String>> entityBloodColors() { return ENTITY_BLOOD_COLORS; }
 
     public static List<? extends String> burnDamageSources() { return BURN_DAMAGE_SOURCE.get(); }
     public static List<? extends String> blackListInjurySources() { return BLACKLIST_INJURY_SOURCES.get(); }
@@ -101,69 +57,6 @@ public class ClientConfig {
 
         BUILDER.pop();
 
-//        ENTITY_BLOOD_COLORS = getConfigData();
-
-//        ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, BUILDER.build());
         SPEC = BUILDER.build();
     }
-
-
-//    private static BloodModel getOrCreateConfigFile(BloodModel bloodModel) {
-//        File configDir = getConfigDirectory();
-//        var configFile = new File(configDir, bloodModel.name() + ".json");
-////        HashMap<String, List<String>>
-//        if (!configFile.exists()) {
-//            try (FileWriter writer = new FileWriter(configFile)) {
-//                GSON.toJson(bloodModel, writer);
-//
-////                for (var entity : bloodModel.getEntities()) {
-////
-////                }
-//                // Populates the default entity blood colors map. This is what will be populated by default in the
-//                // entity_blood_colors.json file.
-////                DEFAULT_ENTITY_BLOOD_COLORS.put(BLOOD_BLACK, DEFAULT_BLOOD_BLACK_ENTITIES);
-////                DEFAULT_ENTITY_BLOOD_COLORS.put(BLOOD_BLUE, DEFAULT_BLOOD_BLUE_ENTITIES);
-////                DEFAULT_ENTITY_BLOOD_COLORS.put(BLOOD_GREEN, DEFAULT_BLOOD_GREEN_ENTITIES);
-////                DEFAULT_ENTITY_BLOOD_COLORS.put(BLOOD_GREY, DEFAULT_BLOOD_GREY_ENTITIES);
-////                DEFAULT_ENTITY_BLOOD_COLORS.put(BLOOD_PURPLE, DEFAULT_BLOOD_PURPLE_ENTITIES);
-////                DEFAULT_ENTITY_BLOOD_COLORS.put(BLOOD_ORANGE, DEFAULT_BLOOD_ORANGE_ENTITIES);
-////                FileUtils.write(configFile, GSON.toJson(ClientConfig.DEFAULT_ENTITY_BLOOD_COLORS), Charset.defaultCharset());
-//            }
-//            catch (IOException e) {
-//                BloodyBitsMod.LOGGER.error("Bloody Bits color config file could not be written.");
-//            }
-//        }
-//
-//        try {
-//            return GSON.fromJson(FileUtils.readFileToString(configFile, Charset.defaultCharset()), BloodModel.class);
-//        }
-//        catch (IOException e) {
-//            throw new RuntimeException(e);
-//        }
-//    }
-
-    private static File getConfigDirectory() {
-
-        Path configPath = FMLPaths.CONFIGDIR.get();
-        var resourcePackDir = FMLPaths.GAMEDIR.get().resolve("resourcepacks");
-        Path jsonPath = Paths.get(configPath.toAbsolutePath().toString(), "bloodybits_colors");
-        return jsonPath.toFile();
-    }
-
-//    private static HashMap<String, List<String>> getConfigData() {
-////        File configDir = getConfigDirectory();
-//        HashMap<String, List<String>> configData = new HashMap<>();
-//
-//        for (var bloodModel : BLOOD_MODELS) {
-////            File entityBloodModelConfigFile = new File(configDir, bloodModel.getName() + ".json");
-//            var bloodModelFile = getOrCreateConfigFile(bloodModel);
-//
-//            configData.put(bloodModelFile.color(), bloodModelFile.entities());
-//
-////            configData.putAll(bloodModelFile);
-//        }
-//
-////        File entityBloodColorsConfigFile = new File(configDir, "entity_blood_colors" + ".json");
-//        return configData;
-//    }
 }

@@ -1,7 +1,6 @@
 package com.cravencraft.bloodybits.particle.spatter;
 
 import com.cravencraft.bloodybits.config.ClientConfig;
-import com.cravencraft.bloodybits.particle.BloodSprayParticleOptions;
 import com.cravencraft.bloodybits.particle.drip.BloodDripParticleOptions;
 import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -22,7 +21,6 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
@@ -658,23 +656,18 @@ public class BloodSpatterParticle extends TextureSheetParticle {
         return ParticleRenderType.PARTICLE_SHEET_TRANSLUCENT;
     }
 
+    /**
+     * @param spriteSet A set of particle sprites.
+     */
     @OnlyIn(Dist.CLIENT)
-    public static class Provider implements ParticleProvider<BloodSpatterParticleOptions> {
-        // A set of particle sprites.
-        private final SpriteSet spriteSet;
-
-        // The registration function passes a SpriteSet, so we accept that and store it for further use.
-        public Provider(SpriteSet spriteSet) {
-            this.spriteSet = spriteSet;
-        }
+    public record Provider(SpriteSet spriteSet) implements ParticleProvider<BloodSpatterParticleOptions> {
 
         // This is where the magic happens. We return a new particle each time this method is called!
         // The type of the first parameter matches the generic type passed to the super interface.
         @Override
-        @Nullable
         public Particle createParticle(@NotNull BloodSpatterParticleOptions options, @NotNull ClientLevel level,
-                                       double x, double y, double z,
-                                       double xSpeed, double ySpeed, double zSpeed) {
+                                                double x, double y, double z,
+                                                double xSpeed, double ySpeed, double zSpeed) {
             // We don't use the type and speed, and pass in everything else. You may of course use them if needed.
             return new BloodSpatterParticle(level, x, y, z,
                     this.spriteSet, options.color(), options.direction(),

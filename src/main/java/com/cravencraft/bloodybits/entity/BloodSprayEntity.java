@@ -620,19 +620,19 @@ public class BloodSprayEntity extends Projectile {
         if (ownerEntity != null) {
             this.ownerName = (ownerEntity.toString().contains("Player")) ? "player" : ownerEntity.getEncodeId();
             this.isSolid = CommonConfig.solidEntities().contains(this.ownerName);
-            if (this.level().isClientSide()) {
-                for (Map.Entry<String, List<String>> mapElement : ClientConfig.entityBloodColors().entrySet()) {
-                    if (mapElement.getValue().contains(this.ownerName)) {
-                        String bloodColorHexVal = mapElement.getKey();
-                        this.red = HexFormat.fromHexDigits(bloodColorHexVal, 1, 3);
-                        this.green = HexFormat.fromHexDigits(bloodColorHexVal, 3, 5);
-                        this.blue = HexFormat.fromHexDigits(bloodColorHexVal.substring(5));
-//                        BloodyBitsUtils.CLIENT_SIDE_BLOOD_SPRAYS.put(this.getId(), this);
-//                        BloodyBitsMod.LOGGER.info("SETTING OWNER CLIENT SIDE: {}, RED: {} GREEN: {} BLUE: {}", this.level().isClientSide, this.red, this.green, this.blue);
-                        break;
-                    }
-                }
-            }
+//            if (this.level().isClientSide()) {
+//                for (Map.Entry<String, List<String>> mapElement : ClientConfig.entityBloodColors().entrySet()) {
+//                    if (mapElement.getValue().contains(this.ownerName)) {
+//                        String bloodColorHexVal = mapElement.getKey();
+//                        this.red = HexFormat.fromHexDigits(bloodColorHexVal, 1, 3);
+//                        this.green = HexFormat.fromHexDigits(bloodColorHexVal, 3, 5);
+//                        this.blue = HexFormat.fromHexDigits(bloodColorHexVal.substring(5));
+////                        BloodyBitsUtils.CLIENT_SIDE_BLOOD_SPRAYS.put(this.getId(), this);
+////                        BloodyBitsMod.LOGGER.info("SETTING OWNER CLIENT SIDE: {}, RED: {} GREEN: {} BLUE: {}", this.level().isClientSide, this.red, this.green, this.blue);
+//                        break;
+//                    }
+//                }
+//            }
         }
     }
 

@@ -1,5 +1,6 @@
-package com.cravencraft.bloodybits.particle;
+package com.cravencraft.bloodybits.particle.emitter;
 
+import com.cravencraft.bloodybits.particle.spray.BloodSprayParticleOptions;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleProvider;
@@ -21,20 +22,14 @@ public class BloodEmitterParticle {
     private BloodEmitterParticle() {}
 
     @OnlyIn(Dist.CLIENT)
-    public static class Provider implements ParticleProvider<BloodSprayParticleOptions> {
-        private final List<VariantFactory> variants;
-
-        public Provider(List<VariantFactory> variants) {
-            this.variants = variants;
-        }
+    public record Provider(List<VariantFactory> variants) implements ParticleProvider<BloodSprayParticleOptions> {
 
         @Override
         public Particle createParticle(
                 @NotNull BloodSprayParticleOptions options,
                 @NotNull ClientLevel level,
                 double x, double y, double z,
-                double dx, double dy, double dz
-        ) {
+                double dx, double dy, double dz) {
             return variants.get(level.random.nextInt(variants.size())).create(options, level, x, y, z, dx, dy, dz);
         }
     }
