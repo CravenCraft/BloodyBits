@@ -19,7 +19,6 @@ public class ClientConfig {
     public static final ModConfigSpec SPEC;
 
     static {
-        BUILDER.push("blood_spray_settings");
 
         BLOOD_SPATTER_LIFETIME = BUILDER.comment("The maximum lifetime (20 ticks = 1 second) that a blood spatter will remain on screen for.")
                 .defineInRange("blood_spatter_lifetime", 600, 0, 10000);
@@ -32,8 +31,6 @@ public class ClientConfig {
 //                        List.of("burn", "fireball", "fireworks", "lava", "hotFloor", "onFire", "inFire", "lightningBolt"),
 //                        () -> "",
 //                        it -> it instanceof String);
-
-        BUILDER.pop();
 
         SPEC = BUILDER.build();
     }
