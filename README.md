@@ -1,12 +1,79 @@
 # BloodyBits
-A system to make combat more visceral by having damage that can actually be seen. No more need for health bars or 
-numbers displayed above entities to know how much damage you are doing!
+A mod that adds proper blood spatters to Minecraft. 
 
-I've always had a strong dislike towards damage numbers in most (not all) games. Games that can communicate to the player
-the damage they are doing, or receiving, in a more immersive way always felt like a better experience to me
-(see: DOOM Eternal, Left 4 Dead, or more recently Helldivers 2). So, I've set out to make my own version of that 
-experience in minecraft.
+## Features
 
-There have been several mods that add blood in the past, but none like this. Certain enemies will have certain blood 
-colors such as red for most enemies, green for bug-like enemies, purple for ender-like enemies, and so on. 
-All the colors are fully customizable within the configs as well.
+### Blood Sprays & Spatters
+![v2_blood_spray.gif](screenshots/v2_blood_spray.gif)
+When an entity is attacked, it will produce a certain amount blood spray particles at a certain velocity depending on 
+attack damage. These particles will spatter onto almost all surfaces regardless of shape.
+
+### Blood Drip
+![v2_blood_drip.gif](screenshots/v2_blood_drip.gif)
+The blood spatters will also
+**drip** at random intervals if on a ceiling.
+
+### Data Driven Blood Color Types
+![data_driven_blood.png](screenshots/data_driven_blood.png)
+
+Datapacks can dictate what color entities bleed (or if they bleed at all) based on a hex code value. This 
+[website](https://htmlcolorcodes.com/color-picker/) can help with determining a custom blood color.
+
+![custom_blood_spatters.gif](screenshots/custom_blood_spatters.gif)
+
+
+
+### In Game Configs
+Using Neoforge's in-game config menu system, you're now able to edit config values without having to open up the actual
+file in the config directory.
+
+![in_game_config.gif](screenshots/in_game_config.gif)
+
+In the **Client Config** you can set things like the **Blood Spatter Lifetime** and the **Blood Spatter Sound Volume**.
+
+In the **Common Config** you can blacklist certain damage sources from causing bleed damage to any entities. I've
+already included most sources that wouldn't make sense to cause bleeding such as **onFire** and **starve**, but if I
+missed any, then players can easily add the source to the list if they desire.
+
+### Editing Blood Color Types
+To edit the blood color types, simply add a custom datapack to override the mod's existing one 
+(I will provide a copy of the existing datapack for players to download). The datapack consists of two folders:
+`blood_colors` and `tags`.
+
+![datapack_structure.png](screenshots/datapack_structure.png)
+
+The `blood_colors` folder contains a list of JSON files. The names of these files don't matter. Each file simply 
+contains a JSON object that has two properties: `entity_tag` and `color`. The `entity_tag` will references the desired 
+JSON file in the `tags/entity_type` directory. The `color` property will reference the desired hex code color value 
+that you want the entities to bleed.
+
+![blood_colors_structure.png](screenshots/blood_colors_structure.png)
+
+The `tags` folder contains a subfolder `entity_type`. This is a built-in Minecraft structure that allows us to add 
+certain tags to entities for reference. Here, we simply create the JSON file that will act as the tag's name, and 
+populate it with a list of entities that we want this tag to apply to.
+
+![bleeds_green_tag.png](screenshots/bleeds_green_tag.png)
+
+Above is an example of the JSON file `bleeds_green.json`, which you will notice is the one that is referenced in the 
+`blood_colors/green.json` file's `entity_tag` property. In this file, there are only two properties, but a lot of 
+content since this is where the list of entities will be set. 
+
+- The `replace` property simply tells the game that this datapack
+will, or will not, be replacing any preexisting data with this data. Since this is an entirely new tag that I am adding
+to these entities, I set this value to `false`, but if a datapack were made to override this one, then it would be set 
+to `true`.
+- The `values` property will contain a list of all the entities that this tag should apply to. As well, JSON objects
+can be added to this list. These are denoted by the opening and closing curly braces `{}`. In here there the property
+`required` property determines if this object ID is required for the tag to load successfully. I'm using these objects
+as optional references to mod entities, so I set those properties as `false`. The `id` property references another file
+location that will contain the modded entities that I want this tag to apply to.
+
+![modded_bleeds_green_tag.png](screenshots/modded_bleeds_green_tag.png)
+
+Above is an example of a mod's entity that a tag should apply to.
+
+### NOTE:
+With future updates I will add more mod compats to the base datapack of Bloody Bits. If you have a specific mod that 
+you would like added, just let me know, and I'll see if I can get it added in! If I can't, then it's fully possible to
+add them in yourself via a custom datapack.
