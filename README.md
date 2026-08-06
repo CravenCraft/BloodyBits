@@ -1,5 +1,6 @@
-# BloodyBits
-A mod that adds proper blood spatters to Minecraft. 
+<p align="center">
+  <img src="screenshots/bloody_bits_title_v2.png" />
+</p>
 
 ## Features
 
