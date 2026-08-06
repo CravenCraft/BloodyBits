@@ -1,3 +1,20 @@
+## V2.0.0 Complete Overhaul
+Bloody Bits has been completely overhauled! Blood spatters are now particles! This means a massive boost in performance
+along with fixing a heap of issues that players were having with some mods such as map mods detecting them as entities.
+Here's a quick list of the changes:
+- Blood sprays, drips, and spatters are all now particles.
+- Blood spatters are now MUCH more accurate, and will adhere to their respective blocks without overlapping into air space.
+- 3D blood sprays have now been replaced with 2D textures as I feel like it looks a bit more gory.
+- Spatters don't slide down the sides of the wall as of yet. Still need to figure out the math for this.
+- Blood still drips from the ceiling at random intervals like before.
+- Blood color types are now completely data driven via datapacks. I'll include an example pack with the release of this 
+  version. This also means much better performance with a larger amount of custom blood color entities in large modpacks.
+
+Specfial thanks to 
+[Iron431's Simple Blood](https://www.curseforge.com/minecraft/mc-mods/irons-simple-blood) mod for keeping his project 
+license MIT, which allowed me to look into how he implements his blood spatter code and datapack system, and create my 
+own version of it.
+
 ## V1.3.4 More Bugfixes
 - Added more null pointer checks to fix some random crashing issues. Special thanks to [MitakeAmeka](https://github.com/MitakeAmeka)
     for spotting this issue and opening a PR with the fix.
