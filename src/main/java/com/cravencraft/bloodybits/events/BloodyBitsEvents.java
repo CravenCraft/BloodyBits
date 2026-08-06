@@ -8,12 +8,10 @@ import com.cravencraft.bloodybits.registries.BloodTypeRegistry;
 import com.cravencraft.bloodybits.registries.ParticleRegistry;
 import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.monster.Creeper;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.EventPriority;
@@ -21,65 +19,62 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.event.config.ModConfigEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
-import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.level.ExplosionEvent;
 
 @EventBusSubscriber(modid = BloodyBitsMod.MODID)
 public class BloodyBitsEvents {
 
-    public static boolean isConfigLoaded;
+    private static boolean isConfigLoaded;
+    private static final String doesNotBleed = "does_not_bleed";
 
     @SubscribeEvent
     public static void isConfigLoaded(ModConfigEvent.Loading event) {
-        BloodyBitsMod.LOGGER.info("Bloody Bits config is loading. prev val: {}", isConfigLoaded);
         isConfigLoaded = true;
     }
 
     @SubscribeEvent
     public static void isConfigReloading(ModConfigEvent.Reloading event) {
-        BloodyBitsMod.LOGGER.info("Bloody Bits config is reloading. prev val: {}", isConfigLoaded);
         isConfigLoaded = true;
     }
 
-    @SubscribeEvent
-    public static void testBlockTextureOverlay(PlayerInteractEvent.RightClickBlock event) {
-
-        if (!isConfigLoaded) return;
-
-        var level = event.getLevel();
-        var server =  level.getServer();
-
-        if (level instanceof ServerLevel serverLevel &&
-                server != null &&
-                event.getHand() == InteractionHand.MAIN_HAND &&
-                event.getItemStack().getItem() == Items.BLAZE_ROD) {
-            var player = event.getEntity();
-            var x = player.getX();
-            var y = player.getY() + 1.5;
-            var z = player.getZ();
-            var playerBlockPos = player.getOnPos();
-            var playerFacingDirection = player.getDirection();
-            var lookAngle = player.getLookAngle();
-            BloodyBitsMod.LOGGER.info("player look angle: {}", lookAngle);
-
-           server.getPlayerList().getPlayers().forEach(serverPlayer -> (serverLevel)
-                    .sendParticles(
-                            serverPlayer,
-                            new BloodSprayParticleOptions(ParticleRegistry.DEFAULT_BLOOD_COLOR, lookAngle, 1.0f),
-                            true,
-                            x,
-                            y,
-                            z,
-                            1,
-                            lookAngle.x,
-                            lookAngle.y,
-                            lookAngle.z,
-                            0.0
-                    )
-            );
-        }
-
-    }
+//    @SubscribeEvent
+//    public static void testBlockTextureOverlay(PlayerInteractEvent.RightClickBlock event) {
+//
+//        if (!isConfigLoaded) return;
+//
+//        var level = event.getLevel();
+//        var server =  level.getServer();
+//
+//        if (level instanceof ServerLevel serverLevel &&
+//                server != null &&
+//                event.getHand() == InteractionHand.MAIN_HAND &&
+//                event.getItemStack().getItem() == Items.BLAZE_ROD) {
+//            var player = event.getEntity();
+//            var x = player.getX();
+//            var y = player.getY() + 1.5;
+//            var z = player.getZ();
+//            var playerBlockPos = player.getOnPos();
+//            var playerFacingDirection = player.getDirection();
+//            var lookAngle = player.getLookAngle();
+//
+//           server.getPlayerList().getPlayers().forEach(serverPlayer -> (serverLevel)
+//                    .sendParticles(
+//                            serverPlayer,
+//                            new BloodSprayParticleOptions(ParticleRegistry.DEFAULT_BLOOD_COLOR, lookAngle, 1.0f),
+//                            true,
+//                            x,
+//                            y,
+//                            z,
+//                            1,
+//                            lookAngle.x,
+//                            lookAngle.y,
+//                            lookAngle.z,
+//                            0.0
+//                    )
+//            );
+//        }
+//
+//    }
 
     /**
      * Looks for all the players on a given server and creates blood sprays if the damage event is
@@ -144,13 +139,13 @@ public class BloodyBitsEvents {
     private static void createBloodParticles(ServerLevel serverLevel, LivingEntity entity,
                                              DamageType damageType, float damageAmount) {
 
-        if (CommonConfig.blackListInjurySources().contains(damageType.msgId())) return;
+        if (CommonConfig.blackListDamageSources().contains(damageType.msgId())) return;
 
         String bloodColor = ParticleRegistry.DEFAULT_BLOOD_COLOR;
         for (BloodType bloodType : BloodTypeRegistry.getBloodTypes()) {
             if (entity.getType().is(bloodType.entityTag())) {
 
-                if (bloodType.entityTag().location().getPath().equals("does_not_bleed")) {
+                if (bloodType.entityTag().location().getPath().equals(doesNotBleed)) {
                     return;
                 }
                 else {

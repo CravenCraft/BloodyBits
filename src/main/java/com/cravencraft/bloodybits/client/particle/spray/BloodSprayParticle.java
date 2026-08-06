@@ -56,11 +56,8 @@ public class BloodSprayParticle extends TextureSheetParticle {
         this.yd = yd;
         this.zd = zd;
 
-        BloodyBitsMod.LOGGER.info("BloodSprayParticle xd, yd, zd: {}, {}, {}",  xd, yd, zd);
         this.collisionVector = new Vec3(xd, yd, zd);
-        BloodyBitsMod.LOGGER.info("initial blood spray particle collision vector: {}", this.collisionVector);
         this.quadSize *= 0.25f + (float) Math.random();
-        BloodyBitsMod.LOGGER.info("quad size: {}", this.quadSize);
         this.scale(scale * 2.5f);
         this.lifetime = 40;
         this.gravity = 1f;
@@ -109,8 +106,6 @@ public class BloodSprayParticle extends TextureSheetParticle {
                 this.getBoundingBox(),
                 this.level,
                 List.of());
-//        BloodyBitsMod.LOGGER.info("x: {} y: {} z: {}", this.x, this.y, this.z);
-//        BloodyBitsMod.LOGGER.info("xd: {} yd: {} zd: {}",  this.xd, this.yd, this.zd);
 
         if (previousColVec.x > 0.001 && currentColVec.x == 0.0) {
             this.createSpatterAtCollisionPoint(Direction.EAST.get3DDataValue());
@@ -143,7 +138,6 @@ public class BloodSprayParticle extends TextureSheetParticle {
      * @param collisionDirection The direction that the spatter should face when placed in the level.
      */
     private void createSpatterAtCollisionPoint(int collisionDirection) {
-        BloodyBitsMod.LOGGER.info("collision direction: {}", Direction.from3DDataValue(collisionDirection));
         this.level.addParticle(
                 new BloodSpatterParticleOptions(this.color, collisionDirection, this.getQuadSize(0.0F)),
                 true, this.x, this.y, this.z,
@@ -165,15 +159,6 @@ public class BloodSprayParticle extends TextureSheetParticle {
 
     @Override
     public void render(@NotNull VertexConsumer buffer, @NotNull Camera renderInfo, float partialTicks) {
-//        if (this.decalDirection != DecalDirection.OMNIDIRECTIONAL) {
-//            Vec3 left = new Vec3(renderInfo.getLeftVector());
-//            Vec3 horizontalVelocity = new Vec3(xd, 0, zd);
-//            double dot = left.dot(horizontalVelocity.normalize());
-//            if (Math.abs(dot) > 0.1) {
-//                boolean facingRight = dot < 0;
-//                this.mirrored = facingRight ^ this.decalDirection == DecalDirection.RIGHT;
-//            }
-//        }
         if (this.underwater) {
             this.alpha -= 0.005f;
             scale(1.005f);

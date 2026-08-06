@@ -1,0 +1,9 @@
+{
+  "replace": false,
+  "values": [
+    {
+      "id": "cataclysm:ancient_remnant",
+      "required": false
+    }
+  ]
+}

@@ -6,15 +6,14 @@ import java.util.List;
 
 public class CommonConfig {
     public static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
-
-    private static final ModConfigSpec.ConfigValue<List<? extends String>> BLACKLIST_INJURY_SOURCES;
-
-    public static List<? extends String> blackListInjurySources() { return BLACKLIST_INJURY_SOURCES.get(); }
-
     public static final ModConfigSpec SPEC;
 
+    private static final ModConfigSpec.ConfigValue<List<? extends String>> BLACKLIST_DAMAGE_SOURCES;
+
+    public static List<? extends String> blackListDamageSources() { return BLACKLIST_DAMAGE_SOURCES.get(); }
+
     static {
-        BLACKLIST_INJURY_SOURCES = BUILDER.comment("List of the damage sources that will not cause an entity to bleed.")
+        BLACKLIST_DAMAGE_SOURCES = BUILDER.comment("List of the damage sources that will not cause an entity to bleed.")
                 .defineListAllowEmpty("blacklist_bleed_sources",
                         List.of("drown", "starve", "dryOut", "freeze", "fellOutOfWorld",
                                 "burn", "lava", "hotFloor", "onFire", "inFire"),

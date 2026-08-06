@@ -5,6 +5,10 @@
     "minecraft:cave_spider",
     "minecraft:creeper",
     "minecraft:bee",
-    "minecraft:slime"
+    "minecraft:slime",
+    {
+      "required": false,
+      "id": "#bloodybits:compat/irons_spellbooks/bleeds_green"
+    }
   ]
 }

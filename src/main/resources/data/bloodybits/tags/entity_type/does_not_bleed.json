@@ -2,10 +2,17 @@
   "replace": false,
   "values": [
     "minecraft:iron_golem",
-    "minecraft:shulker",
     "minecraft:skeleton",
     "minecraft:skeleton_horse",
     "minecraft:stray",
-    "minecraft:wither_skeleton"
+    "minecraft:wither_skeleton",
+    {
+      "required": false,
+      "id": "#bloodybits:compat/irons_spellbooks/does_not_bleed"
+    },
+    {
+      "required": false,
+      "id": "#bloodybits:compat/cataclysm/does_not_bleed"
+    }
   ]
 }
