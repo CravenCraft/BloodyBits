@@ -2,8 +2,6 @@
   <img src="screenshots/bloody_bits_title_v2.png" />
 </p>
 
-## Features
-
 ### Blood Sprays & Spatters
 ![v2_blood_spray.gif](screenshots/v2_blood_spray.gif)
 When an entity is attacked, it will produce a certain amount blood spray particles at a certain velocity depending on 
@@ -21,8 +19,6 @@ Datapacks can dictate what color entities bleed (or if they bleed at all) based 
 [website](https://htmlcolorcodes.com/color-picker/) can help with determining a custom blood color.
 
 ![custom_blood_spatters.gif](screenshots/custom_blood_spatters.gif)
-
-
 
 ### In Game Configs
 Using Neoforge's in-game config menu system, you're now able to edit config values without having to open up the actual
@@ -73,6 +69,10 @@ location that will contain the modded entities that I want this tag to apply to.
 ![modded_bleeds_green_tag.png](screenshots/modded_bleeds_green_tag.png)
 
 Above is an example of a mod's entity that a tag should apply to.
+
+### Supported Mods By Default
+- Iron's Spells & Spellbooks
+- L_Ender's Cataclysm
 
 ### NOTE:
 With future updates I will add more mod compats to the base datapack of Bloody Bits. If you have a specific mod that 

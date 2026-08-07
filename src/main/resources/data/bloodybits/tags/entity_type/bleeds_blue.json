@@ -2,6 +2,11 @@
   "replace": false,
   "values": [
     "minecraft:allay",
-    "minecraft:warden"
+    "minecraft:warden",
+    "minecraft:phantom",
+    {
+      "required": false,
+      "id": "#bloodybits:compat/cataclysm/bleeds_blue"
+    }
   ]
 }
