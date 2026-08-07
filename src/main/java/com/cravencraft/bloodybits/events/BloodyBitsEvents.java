@@ -2,83 +2,91 @@ package com.cravencraft.bloodybits.events;
 
 import com.cravencraft.bloodybits.BloodyBitsMod;
 import com.cravencraft.bloodybits.config.CommonConfig;
-import com.cravencraft.bloodybits.entity.BloodSprayEntity;
-import com.cravencraft.bloodybits.network.BloodyBitsPacketHandler;
-import com.cravencraft.bloodybits.network.messages.EntityMessage;
-import com.cravencraft.bloodybits.registries.EntityRegistry;
+import com.cravencraft.bloodybits.model.BloodType;
+import com.cravencraft.bloodybits.client.particle.spray.BloodSprayParticleOptions;
+import com.cravencraft.bloodybits.registries.BloodTypeRegistry;
+import com.cravencraft.bloodybits.registries.ParticleRegistry;
 import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
-import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.Entity;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.damagesource.DamageType;
+import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.monster.Creeper;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.event.entity.living.*;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.event.level.ExplosionEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.network.PacketDistributor;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.event.config.ModConfigEvent;
+import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
+import net.neoforged.neoforge.event.level.ExplosionEvent;
 
-@Mod.EventBusSubscriber(modid = BloodyBitsMod.MODID)
+@EventBusSubscriber(modid = BloodyBitsMod.MODID)
 public class BloodyBitsEvents {
 
-    private static int currentTick = 0;
+    private static boolean isConfigLoaded;
+    private static final String doesNotBleed = "does_not_bleed";
 
-//    /**
-//     * Just a simple method made to test blood sprays by right-clicking on blocks.
-//     */
+    @SubscribeEvent
+    public static void isConfigLoaded(ModConfigEvent.Loading event) {
+        isConfigLoaded = true;
+    }
+
+    @SubscribeEvent
+    public static void isConfigReloading(ModConfigEvent.Reloading event) {
+        isConfigLoaded = true;
+    }
+
 //    @SubscribeEvent
-//    public static void testBloodSpray(PlayerInteractEvent.RightClickBlock event) {
-//        if (!event.getEntity().level().isClientSide()) {
-//            if (BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.size() >= CommonConfig.maxSpatters()) {
-//                BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.get(0).discard();
-//                BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.remove(0);
-//            }
+//    public static void testBlockTextureOverlay(PlayerInteractEvent.RightClickBlock event) {
 //
-//            BloodSprayEntity bloodSprayEntity = new BloodSprayEntity(EntityRegistry.BLOOD_SPRAY.get(), event.getEntity(), event.getEntity().level());
-//            BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.add(bloodSprayEntity);
-//            BloodyBitsMod.LOGGER.info("Current Tick Count: {}", event.getEntity().tickCount);
+//        if (!isConfigLoaded) return;
 //
-//            bloodSprayEntity.setDeltaMovement(event.getEntity().getLookAngle());
+//        var level = event.getLevel();
+//        var server =  level.getServer();
 //
-//            if ((currentTick + 20) < event.getEntity().tickCount) {
-//                currentTick = event.getEntity().tickCount;
+//        if (level instanceof ServerLevel serverLevel &&
+//                server != null &&
+//                event.getHand() == InteractionHand.MAIN_HAND &&
+//                event.getItemStack().getItem() == Items.BLAZE_ROD) {
+//            var player = event.getEntity();
+//            var x = player.getX();
+//            var y = player.getY() + 1.5;
+//            var z = player.getZ();
+//            var playerBlockPos = player.getOnPos();
+//            var playerFacingDirection = player.getDirection();
+//            var lookAngle = player.getLookAngle();
 //
-//                event.getEntity().level().addFreshEntity(bloodSprayEntity);
-//
-//                BloodyBitsPacketHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> bloodSprayEntity),
-//                        new EntityMessage(bloodSprayEntity.getId(), event.getEntity().getId()));
-//            }
+//           server.getPlayerList().getPlayers().forEach(serverPlayer -> (serverLevel)
+//                    .sendParticles(
+//                            serverPlayer,
+//                            new BloodSprayParticleOptions(ParticleRegistry.DEFAULT_BLOOD_COLOR, lookAngle, 1.0f),
+//                            true,
+//                            x,
+//                            y,
+//                            z,
+//                            1,
+//                            lookAngle.x,
+//                            lookAngle.y,
+//                            lookAngle.z,
+//                            0.0
+//                    )
+//            );
 //        }
+//
 //    }
 
     /**
      * Looks for all the players on a given server and creates blood sprays if the damage event is
-     * close enough to any of the players. Will break out of the loop the second a player is found,
-     * which should optimize this somewhat.
+     * close enough to any of the players.
      */
-    @SubscribeEvent(priority = EventPriority.LOWEST)
-    public static void bloodOnEntityDamage(LivingDamageEvent event) {
-        LivingEntity entity = event.getEntity();
-        if (!event.isCanceled() && entity != null) {
-            String entityName = (entity instanceof Player) ? "player" : entity.getEncodeId();
-            entityName = (entityName == null) ? "" : entityName;
+    @SubscribeEvent
+    public static void bloodOnEntityDamage(LivingDamageEvent.Post event) {
 
-            if (!event.getEntity().level().isClientSide() && !CommonConfig.blackListEntities().contains(entityName) && !CommonConfig.blackListDamageSources().contains(event.getSource().type().msgId())) {
-                int maxDamage = (int) Math.min(20, event.getAmount());
-                createBloodSpray(entity, event.getSource(), maxDamage, false);
-            }
+        if (!isConfigLoaded) return;
 
-            // TODO: This is just for damage textures, and is also client side only. So, need to add this
-            //       to the client events class when I finally get around to polishing that feature.
-            // For adding damage textures to the given entity. Ensure no blacklisted injury sources are added.
-//            if (!ClientConfig.blackListInjurySources().contains(event.getSource().type().msgId())) {
-//                boolean isBurn = ClientConfig.burnDamageSources().contains(event.getSource().type().msgId());
-//
-//                BloodyBitsPacketHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> entity),
-//                        new EntityDamageMessage(entity.getId(), event.getAmount(), !isBurn, isBurn));
-//            }
+        if (event.getEntity().level() instanceof ServerLevel serverLevel) {
+            createBloodParticles(serverLevel, event.getEntity(), event.getSource().type(), event.getNewDamage());
         }
     }
 
@@ -88,91 +96,104 @@ public class BloodyBitsEvents {
     /**
      *  Makes the entity bleed when damaged below a certain threshold. The entity will bleed more often the lower it is
      *  below that threshold.
+     *  TODO: LivingEvent might only happen at certain times. See when it happens.
      */
-    @SubscribeEvent
-    public static void entityBleedWhenDamaged(LivingEvent.LivingTickEvent event) {
-        if (CommonConfig.bleedWhenDamaged() && event.getEntity() != null && !event.getEntity().level().isClientSide() && !event.getEntity().isDeadOrDying()) {
-            LivingEntity entity = event.getEntity();
-            double remainingHealthPercentage = entity.getHealth() / entity.getMaxHealth();
-            String entityName = (entity instanceof Player) ? "player" : entity.getEncodeId();
-            entityName = (entityName == null) ? "" : entityName;
-
-            if (!CommonConfig.blackListEntities().contains(entityName) && remainingHealthPercentage <= 0.5) {
-
-                int mod = (int) (remainingHealthPercentage * 1000);
-                if (mod == 0 || entity.tickCount == 0) {
-                    return;
-                }
-
-                if (entity.tickCount % mod == 0) {
-                    createBloodSpray(entity, entity.damageSources().genericKill(), 1, true);
-                }
-            }
-        }
-    }
+//    @SubscribeEvent
+//    public static void entityBleedWhenDamaged(LivingEvent event) {
+//        if (CommonConfig.bleedWhenDamaged() && !event.getEntity().level().isClientSide() && !event.getEntity().isDeadOrDying()) {
+//            LivingEntity entity = event.getEntity();
+//            double remainingHealthPercentage = entity.getHealth() / entity.getMaxHealth();
+//            String entityName = (entity instanceof Player) ? "player" : entity.getEncodeId();
+//            entityName = (entityName == null) ? "" : entityName;
+//
+//            if (!CommonConfig.blackListEntities().contains(entityName) && remainingHealthPercentage <= 0.5) {
+//
+//                int mod = (int) (remainingHealthPercentage * 1000);
+//                if (mod == 0 || entity.tickCount == 0) {
+//                    return;
+//                }
+//
+//                if (entity.tickCount % mod == 0) {
+//                    createBloodSpray(entity, entity.damageSources().genericKill(), 1, true);
+//                }
+//            }
+//        }
+//    }
 
     /**
      * For when entities explode. Like a creeper.
      */
     @SubscribeEvent(priority = EventPriority.LOWEST)
-    public static void creeperExplosionEvent(ExplosionEvent event) {
-        Entity entity = event.getExplosion().getDirectSourceEntity();
+    public static void creeperExplosionEvent(ExplosionEvent.Detonate event) {
+        if (!isConfigLoaded) return;
 
-        if (entity instanceof LivingEntity livEnt && !event.isCanceled()) {
-            createBloodSpray(livEnt, event.getExplosion().getDamageSource(), 15, false);
+        if (event.getLevel() instanceof ServerLevel serverLevel &&
+                event.getExplosion().getDirectSourceEntity() instanceof Creeper creeper) {
+
+            var explosionDamageType = serverLevel.damageSources().source(DamageTypes.EXPLOSION).type();
+            var explosionDamageAmount = 25.0f;
+            createBloodParticles(serverLevel, creeper, explosionDamageType, explosionDamageAmount);
         }
     }
 
-    /**
-     * Creates blood sprays for any entity that is damaged. Also adds each blood spray to a list BLOOD_SPRAY_ENTITIES
-     * when it is created. This list maxes out at a configurable limit to ensure the blood spray entities impact the
-     * game's performance as little as possible. When a new blood spray is created, if the limit of the list is passed,
-     * the first index of the list is removed to ensure that the oldest sprays are removed first.
-     */
-    private static void createBloodSpray(LivingEntity entity, DamageSource damageSource, int damageAmount, boolean isBleedingDamage) {
-        if (entity != null && damageSource != null) {
-            String entityName = (entity instanceof Player) ? "player" : entity.getEncodeId();
-            entityName = (entityName == null) ? "" : entityName;
+    private static void createBloodParticles(ServerLevel serverLevel, LivingEntity entity,
+                                             DamageType damageType, float damageAmount) {
 
-            if (!entity.level().isClientSide() && !CommonConfig.blackListEntities().contains(entityName) && !CommonConfig.blackListDamageSources().contains(damageSource.type().msgId())) {
-                for (int i = 0; i < damageAmount; i++) {
-                    if (BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.size() >= CommonConfig.maxSpatters()) {
-                        BloodSprayEntity oldest = BloodyBitsUtils.CLIENT_SIDE_BLOOD_SPRAYS.get(0);
-                        if (oldest != null) {
-                            BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.get(0).discard();
-                            BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.remove(0);
-                        }
-                    }
+        if (CommonConfig.blackListDamageSources().contains(damageType.msgId())) return;
 
-                    BloodSprayEntity bloodSprayEntity = new BloodSprayEntity(EntityRegistry.BLOOD_SPRAY.get(), entity, entity.level());
-                    BloodyBitsUtils.BLOOD_SPRAY_ENTITIES.add(bloodSprayEntity);
-                    Vec3 sourceAngle;
-                    if (damageSource.getEntity() != null) {
-                        sourceAngle = (damageSource.getDirectEntity() != null) ? damageSource.getDirectEntity().getLookAngle() : damageSource.getEntity().getLookAngle();
-                    }
-                    else {
-                        sourceAngle = entity.getLookAngle();
-                    }
+        String bloodColor = ParticleRegistry.DEFAULT_BLOOD_COLOR;
+        for (BloodType bloodType : BloodTypeRegistry.getBloodTypes()) {
+            if (entity.getType().is(bloodType.entityTag())) {
 
-                    double xAngle = sourceAngle.x;
-                    double yAngle = (isBleedingDamage) ? -sourceAngle.y : -sourceAngle.y + Math.random();
-                    double zAngle = sourceAngle.z;
-                    double adjustedDamage = damageAmount * CommonConfig.bloodSprayDistance();
-
-                    // Ensure the angles are always going where they are expected to go.
-                    xAngle = (xAngle > 0) ? (xAngle - Math.random()) : (xAngle + Math.random());
-                    zAngle = (zAngle > 0) ? (zAngle - Math.random()) : (zAngle + Math.random());
-
-                    xAngle *= adjustedDamage;
-                    zAngle *= adjustedDamage;
-
-                    bloodSprayEntity.setDeltaMovement(xAngle, yAngle * 0.35, zAngle);
-                    entity.level().addFreshEntity(bloodSprayEntity);
-
-                    BloodyBitsPacketHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> bloodSprayEntity),
-                            new EntityMessage(bloodSprayEntity.getId(), entity.getId()));
+                if (bloodType.entityTag().location().getPath().equals(doesNotBleed)) {
+                    return;
+                }
+                else {
+                    bloodColor = bloodType.color();
+                    break;
                 }
             }
+        }
+
+        AABB aabb = entity.isMultipartEntity() ?
+                entity.getParts()[entity.getRandom().nextInt(entity.getParts().length)].getBoundingBox() :
+                entity.getBoundingBox();
+        Vec3 vec = aabb.getCenter();
+
+        if (damageAmount == Float.MAX_VALUE) return;
+
+        if (damageAmount <= 0) return;
+        damageAmount = Math.clamp(damageAmount, 1, 50);
+
+        int count = serverLevel.random.nextIntBetweenInclusive(1, (int) damageAmount);
+        double bbShove = Math.max(aabb.getXsize() * 0.5 - 0.5, 0);
+        double scale = (aabb.getXsize() + 2) / 3f;
+        var server = serverLevel.getServer();
+
+        for (int i = 0; i < count; i++) {
+
+            Vec3 sprayVector = new Vec3(
+                    BloodyBitsUtils.applyRandomSign(serverLevel.random.nextIntBetweenInclusive(1, count) * 0.05f),
+                    serverLevel.random.nextIntBetweenInclusive(1, count) * 0.05f,
+                    BloodyBitsUtils.applyRandomSign(serverLevel.random.nextIntBetweenInclusive(1, count) * 0.05f)
+            );
+
+            String finalBloodColor = bloodColor;
+            server.getPlayerList().getPlayers().forEach(player -> (serverLevel)
+                    .sendParticles(
+                            player,
+                            new BloodSprayParticleOptions(finalBloodColor, sprayVector, 1.0f),
+                            true,
+                            vec.x,
+                            vec.y + aabb.getYsize() * 0.5,
+                            vec.z,
+                            1,
+                            0.5,
+                            0.5,
+                            0.5,
+                            0.2
+                    )
+            );
         }
     }
 }

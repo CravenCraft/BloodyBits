@@ -1,5 +1,18 @@
 {
-  "sounds.bloodybits.body_explosion": "A body explodes in a heap of gore",
+  "bloodybits.blood_chunk": "Blood Chunk",
   "bloodybits.blood_spray": "Blood Spray",
-  "bloodybits.blood_chunk": "Blood Chunk"
+  "bloodybits.configuration.blacklist_bleed_sources": "Blacklist Bleed Damage Sources",
+  "bloodybits.configuration.blacklist_bleed_sources.button": "Edit",
+  "bloodybits.configuration.blacklist_bleed_sources.tooltip": "List of the damage sources that will not cause an entity to bleed.",
+  "bloodybits.configuration.blood_spatter_lifetime": "Blood Spatter Lifetime",
+  "bloodybits.configuration.blood_spatter_lifetime.tooltip": "The maximum lifetime in ticks (20 ticks = 1 second) that a blood spatter will remain on screen for.",
+  "bloodybits.configuration.blood_spatter_sound_volume": "Blood Spatter Sound Volume",
+  "bloodybits.configuration.blood_spatter_sound_volume.tooltip": "How loud the blood spatters are.",
+  "bloodybits.configuration.blood_spray_settings.tooltip": "",
+  "bloodybits.configuration.section.bloodybits.client.toml": "Client Settings",
+  "bloodybits.configuration.section.bloodybits.client.toml.title": "CravenCraft's Bloody Bits Client Settings",
+  "bloodybits.configuration.section.bloodybits.common.toml": "Common Settings",
+  "bloodybits.configuration.section.bloodybits.common.toml.title": "CravenCraft's Bloody Bits Common Settings",
+  "bloodybits.configuration.title": "CravenCraft's Bloody Bits Configuration",
+  "sounds.bloodybits.body_explosion": "A body explodes in a heap of gore"
 }

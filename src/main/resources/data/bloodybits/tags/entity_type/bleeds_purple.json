@@ -1,0 +1,13 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:enderman",
+    "minecraft:shulker",
+    "minecraft:ender_dragon",
+    "minecraft:endermite",
+    {
+      "required": false,
+      "id": "#bloodybits:compat/cataclysm/bleeds_purple"
+    }
+  ]
+}
