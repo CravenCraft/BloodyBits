@@ -24,18 +24,20 @@ import net.minecraftforge.fml.event.config.ModConfigEvent;
 @Mod.EventBusSubscriber(modid = BloodyBitsMod.MODID)
 public class BloodyBitsEvents {
 
-    private static boolean isConfigLoaded;
+//    private static boolean isConfigLoaded;
     private static final String doesNotBleed = "does_not_bleed";
 
-    @SubscribeEvent
-    public static void isConfigLoaded(ModConfigEvent.Loading event) {
-        isConfigLoaded = true;
-    }
-
-    @SubscribeEvent
-    public static void isConfigReloading(ModConfigEvent.Reloading event) {
-        isConfigLoaded = true;
-    }
+//    @SubscribeEvent
+//    public static void isConfigLoaded(ModConfigEvent.Loading event) {
+//        BloodyBitsMod.LOGGER.info("BloodyBitsEvents isConfigLoaded");
+//        isConfigLoaded = true;
+//    }
+//
+//    @SubscribeEvent
+//    public static void isConfigReloading(ModConfigEvent.Reloading event) {
+//        BloodyBitsMod.LOGGER.info("BloodyBitsEvents isConfigReloaded");
+//        isConfigLoaded = true;
+//    }
 
     /**
      * Looks for all the players on a given server and creates blood sprays if the damage event is
@@ -43,8 +45,7 @@ public class BloodyBitsEvents {
      */
     @SubscribeEvent
     public static void bloodOnEntityDamage(LivingDamageEvent event) {
-
-        if (!isConfigLoaded) return;
+        if (!BloodyBitsMod.isCommonConfigLoaded || !BloodyBitsMod.isClientConfigLoaded) return;
 
         if (event.getEntity().level() instanceof ServerLevel serverLevel) {
             createBloodParticles(serverLevel, event.getEntity(), event.getSource().type(), event.getAmount());
@@ -86,7 +87,7 @@ public class BloodyBitsEvents {
      */
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void creeperExplosionEvent(ExplosionEvent.Detonate event) {
-        if (!isConfigLoaded) return;
+        if (!BloodyBitsMod.isCommonConfigLoaded || !BloodyBitsMod.isClientConfigLoaded) return;
 
         if (event.getLevel() instanceof ServerLevel serverLevel &&
                 event.getExplosion().getDirectSourceEntity() instanceof Creeper creeper) {

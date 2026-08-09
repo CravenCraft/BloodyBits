@@ -14,7 +14,7 @@ import net.minecraftforge.fml.common.Mod;
 import java.util.ArrayList;
 import java.util.List;
 
-@Mod.EventBusSubscriber(modid = BloodyBitsMod.MODID, value = Dist.CLIENT)
+@Mod.EventBusSubscriber(modid = BloodyBitsMod.MODID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class BloodyBitsClientEvents {
 
     @SubscribeEvent

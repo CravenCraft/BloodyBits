@@ -8,8 +8,10 @@ import com.mojang.logging.LogUtils;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModContainer;
+import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
+import net.minecraftforge.fml.event.config.ModConfigEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.slf4j.Logger;
 
@@ -20,21 +22,42 @@ public class BloodyBitsMod {
     // Directly reference a slf4j logger
     public static final Logger LOGGER = LogUtils.getLogger();
 
+    public static boolean isClientConfigLoaded;
+    public static boolean isCommonConfigLoaded;
+
     public BloodyBitsMod() {
-        var modLoadingContext = FMLJavaModLoadingContext.get();
-        IEventBus modEventBus = modLoadingContext.getModEventBus();
-        MinecraftForge.EVENT_BUS.register(this);
+        IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
         ParticleRegistry.register(modEventBus);
         BloodyBitsSounds.register(modEventBus);
 
 //        NeoForge.EVENT_BUS.register(this);
+//        MinecraftForge.EVENT_BUS.register(this);
 
         // Register our mod's ModConfigSpec so that FML can create and load the config file for us
-        modLoadingContext.registerConfig(ModConfig.Type.CLIENT, ClientConfig.SPEC, String.format("%s-client.toml", BloodyBitsMod.MODID));
-        modLoadingContext.registerConfig(ModConfig.Type.COMMON, CommonConfig.SPEC, String.format("%s-common.toml", BloodyBitsMod.MODID));
-//        registerConfigScreen(modContainer);
+        ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, ClientConfig.SPEC);
+        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, CommonConfig.SPEC);
 
+        modEventBus.addListener(this::onConfigLoad);
+        modEventBus.addListener(this::onConfigReload);
+    }
+
+    private void onConfigLoad(final ModConfigEvent.Loading event) {
+        if (event.getConfig().getSpec() == ClientConfig.SPEC) {
+            isClientConfigLoaded = true;
+        }
+        if  (event.getConfig().getSpec() == CommonConfig.SPEC) {
+            isCommonConfigLoaded = true;
+        }
+    }
+
+    private void onConfigReload(final ModConfigEvent.Reloading event) {
+        if (event.getConfig().getSpec() == ClientConfig.SPEC) {
+            isClientConfigLoaded = true;
+        }
+        if  (event.getConfig().getSpec() == CommonConfig.SPEC) {
+            isCommonConfigLoaded = true;
+        }
     }
 
 //    @OnlyIn(Dist.CLIENT)

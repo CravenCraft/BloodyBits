@@ -113,8 +113,8 @@ public class BloodDripParticle extends TextureSheetParticle {
     }
 
     @Override
-    public AABB getRenderBoundingBox(float partialTicks) {
-        float size = getQuadSize(partialTicks);
+    public @NotNull AABB getBoundingBox() {
+        float size = this.quadSize;
         return new AABB(this.x - size, this.y - size, this.z - size, this.x + size, this.y + size + this.ceiling, this.z + size);
     }
 
