@@ -1,22 +1,23 @@
 package com.cravencraft.bloodybits.config;
 
-import net.neoforged.neoforge.common.ModConfigSpec;
+
+import net.minecraftforge.common.ForgeConfigSpec;
 
 public class ClientConfig {
-    public static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
+    public static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
 
 //    private static final String BURN_DAMAGE_COLOR = "#323232";
 //    private static final ModConfigSpec.ConfigValue<List<? extends String>> BURN_DAMAGE_SOURCE;
 
 
-    private static final ModConfigSpec.IntValue BLOOD_SPATTER_LIFETIME;
-    private static final ModConfigSpec.DoubleValue BLOOD_SPATTER_SOUND_VOLUME;
+    private static final ForgeConfigSpec.IntValue BLOOD_SPATTER_LIFETIME;
+    private static final ForgeConfigSpec.DoubleValue BLOOD_SPATTER_SOUND_VOLUME;
 
 
     public static int getBloodSpatterLifeTime() { return BLOOD_SPATTER_LIFETIME.get(); }
     public static double bloodSpatterSoundVolume() { return BLOOD_SPATTER_SOUND_VOLUME.get(); }
 
-    public static final ModConfigSpec SPEC;
+    public static final ForgeConfigSpec SPEC;
 
     static {
 

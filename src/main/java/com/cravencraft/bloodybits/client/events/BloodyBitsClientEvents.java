@@ -6,15 +6,15 @@ import com.cravencraft.bloodybits.client.particle.drip.BloodDripParticle;
 import com.cravencraft.bloodybits.client.particle.spatter.BloodSpatterParticle;
 import com.cravencraft.bloodybits.client.particle.spray.BloodSprayParticle;
 import com.cravencraft.bloodybits.registries.ParticleRegistry;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.RegisterParticleProvidersEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@EventBusSubscriber(modid = BloodyBitsMod.MODID, value = Dist.CLIENT)
+@Mod.EventBusSubscriber(modid = BloodyBitsMod.MODID, value = Dist.CLIENT)
 public class BloodyBitsClientEvents {
 
     @SubscribeEvent

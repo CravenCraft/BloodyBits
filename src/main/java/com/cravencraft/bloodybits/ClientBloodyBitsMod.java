@@ -1,13 +1,12 @@
 package com.cravencraft.bloodybits;
 
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.fml.ModContainer;
-import net.neoforged.fml.common.Mod;
-import net.neoforged.neoforge.client.gui.ConfigurationScreen;
-import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 
-@Mod(value = BloodyBitsMod.MODID, dist = Dist.CLIENT)
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.ModContainer;
+import net.minecraftforge.fml.common.Mod;
+
+@Mod(value = BloodyBitsMod.MODID)
 public class ClientBloodyBitsMod {
 
     public ClientBloodyBitsMod(IEventBus eventBus, ModContainer container) {

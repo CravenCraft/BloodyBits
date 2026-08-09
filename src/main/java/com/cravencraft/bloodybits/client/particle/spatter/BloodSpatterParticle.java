@@ -18,12 +18,13 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
+import java.util.Collections;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.TreeSet;
@@ -548,7 +549,7 @@ public class BloodSpatterParticle extends TextureSheetParticle {
 
         // Want to reverse the list if we need to flip the image.
         if (direction == Direction.UP || this.direction == Direction.NORTH || direction == Direction.WEST) {
-            cornersList = cornersList.reversed();
+            Collections.reverse(cornersList);
         }
 
         for (Vec2 corner : cornersList) {
@@ -622,10 +623,10 @@ public class BloodSpatterParticle extends TextureSheetParticle {
 
     private void makeCornerVertex(Vector3f pVertex, float pU, float pV, float alphaMultiplier) {
         this.vertexConsumer
-                .addVertex(pVertex.x(), pVertex.y(), pVertex.z())
-                .setColor(this.rCol, this.gCol, this.bCol, this.alpha * alphaMultiplier)
-                .setUv(pU, pV)
-                .setLight(this.light);
+                .vertex(pVertex.x(), pVertex.y(), pVertex.z())
+                .color(this.rCol, this.gCol, this.bCol, this.alpha * alphaMultiplier)
+                .uv(pU, pV)
+                .uv2(this.light);
     }
 
     private void createDrip() {

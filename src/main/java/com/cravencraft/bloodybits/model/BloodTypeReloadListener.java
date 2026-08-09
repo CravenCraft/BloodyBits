@@ -6,20 +6,21 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.mojang.serialization.DynamicOps;
+import com.mojang.serialization.JsonOps;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.AddReloadListenerEvent;
+import net.minecraftforge.event.AddReloadListenerEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-@EventBusSubscriber
+@Mod.EventBusSubscriber
 public class BloodTypeReloadListener extends SimpleJsonResourceReloadListener {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
     public static final String DIRECTORY = "blood_colors";
@@ -38,12 +39,12 @@ public class BloodTypeReloadListener extends SimpleJsonResourceReloadListener {
                          @NotNull ResourceManager resourceManager,
                          @NotNull ProfilerFiller profiler) {
 
-        DynamicOps<JsonElement> ops = this.makeConditionalOps();
+//        DynamicOps<JsonElement> ops = this.makeConditionalOps();
         List<BloodType> bloodTypes = new ArrayList<>();
 
         for (Map.Entry<ResourceLocation, JsonElement> entry : object.entrySet()) {
 
-            BloodType.CODEC.parse(ops, entry.getValue())
+            BloodType.CODEC.parse(JsonOps.INSTANCE, entry.getValue())
                     .resultOrPartial(error -> BloodyBitsMod.LOGGER.error("Failed to parse blood color {}: {}",
                             entry.getKey(), error))
                     .ifPresent(bloodTypes::add);

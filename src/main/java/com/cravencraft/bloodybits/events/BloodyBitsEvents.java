@@ -14,14 +14,14 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.bus.api.EventPriority;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.fml.event.config.ModConfigEvent;
-import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
-import net.neoforged.neoforge.event.level.ExplosionEvent;
+import net.minecraftforge.event.entity.living.LivingDamageEvent;
+import net.minecraftforge.event.level.ExplosionEvent;
+import net.minecraftforge.eventbus.api.EventPriority;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.event.config.ModConfigEvent;
 
-@EventBusSubscriber(modid = BloodyBitsMod.MODID)
+@Mod.EventBusSubscriber(modid = BloodyBitsMod.MODID)
 public class BloodyBitsEvents {
 
     private static boolean isConfigLoaded;
@@ -37,56 +37,17 @@ public class BloodyBitsEvents {
         isConfigLoaded = true;
     }
 
-//    @SubscribeEvent
-//    public static void testBlockTextureOverlay(PlayerInteractEvent.RightClickBlock event) {
-//
-//        if (!isConfigLoaded) return;
-//
-//        var level = event.getLevel();
-//        var server =  level.getServer();
-//
-//        if (level instanceof ServerLevel serverLevel &&
-//                server != null &&
-//                event.getHand() == InteractionHand.MAIN_HAND &&
-//                event.getItemStack().getItem() == Items.BLAZE_ROD) {
-//            var player = event.getEntity();
-//            var x = player.getX();
-//            var y = player.getY() + 1.5;
-//            var z = player.getZ();
-//            var playerBlockPos = player.getOnPos();
-//            var playerFacingDirection = player.getDirection();
-//            var lookAngle = player.getLookAngle();
-//
-//           server.getPlayerList().getPlayers().forEach(serverPlayer -> (serverLevel)
-//                    .sendParticles(
-//                            serverPlayer,
-//                            new BloodSprayParticleOptions(ParticleRegistry.DEFAULT_BLOOD_COLOR, lookAngle, 1.0f),
-//                            true,
-//                            x,
-//                            y,
-//                            z,
-//                            1,
-//                            lookAngle.x,
-//                            lookAngle.y,
-//                            lookAngle.z,
-//                            0.0
-//                    )
-//            );
-//        }
-//
-//    }
-
     /**
      * Looks for all the players on a given server and creates blood sprays if the damage event is
      * close enough to any of the players.
      */
     @SubscribeEvent
-    public static void bloodOnEntityDamage(LivingDamageEvent.Post event) {
+    public static void bloodOnEntityDamage(LivingDamageEvent event) {
 
         if (!isConfigLoaded) return;
 
         if (event.getEntity().level() instanceof ServerLevel serverLevel) {
-            createBloodParticles(serverLevel, event.getEntity(), event.getSource().type(), event.getNewDamage());
+            createBloodParticles(serverLevel, event.getEntity(), event.getSource().type(), event.getAmount());
         }
     }
 
@@ -129,8 +90,8 @@ public class BloodyBitsEvents {
 
         if (event.getLevel() instanceof ServerLevel serverLevel &&
                 event.getExplosion().getDirectSourceEntity() instanceof Creeper creeper) {
-
-            var explosionDamageType = serverLevel.damageSources().source(DamageTypes.EXPLOSION).type();
+//            event.getExplosion().getDamageSource().type()
+            var explosionDamageType = event.getExplosion().getDamageSource().type();
             var explosionDamageAmount = 25.0f;
             createBloodParticles(serverLevel, creeper, explosionDamageType, explosionDamageAmount);
         }
@@ -163,7 +124,8 @@ public class BloodyBitsEvents {
         if (damageAmount == Float.MAX_VALUE) return;
 
         if (damageAmount <= 0) return;
-        damageAmount = Math.clamp(damageAmount, 1, 50);
+
+        damageAmount = Math.max(1, Math.min(50, damageAmount));
 
         int count = serverLevel.random.nextIntBetweenInclusive(1, (int) damageAmount);
         double bbShove = Math.max(aabb.getXsize() * 0.5 - 0.5, 0);

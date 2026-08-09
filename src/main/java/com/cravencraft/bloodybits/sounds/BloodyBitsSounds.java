@@ -1,17 +1,17 @@
 package com.cravencraft.bloodybits.sounds;
 
 import com.cravencraft.bloodybits.BloodyBitsMod;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.neoforge.registries.DeferredRegister;
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.registries.DeferredRegister;
+import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.function.Supplier;
 
 public class BloodyBitsSounds {
     public static final DeferredRegister<SoundEvent> SOUND_EVENTS =
-            DeferredRegister.create(BuiltInRegistries.SOUND_EVENT, BloodyBitsMod.MODID);
+            DeferredRegister.create(ForgeRegistries.SOUND_EVENTS, BloodyBitsMod.MODID);
 
 
     public static final Supplier<SoundEvent> BLOOD_SPATTER = registerSoundEvent("blood_spatter");

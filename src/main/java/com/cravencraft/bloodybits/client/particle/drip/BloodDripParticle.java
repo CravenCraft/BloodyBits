@@ -7,8 +7,8 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.*;
 import net.minecraft.core.Direction;
 import net.minecraft.world.phys.AABB;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
@@ -105,10 +105,10 @@ public class BloodDripParticle extends TextureSheetParticle {
 
     private void renderVertex(VertexConsumer buffer, Camera camera, float x, float y, float z, float u, float v, float partialTick) {
         buffer
-                .addVertex(x, y, z)
-                .setColor(this.rCol, this.gCol, this.bCol, this.alpha)
-                .setUv(u, v)
-                .setLight(this.getLightColor(partialTick));
+                .vertex(x, y, z)
+                .color(this.rCol, this.gCol, this.bCol, this.alpha)
+                .uv(u, v)
+                .uv2(this.getLightColor(partialTick));
 
     }
 
