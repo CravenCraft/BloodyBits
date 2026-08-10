@@ -41,12 +41,12 @@ To edit the blood color types, simply add a custom datapack to override the mod'
 
 The `blood_colors` folder contains a list of JSON files. The names of these files don't matter. Each file simply 
 contains a JSON object that has two properties: `entity_tag` and `color`. The `entity_tag` will references the desired 
-JSON file in the `tags/entity_type` directory. The `color` property will reference the desired hex code color value 
+JSON file in the `tags/entity_types` directory. The `color` property will reference the desired hex code color value 
 that you want the entities to bleed.
 
 ![blood_colors_structure.png](screenshots/blood_colors_structure.png)
 
-The `tags` folder contains a subfolder `entity_type`. This is a built-in Minecraft structure that allows us to add 
+The `tags` folder contains a subfolder `entity_types`. This is a built-in Minecraft structure that allows us to add 
 certain tags to entities for reference. Here, we simply create the JSON file that will act as the tag's name, and 
 populate it with a list of entities that we want this tag to apply to.
 

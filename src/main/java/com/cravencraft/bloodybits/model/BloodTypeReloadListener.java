@@ -38,8 +38,6 @@ public class BloodTypeReloadListener extends SimpleJsonResourceReloadListener {
     protected void apply(@NotNull Map<ResourceLocation, JsonElement> object,
                          @NotNull ResourceManager resourceManager,
                          @NotNull ProfilerFiller profiler) {
-
-//        DynamicOps<JsonElement> ops = this.makeConditionalOps();
         List<BloodType> bloodTypes = new ArrayList<>();
 
         for (Map.Entry<ResourceLocation, JsonElement> entry : object.entrySet()) {

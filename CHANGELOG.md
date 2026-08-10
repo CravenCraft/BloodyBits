@@ -1,3 +1,7 @@
+## V2.0.2 Datapack Structure Hotfix
+- Fixed an issue with the built-in datapack structure. Changes `entity_type` to `entity_types` to be compliant with 
+    the 1.20.1 datapack structure.
+
 ## V2.0.1 Server Issue Hotfix
 - Fixed a config issue causing blood sprays not to spawn on servers.
 
