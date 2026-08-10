@@ -106,9 +106,10 @@ public class BloodDripParticle extends TextureSheetParticle {
     private void renderVertex(VertexConsumer buffer, Camera camera, float x, float y, float z, float u, float v, float partialTick) {
         buffer
                 .vertex(x, y, z)
-                .color(this.rCol, this.gCol, this.bCol, this.alpha)
                 .uv(u, v)
-                .uv2(this.getLightColor(partialTick));
+                .color(this.rCol, this.gCol, this.bCol, this.alpha)
+                .uv2(this.getLightColor(partialTick))
+                .endVertex();
 
     }
 

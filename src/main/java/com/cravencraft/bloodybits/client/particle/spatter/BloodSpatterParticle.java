@@ -24,10 +24,7 @@ import org.jetbrains.annotations.NotNull;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
-import java.util.Collections;
-import java.util.HexFormat;
-import java.util.List;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.function.Consumer;
 
 /**
@@ -545,7 +542,7 @@ public class BloodSpatterParticle extends TextureSheetParticle {
 
         // Determines the corners
         // Gotta flip it & draw it the opposite way for it being direction UP.
-        var cornersList = List.of(corners);
+        var cornersList = new ArrayList<>(List.of(corners));
 
         // Want to reverse the list if we need to flip the image.
         if (direction == Direction.UP || this.direction == Direction.NORTH || direction == Direction.WEST) {
@@ -624,9 +621,10 @@ public class BloodSpatterParticle extends TextureSheetParticle {
     private void makeCornerVertex(Vector3f pVertex, float pU, float pV, float alphaMultiplier) {
         this.vertexConsumer
                 .vertex(pVertex.x(), pVertex.y(), pVertex.z())
-                .color(this.rCol, this.gCol, this.bCol, this.alpha * alphaMultiplier)
                 .uv(pU, pV)
-                .uv2(this.light);
+                .color(this.rCol, this.gCol, this.bCol, this.alpha * alphaMultiplier)
+                .uv2(this.light)
+                .endVertex();
     }
 
     private void createDrip() {
