@@ -1,5 +1,6 @@
 package com.cravencraft.bloodybits.client.particle.spatter;
 
+import com.cravencraft.bloodybits.BloodyBitsMod;
 import com.cravencraft.bloodybits.config.ClientConfig;
 import com.cravencraft.bloodybits.client.particle.drip.BloodDripParticleOptions;
 import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
@@ -38,6 +39,7 @@ public class BloodSpatterParticle extends TextureSheetParticle {
     private static final float DEGREES_90 = Mth.PI / 2f;
     private static final int FADEOUT_BUFFER = 20;
     private static final float INITIAL_ALPHA = 1.0f;
+    private static final int FALLBACK_LIFETIME = 600;
     private final int fadeoutTime;
     private final Direction direction;
     private final float yawRotation;
@@ -68,12 +70,12 @@ public class BloodSpatterParticle extends TextureSheetParticle {
         this.zd = zSpeed;
         this.quadSize = 1.5f * scale;
         this.gravity = 0.0f;
-        this.lifetime = ClientConfig.getBloodSpatterLifeTime();
+        this.lifetime = (BloodyBitsMod.isClientConfigLoaded) ? ClientConfig.getBloodSpatterLifeTime() : FALLBACK_LIFETIME;
         this.setSize(1.0f, 1.0f);
         this.scale(3f);
         this.pickSprite(spriteSet);
         this.direction = Direction.from3DDataValue(direction);
-        this.fadeoutTime = ClientConfig.getBloodSpatterLifeTime() / 2;
+        this.fadeoutTime = this.lifetime / 2;
         this.yawRotation = this.random.nextInt(4) * DEGREES_90;
         this.color = color;
         this.rCol = BloodyBitsUtils.normalizeColorValue(HexFormat.fromHexDigits(color, 1, 3));

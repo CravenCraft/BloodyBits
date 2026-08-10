@@ -19,6 +19,7 @@ public class BloodDripParticle extends TextureSheetParticle {
     private double ceiling;
     private double floor;
     private float thickness;
+    private int light;
 
     protected BloodDripParticle(ClientLevel level, double x, double y, double z,
                                 SpriteSet spriteSet, String color, int direction, float alpha) {
@@ -34,6 +35,7 @@ public class BloodDripParticle extends TextureSheetParticle {
         this.floor = y - 2;
         this.thickness = 0.05F;
         this.alpha = alpha;
+        this.light = this.getLightColor(0);
 
         this.pickSprite(spriteSet);
     }
@@ -108,7 +110,7 @@ public class BloodDripParticle extends TextureSheetParticle {
                 .vertex(x, y, z)
                 .uv(u, v)
                 .color(this.rCol, this.gCol, this.bCol, this.alpha)
-                .uv2(this.getLightColor(partialTick))
+                .uv2(this.light)
                 .endVertex();
 
     }

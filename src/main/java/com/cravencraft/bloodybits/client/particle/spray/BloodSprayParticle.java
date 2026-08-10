@@ -1,5 +1,6 @@
 package com.cravencraft.bloodybits.client.particle.spray;
 
+import com.cravencraft.bloodybits.BloodyBitsMod;
 import com.cravencraft.bloodybits.client.particle.emitter.BloodEmitterParticle;
 import com.cravencraft.bloodybits.client.particle.spatter.BloodSpatterParticle;
 import com.cravencraft.bloodybits.client.particle.spatter.BloodSpatterParticleOptions;
@@ -29,12 +30,14 @@ import java.util.List;
 import java.util.Random;
 
 public class BloodSprayParticle extends TextureSheetParticle {
+    private static final double FALLBACK_SOUND_VOLUME = 0.75;
     private final String color;
     float scaleTransition;
     private boolean mirrored;
     private boolean underwater;
     private Vec3 collisionVector;
     private final float angularVelocity;
+    private final double soundVolume;
     private SoundEvent soundEvent;
 
     public BloodSprayParticle(
@@ -66,6 +69,7 @@ public class BloodSprayParticle extends TextureSheetParticle {
         this.rCol = BloodyBitsUtils.normalizeColorValue(HexFormat.fromHexDigits(color, 1, 3));
         this.gCol = BloodyBitsUtils.normalizeColorValue(HexFormat.fromHexDigits(color, 3, 5));
         this.bCol = BloodyBitsUtils.normalizeColorValue(HexFormat.fromHexDigits(color.substring(5)));
+        this.soundVolume = (BloodyBitsMod.isClientConfigLoaded) ? ClientConfig.bloodSpatterSoundVolume() : FALLBACK_SOUND_VOLUME;
 
         this.scaleTransition = 1f + (float) Math.random();
         this.mirrored = level.random.nextBoolean();
@@ -143,10 +147,10 @@ public class BloodSprayParticle extends TextureSheetParticle {
                 true, this.x, this.y, this.z,
                 0.0D, 0.0D, 0.0D);
 
-        this.soundEvent = BloodyBitsUtils.getRandomSound(new Random().nextInt(3));
-        var volume = (float) ClientConfig.bloodSpatterSoundVolume();
-        var pitch = BloodyBitsUtils.getRandomPitch();
-        this.level.playLocalSound(this.x, this.y, this.z, this.soundEvent, SoundSource.AMBIENT, volume, pitch, true);
+        var soundEvent = BloodyBitsUtils.getRandomSound(new Random().nextInt(3));
+        this.level.playLocalSound(this.x, this.y, this.z,
+                soundEvent, SoundSource.AMBIENT, (float) this.soundVolume,
+                BloodyBitsUtils.getRandomPitch(), true);
 
         this.remove();
     }

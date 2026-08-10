@@ -1,3 +1,6 @@
+## V2.0.1 Server Issue Hotfix
+- Fixed a config issue causing blood sprays not to spawn on servers.
+
 ## V2.0.0 Complete Overhaul
 Bloody Bits has been completely overhauled! Blood spatters are now particles! This means a massive boost in performance
 along with fixing a heap of issues that players were having with some mods such as map mods detecting them as entities.

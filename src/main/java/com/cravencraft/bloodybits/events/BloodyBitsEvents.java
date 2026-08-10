@@ -9,7 +9,6 @@ import com.cravencraft.bloodybits.registries.ParticleRegistry;
 import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageType;
-import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.phys.AABB;
@@ -19,25 +18,11 @@ import net.minecraftforge.event.level.ExplosionEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.config.ModConfigEvent;
 
 @Mod.EventBusSubscriber(modid = BloodyBitsMod.MODID)
 public class BloodyBitsEvents {
 
-//    private static boolean isConfigLoaded;
     private static final String doesNotBleed = "does_not_bleed";
-
-//    @SubscribeEvent
-//    public static void isConfigLoaded(ModConfigEvent.Loading event) {
-//        BloodyBitsMod.LOGGER.info("BloodyBitsEvents isConfigLoaded");
-//        isConfigLoaded = true;
-//    }
-//
-//    @SubscribeEvent
-//    public static void isConfigReloading(ModConfigEvent.Reloading event) {
-//        BloodyBitsMod.LOGGER.info("BloodyBitsEvents isConfigReloaded");
-//        isConfigLoaded = true;
-//    }
 
     /**
      * Looks for all the players on a given server and creates blood sprays if the damage event is
@@ -45,8 +30,6 @@ public class BloodyBitsEvents {
      */
     @SubscribeEvent
     public static void bloodOnEntityDamage(LivingDamageEvent event) {
-        if (!BloodyBitsMod.isCommonConfigLoaded || !BloodyBitsMod.isClientConfigLoaded) return;
-
         if (event.getEntity().level() instanceof ServerLevel serverLevel) {
             createBloodParticles(serverLevel, event.getEntity(), event.getSource().type(), event.getAmount());
         }
@@ -87,11 +70,8 @@ public class BloodyBitsEvents {
      */
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void creeperExplosionEvent(ExplosionEvent.Detonate event) {
-        if (!BloodyBitsMod.isCommonConfigLoaded || !BloodyBitsMod.isClientConfigLoaded) return;
-
         if (event.getLevel() instanceof ServerLevel serverLevel &&
                 event.getExplosion().getDirectSourceEntity() instanceof Creeper creeper) {
-//            event.getExplosion().getDamageSource().type()
             var explosionDamageType = event.getExplosion().getDamageSource().type();
             var explosionDamageAmount = 25.0f;
             createBloodParticles(serverLevel, creeper, explosionDamageType, explosionDamageAmount);
@@ -100,6 +80,8 @@ public class BloodyBitsEvents {
 
     private static void createBloodParticles(ServerLevel serverLevel, LivingEntity entity,
                                              DamageType damageType, float damageAmount) {
+
+        if (!BloodyBitsMod.isCommonConfigLoaded) return;
 
         if (CommonConfig.blackListDamageSources().contains(damageType.msgId())) return;
 
