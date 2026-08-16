@@ -1,6 +1,7 @@
 package com.cravencraft.bloodybits.events;
 
 import com.cravencraft.bloodybits.BloodyBitsMod;
+import com.cravencraft.bloodybits.client.particle.mist.BloodMistParticleOptions;
 import com.cravencraft.bloodybits.config.CommonConfig;
 import com.cravencraft.bloodybits.model.BloodType;
 import com.cravencraft.bloodybits.client.particle.spray.BloodSprayParticleOptions;
@@ -8,6 +9,7 @@ import com.cravencraft.bloodybits.registries.BloodTypeRegistry;
 import com.cravencraft.bloodybits.registries.ParticleRegistry;
 import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.monster.Creeper;
@@ -30,8 +32,19 @@ public class BloodyBitsEvents {
      */
     @SubscribeEvent
     public static void bloodOnEntityDamage(LivingDamageEvent event) {
+
+        // TODO: Just for testing. Remove before building
+        if (!event.getSource().isCreativePlayer()) return;
+
         if (event.getEntity().level() instanceof ServerLevel serverLevel) {
-            createBloodParticles(serverLevel, event.getEntity(), event.getSource().type(), event.getAmount());
+
+
+//            var damageSourceEntity = event.getSource().getEntity();
+//            var damageSourcePosition = (damageSourceEntity != null) ? damageSourceEntity.position() : event.getEntity().position();
+//            var entityPosition = event.getEntity().position();
+//            var difference = damageSourcePosition.subtract(entityPosition);
+
+            createBloodParticles(serverLevel, event.getEntity(), event.getSource(), event.getAmount());
         }
     }
 
@@ -72,18 +85,18 @@ public class BloodyBitsEvents {
     public static void creeperExplosionEvent(ExplosionEvent.Detonate event) {
         if (event.getLevel() instanceof ServerLevel serverLevel &&
                 event.getExplosion().getDirectSourceEntity() instanceof Creeper creeper) {
-            var explosionDamageType = event.getExplosion().getDamageSource().type();
+            var explosionDamageSource = event.getExplosion().getDamageSource();
             var explosionDamageAmount = 25.0f;
-            createBloodParticles(serverLevel, creeper, explosionDamageType, explosionDamageAmount);
+            createBloodParticles(serverLevel, creeper, explosionDamageSource, explosionDamageAmount);
         }
     }
 
     private static void createBloodParticles(ServerLevel serverLevel, LivingEntity entity,
-                                             DamageType damageType, float damageAmount) {
+                                             DamageSource damageSource, float damageAmount) {
 
         if (!BloodyBitsMod.isCommonConfigLoaded) return;
 
-        if (CommonConfig.blackListDamageSources().contains(damageType.msgId())) return;
+        if (CommonConfig.blackListDamageSources().contains(damageSource.type().msgId())) return;
 
         String bloodColor = ParticleRegistry.DEFAULT_BLOOD_COLOR;
         for (BloodType bloodType : BloodTypeRegistry.getBloodTypes()) {
@@ -115,6 +128,14 @@ public class BloodyBitsEvents {
         double scale = (aabb.getXsize() + 2) / 3f;
         var server = serverLevel.getServer();
 
+        var damageSourceEntity = damageSource.getEntity();
+        var damageSourcePosition = (damageSourceEntity != null) ? damageSourceEntity.position() : entity.position();
+        var entityPosition = entity.position();
+        var difference = damageSourcePosition.subtract(entityPosition).normalize();
+        var testDifference = damageSourcePosition.subtract(entityPosition).normalize();
+        var normalizedDifference = difference.normalize();
+
+        String finalBloodColor = bloodColor;
         for (int i = 0; i < count; i++) {
 
             Vec3 sprayVector = new Vec3(
@@ -123,7 +144,6 @@ public class BloodyBitsEvents {
                     BloodyBitsUtils.applyRandomSign(serverLevel.random.nextIntBetweenInclusive(1, count) * 0.05f)
             );
 
-            String finalBloodColor = bloodColor;
             server.getPlayerList().getPlayers().forEach(player -> (serverLevel)
                     .sendParticles(
                             player,
@@ -140,5 +160,25 @@ public class BloodyBitsEvents {
                     )
             );
         }
+//        Vec3 sprayVector = new Vec3(
+//                BloodyBitsUtils.applyRandomSign(serverLevel.random.nextIntBetweenInclusive(1, count) * 0.05f),
+//                serverLevel.random.nextIntBetweenInclusive(1, count) * 0.05f,
+//                BloodyBitsUtils.applyRandomSign(serverLevel.random.nextIntBetweenInclusive(1, count) * 0.05f)
+//        );
+        server.getPlayerList().getPlayers().forEach(player -> (serverLevel)
+                .sendParticles(
+                        player,
+                        new BloodMistParticleOptions(finalBloodColor, difference, 1.0f),
+                        true,
+                        vec.x,
+                        vec.y + aabb.getYsize() * 0.5,
+                        vec.z,
+                        1,
+                        0.5,
+                        0.5,
+                        0.5,
+                        0.2
+                )
+        );
     }
 }

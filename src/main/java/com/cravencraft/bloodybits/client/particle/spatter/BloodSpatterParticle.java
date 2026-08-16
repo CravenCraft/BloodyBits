@@ -670,7 +670,8 @@ public class BloodSpatterParticle extends TextureSheetParticle {
                                                 double x, double y, double z,
                                                 double xSpeed, double ySpeed, double zSpeed) {
             // We don't use the type and speed, and pass in everything else. You may of course use them if needed.
-            return new BloodSpatterParticle(level, x, y, z,
+            return new BloodSpatterParticle(
+                    level, x, y, z,
                     this.spriteSet, options.color(), options.direction(),
                     options.scale(), xSpeed, ySpeed, zSpeed);
         }

@@ -1,4 +1,4 @@
-package com.cravencraft.bloodybits.client.particle.spray;
+package com.cravencraft.bloodybits.client.particle.mist;
 
 import com.cravencraft.bloodybits.registries.ParticleRegistry;
 import com.mojang.brigadier.StringReader;
@@ -11,23 +11,23 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
-public record BloodSprayParticleOptions(String color, Vec3 direction, float scale) implements ParticleOptions {
+public record BloodMistParticleOptions(String color, Vec3 direction, float scale) implements ParticleOptions {
 
-    public BloodSprayParticleOptions(String color, Double x, Double y, Double z, Float scale) {
+    public BloodMistParticleOptions(String color, Double x, Double y, Double z, Float scale) {
         this(color, new Vec3(x, y, z), scale);
     }
 
-    public static final Codec<BloodSprayParticleOptions> CODEC = RecordCodecBuilder.create(instance ->
+    public static final Codec<BloodMistParticleOptions> CODEC = RecordCodecBuilder.create(instance ->
             instance.group(
-                    Codec.STRING.fieldOf("color").forGetter(BloodSprayParticleOptions::color),
-                    Vec3.CODEC.fieldOf("direction").forGetter(BloodSprayParticleOptions::direction),
-                    Codec.FLOAT.optionalFieldOf("scale", 1f).forGetter(BloodSprayParticleOptions::scale)
-            ).apply(instance, BloodSprayParticleOptions::new)
+                    Codec.STRING.fieldOf("color").forGetter(BloodMistParticleOptions::color),
+                    Vec3.CODEC.fieldOf("direction").forGetter(BloodMistParticleOptions::direction),
+                    Codec.FLOAT.optionalFieldOf("scale", 1f).forGetter(BloodMistParticleOptions::scale)
+            ).apply(instance, BloodMistParticleOptions::new)
     );
 
-    public static final ParticleOptions.Deserializer<BloodSprayParticleOptions> DESERIALIZER = new ParticleOptions.Deserializer<BloodSprayParticleOptions>() {
+    public static final ParticleOptions.Deserializer<BloodMistParticleOptions> DESERIALIZER = new ParticleOptions.Deserializer<BloodMistParticleOptions>() {
         @Override
-        public @NotNull BloodSprayParticleOptions fromCommand(@NotNull ParticleType<BloodSprayParticleOptions> type, @NotNull StringReader reader) throws CommandSyntaxException {
+        public @NotNull BloodMistParticleOptions fromCommand(@NotNull ParticleType<BloodMistParticleOptions> type, @NotNull StringReader reader) throws CommandSyntaxException {
             reader.expect(' ');
             var color = reader.readString();
             reader.expect(' ');
@@ -38,18 +38,18 @@ public record BloodSprayParticleOptions(String color, Vec3 direction, float scal
             var z = reader.readDouble();
             reader.expect(' ');
             var scale = reader.readFloat();
-            return new BloodSprayParticleOptions(color, x, y, z, scale);
+            return new BloodMistParticleOptions(color, x, y, z, scale);
         }
 
         @Override
-        public @NotNull BloodSprayParticleOptions fromNetwork(@NotNull ParticleType<BloodSprayParticleOptions> type, @NotNull FriendlyByteBuf buffer) {
-            return new BloodSprayParticleOptions(buffer.readUtf(), buffer.readDouble(), buffer.readDouble(), buffer.readDouble(), buffer.readFloat());
+        public @NotNull BloodMistParticleOptions fromNetwork(@NotNull ParticleType<BloodMistParticleOptions> type, @NotNull FriendlyByteBuf buffer) {
+            return new BloodMistParticleOptions(buffer.readUtf(), buffer.readDouble(), buffer.readDouble(), buffer.readDouble(), buffer.readFloat());
         }
     };
 
     @Override
     public ParticleType<?> getType() {
-        return ParticleRegistry.BLOOD_SPRAY_PARTICLE.get();
+        return ParticleRegistry.BLOOD_MIST_PARTICLE.get();
     }
 
     @Override
