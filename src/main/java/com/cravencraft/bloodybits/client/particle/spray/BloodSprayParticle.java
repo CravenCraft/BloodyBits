@@ -32,7 +32,7 @@ public class BloodSprayParticle extends TextureSheetParticle {
     private static final double FALLBACK_SOUND_VOLUME = 0.75;
     private final String color;
     float scaleTransition;
-    private boolean mirrored;
+    private final boolean mirrored;
     private boolean underwater;
     private Vec3 collisionVector;
     private final float angularVelocity;
@@ -59,9 +59,11 @@ public class BloodSprayParticle extends TextureSheetParticle {
         this.zd = zd;
 
         this.collisionVector = new Vec3(xd, yd, zd);
-        this.quadSize *= 0.25f + (float) Math.random();
-        this.scale(scale * 2.5f);
+        this.quadSize = scale;
+//        this.quadSize *= 0.25f + (float) Math.random();
+//        this.scale(scale * 2.5f);
         this.lifetime = 40;
+        this.friction = 0.5f;
         this.gravity = 1f;
         this.angularVelocity = 0.075f;
         this.pickSprite(spriteSet);
@@ -83,10 +85,32 @@ public class BloodSprayParticle extends TextureSheetParticle {
 
     @Override
     public void tick() {
-        super.tick();
+        this.xo = this.x;
+        this.yo = this.y;
+        this.zo = this.z;
+
+        if (this.age++ >= this.lifetime) {
+            this.remove();
+        }
+        else {
+            this.yd -= 0.04D * (double)this.gravity;
+            this.move(this.xd, this.yd, this.zd);
+
+            if (this.speedUpWhenYMotionIsBlocked && this.y == this.yo) {
+                this.xd *= 1.1D;
+                this.zd *= 1.1D;
+            }
+
+            this.xd *= this.friction;
+            this.zd *= this.friction;
+            if (this.onGround) {
+                this.xd *= 0.7F;
+                this.zd *= 0.7F;
+            }
+        }
+
         this.oRoll = this.roll;
         this.roll += this.angularVelocity;
-        this.quadSize += 0.01f;
 
         if (this.underwater) {
             this.gravity *= .99f;
@@ -181,11 +205,19 @@ public class BloodSprayParticle extends TextureSheetParticle {
         Quaternionf quaternionf;
         if (this.roll == 0.0F) {
             quaternionf = camera.rotation();
-        } else {
+        }
+        else {
             quaternionf = new Quaternionf(camera.rotation());
             quaternionf.rotateZ(Mth.lerp(partialTicks, this.oRoll, this.roll));
         }
-        Vector3f[] avector3f = new Vector3f[]{new Vector3f(-1.0F, -1.0F, 0.0F), new Vector3f(-1.0F, 1.0F, 0.0F), new Vector3f(1.0F, 1.0F, 0.0F), new Vector3f(1.0F, -1.0F, 0.0F)};
+
+        Vector3f[] avector3f = new Vector3f[] {
+                new Vector3f(-1.0F, -1.0F, 0.0F),
+                new Vector3f(-1.0F, 1.0F, 0.0F),
+                new Vector3f(1.0F, 1.0F, 0.0F),
+                new Vector3f(1.0F, -1.0F, 0.0F)
+        };
+
         float f3 = this.getQuadSize(partialTicks);
 
         for (int i = 0; i < 4; ++i) {
@@ -250,7 +282,7 @@ public class BloodSprayParticle extends TextureSheetParticle {
             return new BloodSprayParticle(
                     level, x, y, z,
                     this.sprites, options.color(),
-                    options.scale(), dx, dy, dz);
+                    options.scale(), options.direction().x, options.direction().y, options.direction().z);
         }
 
 //        @Override

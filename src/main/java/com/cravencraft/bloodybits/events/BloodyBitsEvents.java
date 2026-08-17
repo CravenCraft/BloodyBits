@@ -10,7 +10,6 @@ import com.cravencraft.bloodybits.registries.ParticleRegistry;
 import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.phys.AABB;
@@ -32,18 +31,7 @@ public class BloodyBitsEvents {
      */
     @SubscribeEvent
     public static void bloodOnEntityDamage(LivingDamageEvent event) {
-
-        // TODO: Just for testing. Remove before building
-        if (!event.getSource().isCreativePlayer()) return;
-
         if (event.getEntity().level() instanceof ServerLevel serverLevel) {
-
-
-//            var damageSourceEntity = event.getSource().getEntity();
-//            var damageSourcePosition = (damageSourceEntity != null) ? damageSourceEntity.position() : event.getEntity().position();
-//            var entityPosition = event.getEntity().position();
-//            var difference = damageSourcePosition.subtract(entityPosition);
-
             createBloodParticles(serverLevel, event.getEntity(), event.getSource(), event.getAmount());
         }
     }
@@ -98,6 +86,9 @@ public class BloodyBitsEvents {
 
         if (CommonConfig.blackListDamageSources().contains(damageSource.type().msgId())) return;
 
+        BloodyBitsMod.LOGGER.info("Damage type: {}", damageSource.type());
+        BloodyBitsMod.LOGGER.info("Damage type id: {}", damageSource.type().msgId());
+
         String bloodColor = ParticleRegistry.DEFAULT_BLOOD_COLOR;
         for (BloodType bloodType : BloodTypeRegistry.getBloodTypes()) {
             if (entity.getType().is(bloodType.entityTag())) {
@@ -131,16 +122,16 @@ public class BloodyBitsEvents {
         var damageSourceEntity = damageSource.getEntity();
         var damageSourcePosition = (damageSourceEntity != null) ? damageSourceEntity.position() : entity.position();
         var entityPosition = entity.position();
-        var difference = damageSourcePosition.subtract(entityPosition).normalize();
-        var testDifference = damageSourcePosition.subtract(entityPosition).normalize();
-        var normalizedDifference = difference.normalize();
+        var sprayDirection = entityPosition.subtract(damageSourcePosition).normalize();
+        var mistDirection = damageSourcePosition.subtract(entityPosition).normalize();
 
         String finalBloodColor = bloodColor;
 
+        // TODO: Make the spray and mist a tad bit more random in the general direction that they're going.
         server.getPlayerList().getPlayers().forEach(player -> (serverLevel)
                 .sendParticles(
                         player,
-                        new BloodMistParticleOptions(finalBloodColor, difference, 1.0f),
+                        new BloodSprayParticleOptions(finalBloodColor, sprayDirection, 0.1f),
                         true,
                         vec.x,
                         vec.y + aabb.getYsize() * 0.5,
@@ -153,34 +144,47 @@ public class BloodyBitsEvents {
                 )
         );
 
-        for (int i = 0; i < count; i++) {
+//        for (int i = 0; i < count; i++) {
+//
+//            Vec3 sprayVector = new Vec3(
+//                    BloodyBitsUtils.applyRandomSign(serverLevel.random.nextIntBetweenInclusive(1, count) * 0.05f),
+//                    serverLevel.random.nextIntBetweenInclusive(1, count) * 0.05f,
+//                    BloodyBitsUtils.applyRandomSign(serverLevel.random.nextIntBetweenInclusive(1, count) * 0.05f)
+//            );
+//
+//            server.getPlayerList().getPlayers().forEach(player -> (serverLevel)
+//                    .sendParticles(
+//                            player,
+//                            new BloodSprayParticleOptions(finalBloodColor, sprayDirection, 0.1f),
+//                            true,
+//                            vec.x,
+//                            vec.y + aabb.getYsize() * 0.5,
+//                            vec.z,
+//                            1,
+//                            0.5,
+//                            0.5,
+//                            0.5,
+//                            0.2
+//                    )
+//            );
+//        }
 
-            Vec3 sprayVector = new Vec3(
-                    BloodyBitsUtils.applyRandomSign(serverLevel.random.nextIntBetweenInclusive(1, count) * 0.05f),
-                    serverLevel.random.nextIntBetweenInclusive(1, count) * 0.05f,
-                    BloodyBitsUtils.applyRandomSign(serverLevel.random.nextIntBetweenInclusive(1, count) * 0.05f)
-            );
+        if (!CommonConfig.bloodMistDamageSources().contains(damageSource.type().msgId())) return;
 
-            server.getPlayerList().getPlayers().forEach(player -> (serverLevel)
-                    .sendParticles(
-                            player,
-                            new BloodSprayParticleOptions(finalBloodColor, sprayVector, 1.0f),
-                            true,
-                            vec.x,
-                            vec.y + aabb.getYsize() * 0.5,
-                            vec.z,
-                            1,
-                            0.5,
-                            0.5,
-                            0.5,
-                            0.2
-                    )
-            );
-        }
-//        Vec3 sprayVector = new Vec3(
-//                BloodyBitsUtils.applyRandomSign(serverLevel.random.nextIntBetweenInclusive(1, count) * 0.05f),
-//                serverLevel.random.nextIntBetweenInclusive(1, count) * 0.05f,
-//                BloodyBitsUtils.applyRandomSign(serverLevel.random.nextIntBetweenInclusive(1, count) * 0.05f)
-//        );
+        server.getPlayerList().getPlayers().forEach(player -> (serverLevel)
+                .sendParticles(
+                        player,
+                        new BloodMistParticleOptions(finalBloodColor, mistDirection, 1.0f),
+                        true,
+                        vec.x,
+                        vec.y + aabb.getYsize() * 0.5,
+                        vec.z,
+                        1,
+                        0.5,
+                        0.5,
+                        0.5,
+                        0.1
+                )
+        );
     }
 }

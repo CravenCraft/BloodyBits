@@ -68,7 +68,7 @@ public class BloodSpatterParticle extends TextureSheetParticle {
         this.xd = xSpeed;
         this.yd = ySpeed;
         this.zd = zSpeed;
-        this.quadSize = 1.5f * scale;
+        this.quadSize = scale + 0.25f;
         this.gravity = 0.0f;
         this.lifetime = (BloodyBitsMod.isClientConfigLoaded) ? ClientConfig.getBloodSpatterLifeTime() : FALLBACK_LIFETIME;
         this.setSize(1.0f, 1.0f);

@@ -1,3 +1,6 @@
+## V2.1.0 Particle Update
+- Added a blood impact mist particle for projectile impacts.
+
 ## V2.0.2 Datapack Structure Hotfix
 - Fixed an issue with the built-in datapack structure. Changes `entity_type` to `entity_types` to be compliant with 
     the 1.20.1 datapack structure.
