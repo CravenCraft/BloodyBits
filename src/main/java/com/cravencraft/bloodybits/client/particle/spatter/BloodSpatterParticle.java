@@ -118,7 +118,9 @@ public class BloodSpatterParticle extends TextureSheetParticle {
         // If the current age reaches the fadeThreshold, then decrease the quad size while fading the alpha.
         if (f > fadeThreshold) {
             quadSize *= (float) Mth.smoothstep(1.0 - Math.max(f - fadeThreshold - 60, 0) / fadeoutTime);
+            var alphaSubtractAmount = Mth.clamp((f - fadeThreshold) / fadeoutTime, 1f - INITIAL_ALPHA, 1F);
             this.alpha = 1.0F - Mth.clamp((f - fadeThreshold) / fadeoutTime, 1f - INITIAL_ALPHA, 1F);
+//            BloodyBitsMod.LOGGER.info("current alpha: " + this.alpha + " | subtract amount: " + alphaSubtractAmount);
         }
 
         this.spatterQuadSize = quadSize;

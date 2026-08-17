@@ -136,6 +136,23 @@ public class BloodyBitsEvents {
         var normalizedDifference = difference.normalize();
 
         String finalBloodColor = bloodColor;
+
+        server.getPlayerList().getPlayers().forEach(player -> (serverLevel)
+                .sendParticles(
+                        player,
+                        new BloodMistParticleOptions(finalBloodColor, difference, 1.0f),
+                        true,
+                        vec.x,
+                        vec.y + aabb.getYsize() * 0.5,
+                        vec.z,
+                        1,
+                        0.5,
+                        0.5,
+                        0.5,
+                        0.2
+                )
+        );
+
         for (int i = 0; i < count; i++) {
 
             Vec3 sprayVector = new Vec3(
@@ -165,20 +182,5 @@ public class BloodyBitsEvents {
 //                serverLevel.random.nextIntBetweenInclusive(1, count) * 0.05f,
 //                BloodyBitsUtils.applyRandomSign(serverLevel.random.nextIntBetweenInclusive(1, count) * 0.05f)
 //        );
-        server.getPlayerList().getPlayers().forEach(player -> (serverLevel)
-                .sendParticles(
-                        player,
-                        new BloodMistParticleOptions(finalBloodColor, difference, 1.0f),
-                        true,
-                        vec.x,
-                        vec.y + aabb.getYsize() * 0.5,
-                        vec.z,
-                        1,
-                        0.5,
-                        0.5,
-                        0.5,
-                        0.2
-                )
-        );
     }
 }
