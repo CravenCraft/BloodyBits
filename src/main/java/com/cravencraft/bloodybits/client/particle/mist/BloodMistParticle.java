@@ -18,6 +18,7 @@ public class BloodMistParticle extends TextureSheetParticle {
     private final String color;
     private static final float INITIAL_ALPHA = 0.35f;
     private float scale;
+    private int halfLife;
 
 
     public BloodMistParticle(ClientLevel level,
@@ -33,9 +34,10 @@ public class BloodMistParticle extends TextureSheetParticle {
         this.yd = yd;
         this.zd = zd;
         this.pickSprite(spriteSet);
-        this.lifetime = 40;
+        this.lifetime = 60;
+        this.halfLife = this.lifetime;
         this.friction = 0.001f;
-        this.gravity = 0.0f;
+        this.gravity = 0.1f;
         this.alpha = INITIAL_ALPHA; // TODO: Why does the particle stop rendering below a certain IMAGE alpha level?
         this.scale = ClientConfig.getBloodMistScale() + 3;
         this.scale(this.scale);
@@ -76,6 +78,13 @@ public class BloodMistParticle extends TextureSheetParticle {
 //        if (this.alpha <= 0.00f) {
 //            this.remove();
 //        }
+
+//        if (this.age >= this.halfLife) {
+
+            this.alpha = INITIAL_ALPHA - Mth.clamp((((float) this.age) / this.halfLife) * INITIAL_ALPHA, 0.000f, INITIAL_ALPHA);
+//            this.alpha = INITIAL_ALPHA - clamp;
+            BloodyBitsMod.LOGGER.info("current alpha: " + this.alpha);
+//        }
         BloodyBitsMod.LOGGER.info("age: " + this.age);
     }
 
@@ -83,15 +92,10 @@ public class BloodMistParticle extends TextureSheetParticle {
     public void render(@NotNull VertexConsumer buffer, @NotNull Camera camera, float partialTick) {
         super.render(buffer, camera, partialTick);
 
-        float f = this.age + partialTick; // Current age with the given partial tick
-
 //        BloodyBitsMod.LOGGER.info("age: {} partial tick: {} age plus partial tick: {}", this.age, partialTick, f);
-        var clamp = Mth.clamp((f / this.lifetime) * INITIAL_ALPHA, 0.000f, INITIAL_ALPHA);
 //        BloodyBitsMod.LOGGER.info("clamp: {}", clamp);
-        this.alpha = INITIAL_ALPHA - clamp;
 //        this.setAlpha();
 //        BloodyBitsMod.LOGGER.info("age: " + this.age);
-        BloodyBitsMod.LOGGER.info("current alpha: " + this.alpha);
 //        this.quadSize -= 0.001f;
     }
 
