@@ -2,6 +2,7 @@ package com.cravencraft.bloodybits.utils;
 
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec2;
 
 import java.util.*;
@@ -15,6 +16,17 @@ public class BloodyBitsUtils {
             case 2 -> SoundEvents.WET_GRASS_HIT;
             default -> SoundEvents.MUD_STEP;
         };
+    }
+
+    public static double getRandomVariance(double min, double max) {
+        return min + (Math.random() * (max - min));
+    }
+
+    public static double getRandomVarianceTest(double originalValue) {
+        var randomVariance = new Random().nextInt(-1, 1);
+        var test = Mth.clamp(originalValue - (Math.random() * randomVariance), 0.0F, 1.0F);
+
+        return test;
     }
 
     public static float getRandomPitch() {

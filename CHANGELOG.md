@@ -1,5 +1,8 @@
 ## V2.1.0 Particle Update
-- Added a blood impact mist particle for projectile impacts.
+- Added a blood impact mist particles for projectile impacts, which will move towards the damage source (with some random variance).
+- Changed blood spray particles to be less over the top by default.
+- Made blood spatters slightly smaller.
+- Blood spray will go in the opposite direction of the damage (with some random variance).
 
 ## V2.0.2 Datapack Structure Hotfix
 - Fixed an issue with the built-in datapack structure. Changes `entity_type` to `entity_types` to be compliant with 

@@ -9,6 +9,7 @@ import com.cravencraft.bloodybits.registries.BloodTypeRegistry;
 import com.cravencraft.bloodybits.registries.ParticleRegistry;
 import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.monster.Creeper;
@@ -122,12 +123,20 @@ public class BloodyBitsEvents {
         var damageSourceEntity = damageSource.getEntity();
         var damageSourcePosition = (damageSourceEntity != null) ? damageSourceEntity.position() : entity.position();
         var entityPosition = entity.position();
-        var sprayDirection = entityPosition.subtract(damageSourcePosition).normalize();
-        var mistDirection = damageSourcePosition.subtract(entityPosition).normalize();
+        var min = 0.1;
+        var max = 1.9;
+        var randomVariance = new Vec3(
+                BloodyBitsUtils.getRandomVariance(min, max),
+                BloodyBitsUtils.getRandomVariance(min, max),
+                BloodyBitsUtils.getRandomVariance(min, max)
+        );
+
+        var sprayDirection = entityPosition.subtract(damageSourcePosition).normalize().multiply(randomVariance);
+        var mistDirection = damageSourcePosition.subtract(entityPosition).normalize().multiply(randomVariance);
 
         String finalBloodColor = bloodColor;
 
-        // TODO: Make the spray and mist a tad bit more random in the general direction that they're going.
+        // TODO: Maybe make the spray a tiny larger based on damage?
         server.getPlayerList().getPlayers().forEach(player -> (serverLevel)
                 .sendParticles(
                         player,
@@ -137,40 +146,16 @@ public class BloodyBitsEvents {
                         vec.y + aabb.getYsize() * 0.5,
                         vec.z,
                         1,
-                        0.5,
-                        0.5,
-                        0.5,
+                        0,
+                        0,
+                        0,
                         0.2
                 )
         );
 
-//        for (int i = 0; i < count; i++) {
-//
-//            Vec3 sprayVector = new Vec3(
-//                    BloodyBitsUtils.applyRandomSign(serverLevel.random.nextIntBetweenInclusive(1, count) * 0.05f),
-//                    serverLevel.random.nextIntBetweenInclusive(1, count) * 0.05f,
-//                    BloodyBitsUtils.applyRandomSign(serverLevel.random.nextIntBetweenInclusive(1, count) * 0.05f)
-//            );
-//
-//            server.getPlayerList().getPlayers().forEach(player -> (serverLevel)
-//                    .sendParticles(
-//                            player,
-//                            new BloodSprayParticleOptions(finalBloodColor, sprayDirection, 0.1f),
-//                            true,
-//                            vec.x,
-//                            vec.y + aabb.getYsize() * 0.5,
-//                            vec.z,
-//                            1,
-//                            0.5,
-//                            0.5,
-//                            0.5,
-//                            0.2
-//                    )
-//            );
-//        }
-
         if (!CommonConfig.bloodMistDamageSources().contains(damageSource.type().msgId())) return;
 
+        // TODO: Maybe make the mist by default a little bit smaller and scale based on damage?
         server.getPlayerList().getPlayers().forEach(player -> (serverLevel)
                 .sendParticles(
                         player,
