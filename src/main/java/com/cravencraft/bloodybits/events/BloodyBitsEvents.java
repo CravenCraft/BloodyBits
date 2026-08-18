@@ -87,8 +87,8 @@ public class BloodyBitsEvents {
 
         if (CommonConfig.blackListDamageSources().contains(damageSource.type().msgId())) return;
 
-        BloodyBitsMod.LOGGER.info("Damage type: {}", damageSource.type());
-        BloodyBitsMod.LOGGER.info("Damage type id: {}", damageSource.type().msgId());
+//        BloodyBitsMod.LOGGER.info("Damage type: {}", damageSource.type());
+//        BloodyBitsMod.LOGGER.info("Damage type id: {}", damageSource.type().msgId());
 
         String bloodColor = ParticleRegistry.DEFAULT_BLOOD_COLOR;
         for (BloodType bloodType : BloodTypeRegistry.getBloodTypes()) {
