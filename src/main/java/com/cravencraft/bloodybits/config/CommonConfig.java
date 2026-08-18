@@ -24,7 +24,7 @@ public class CommonConfig {
         BLOOD_MIST_DAMAGE_SOURCES = BUILDER
                 .comment("List of damage sources that will cause an entity to emit a blood mist when hit.")
                 .defineListAllowEmpty("blood_mist_damage_sources",
-                        List.of("arrow", "explosion.player", "tacz.bullet"),
+                        List.of("arrow", "explosion.player", "tacz.bullet", "scguns.bullet"),
                         (string) -> true);
 
         SPEC = BUILDER.build();
