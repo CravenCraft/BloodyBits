@@ -1,5 +1,6 @@
 package com.cravencraft.bloodybits.client.particle.mist;
 
+import com.cravencraft.bloodybits.BloodyBitsMod;
 import com.cravencraft.bloodybits.client.particle.CustomParticleType;
 import com.cravencraft.bloodybits.config.ClientConfig;
 import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
@@ -16,7 +17,7 @@ import java.util.HexFormat;
 public class BloodMistParticle extends TextureSheetParticle {
     private final String color;
     private static final float INITIAL_ALPHA = 0.35f;
-    private final float scale;
+    private static final int FALLBACK_INITIAL_SCALE = 3;
     private final int halfLife;
 
     public BloodMistParticle(ClientLevel level,
@@ -37,8 +38,9 @@ public class BloodMistParticle extends TextureSheetParticle {
         this.friction = 0.001f;
         this.gravity = -0.01f;
         this.alpha = INITIAL_ALPHA;
-        this.scale = ClientConfig.getBloodMistScale() + 3;
-        this.scale(this.scale);
+        float scale1 = scale;
+        scale1 += (BloodyBitsMod.isClientConfigLoaded) ? ClientConfig.getBloodMistScale() : FALLBACK_INITIAL_SCALE;
+        this.scale(scale1);
         this.rCol = BloodyBitsUtils.normalizeColorValue(HexFormat.fromHexDigits(color, 1, 3));
         this.gCol = BloodyBitsUtils.normalizeColorValue(HexFormat.fromHexDigits(color, 3, 5));
         this.bCol = BloodyBitsUtils.normalizeColorValue(HexFormat.fromHexDigits(color.substring(5)));

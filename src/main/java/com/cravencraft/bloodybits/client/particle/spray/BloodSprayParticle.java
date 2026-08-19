@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Random;
 
 public class BloodSprayParticle extends TextureSheetParticle {
+    private static final float  FALLBACK_BLOOD_SPRAY_FRICTION = 0.5F;
     private static final double FALLBACK_SOUND_VOLUME = 0.75;
     private final String color;
     float scaleTransition;
@@ -62,8 +63,8 @@ public class BloodSprayParticle extends TextureSheetParticle {
         this.quadSize = scale;
 //        this.quadSize *= 0.25f + (float) Math.random();
 //        this.scale(scale * 2.5f);
-        this.lifetime = 40;
-        this.friction = 0.5f;
+        this.lifetime = 100;
+        this.friction = (BloodyBitsMod.isClientConfigLoaded) ? (float) ClientConfig.getBloodSprayFriction() : FALLBACK_BLOOD_SPRAY_FRICTION;
         this.gravity = 1f;
         this.angularVelocity = 0.075f;
         this.pickSprite(spriteSet);

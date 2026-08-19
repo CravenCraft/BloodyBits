@@ -8,14 +8,18 @@ import com.cravencraft.bloodybits.client.particle.spray.BloodSprayParticleOption
 import com.cravencraft.bloodybits.registries.BloodTypeRegistry;
 import com.cravencraft.bloodybits.registries.ParticleRegistry;
 import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.util.Mth;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.monster.Creeper;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.entity.living.LivingDamageEvent;
+import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.level.ExplosionEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -33,7 +37,20 @@ public class BloodyBitsEvents {
     @SubscribeEvent
     public static void bloodOnEntityDamage(LivingDamageEvent event) {
         if (event.getEntity().level() instanceof ServerLevel serverLevel) {
+
             createBloodParticles(serverLevel, event.getEntity(), event.getSource(), event.getAmount());
+
+            if (event.getSource().getEntity() instanceof ServerPlayer player) {
+                sendPlayerDamageType(player, event.getSource().type());
+            }
+        }
+    }
+
+    // TODO: Need to find the best way to pass in that the entity dies due to a projectile so the mist spray can be larger.
+    @SubscribeEvent
+    public static void bloodMistOnEntityDeath(LivingDeathEvent event) {
+        if (event.getEntity().level() instanceof ServerLevel serverLevel) {
+            createBloodParticles(serverLevel, event.getEntity(), event.getSource(), 0);
         }
     }
 
@@ -155,7 +172,6 @@ public class BloodyBitsEvents {
 
         if (!CommonConfig.bloodMistDamageSources().contains(damageSource.type().msgId())) return;
 
-        // TODO: Maybe make the mist by default a little bit smaller and scale based on damage?
         server.getPlayerList().getPlayers().forEach(player -> (serverLevel)
                 .sendParticles(
                         player,
@@ -171,5 +187,11 @@ public class BloodyBitsEvents {
                         0.1
                 )
         );
+    }
+
+    private static void sendPlayerDamageType(Player player, DamageType damageType) {
+        if (!CommonConfig.damageTypeDebug()) return;
+
+        player.sendSystemMessage(Component.literal("Damage type id: " + damageType.msgId()));
     }
 }
