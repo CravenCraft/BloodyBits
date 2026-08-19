@@ -1,0 +1,9 @@
+{
+  "replace": false,
+  "values": [
+    {
+      "required": false,
+      "id": "#bloodybits:compat/cataclysm/bleeds_ectoplasm"
+    }
+  ]
+}

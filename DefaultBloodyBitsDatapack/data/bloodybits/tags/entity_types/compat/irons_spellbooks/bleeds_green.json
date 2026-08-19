@@ -1,0 +1,9 @@
+{
+  "replace": false,
+  "values": [
+    {
+      "id": "irons_spellbooks:ice_spider",
+      "required": false
+    }
+  ]
+}
