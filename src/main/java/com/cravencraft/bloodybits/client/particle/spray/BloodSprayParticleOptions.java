@@ -25,7 +25,7 @@ public record BloodSprayParticleOptions(String color, Vec3 direction, float scal
             ).apply(instance, BloodSprayParticleOptions::new)
     );
 
-    public static final ParticleOptions.Deserializer<BloodSprayParticleOptions> DESERIALIZER = new ParticleOptions.Deserializer<BloodSprayParticleOptions>() {
+    public static final ParticleOptions.Deserializer<BloodSprayParticleOptions> DESERIALIZER = new ParticleOptions.Deserializer<>() {
         @Override
         public @NotNull BloodSprayParticleOptions fromCommand(@NotNull ParticleType<BloodSprayParticleOptions> type, @NotNull StringReader reader) throws CommandSyntaxException {
             reader.expect(' ');
