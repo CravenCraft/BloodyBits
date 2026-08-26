@@ -1,6 +1,7 @@
 package com.cravencraft.bloodybits.client.particle.spatter;
 
 import com.cravencraft.bloodybits.BloodyBitsMod;
+import com.cravencraft.bloodybits.client.particle.spray.BloodSprayParticleOptions;
 import com.cravencraft.bloodybits.config.ClientConfig;
 import com.cravencraft.bloodybits.client.particle.drip.BloodDripParticleOptions;
 import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
@@ -635,8 +636,9 @@ public class BloodSpatterParticle extends TextureSheetParticle {
 
         if (this.shouldDrip) {
             if (this.direction == Direction.UP) {
+                var dripDirection = new Vec3(0.0F, -0.5F, 0.0F);
                 this.level.addAlwaysVisibleParticle(
-                        new BloodDripParticleOptions(this.color, Direction.UP.get3DDataValue(), this.alpha),
+                        new BloodSprayParticleOptions(this.color, dripDirection, 0.5F),
                         true, this.x, this.y, this.z,
                         0.0D, 0.0D, 0.0D);
                 this.shouldDrip = false;

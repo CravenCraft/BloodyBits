@@ -3,9 +3,7 @@ package com.cravencraft.bloodybits.events;
 import com.cravencraft.bloodybits.BloodyBitsMod;
 import com.cravencraft.bloodybits.client.particle.mist.BloodMistParticleOptions;
 import com.cravencraft.bloodybits.config.CommonConfig;
-import com.cravencraft.bloodybits.model.BloodType;
 import com.cravencraft.bloodybits.client.particle.spray.BloodSprayParticleOptions;
-import com.cravencraft.bloodybits.registries.BloodTypeRegistry;
 import com.cravencraft.bloodybits.registries.ParticleRegistry;
 import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
 import net.minecraft.network.chat.Component;
@@ -45,7 +43,7 @@ public class BloodyBitsEvents {
                 var server = serverLevel.getServer();
                 var center = event.getPos().getCenter();
                 var bloodColor = ParticleRegistry.DEFAULT_BLOOD_COLOR;
-                var sprayVector = new Vec3(0,0,-1);
+                var sprayVector = new Vec3(0,1,0);
 
                 server.getPlayerList().getPlayers().forEach(player -> (serverLevel)
                         .sendParticles(
