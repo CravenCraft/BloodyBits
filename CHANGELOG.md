@@ -5,6 +5,8 @@
 - Blood spray will go in the opposite direction of the damage (with some random variance).
 - Added a Common Config option for damage type debug messages.
 - Added Client Config options for blood spray friction and blood mist scale.
+- Added a Common Config option for blood spray amount and damage caps.
+- Blood sprays are now 3D similar to V1.3.4.
 
 ## V2.0.2 Datapack Structure Hotfix
 - Fixed an issue with the built-in datapack structure. Changes `entity_type` to `entity_types` to be compliant with 

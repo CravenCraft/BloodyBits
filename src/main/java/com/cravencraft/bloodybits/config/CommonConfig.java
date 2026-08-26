@@ -9,10 +9,14 @@ public class CommonConfig {
     public static final ForgeConfigSpec SPEC;
 
     private static final ForgeConfigSpec.ConfigValue<Boolean> DAMAGE_TYPE_DEBUG;
+    private static final ForgeConfigSpec.IntValue BLOOD_SPRAY_DAMAGE_CAP;
+    private static final ForgeConfigSpec.IntValue BLOOD_SPRAY_MAX_PER_HIT;
     private static final ForgeConfigSpec.ConfigValue<List<? extends String>> BLACKLIST_DAMAGE_SOURCES;
     private static final ForgeConfigSpec.ConfigValue<List<? extends String>> BLOOD_MIST_DAMAGE_SOURCES;
 
     public static boolean damageTypeDebug() {return DAMAGE_TYPE_DEBUG.get(); }
+    public static int getBloodSprayDamageCap() { return BLOOD_SPRAY_DAMAGE_CAP.get(); }
+    public static int getBloodSprayMaxPerHit() { return BLOOD_SPRAY_MAX_PER_HIT.get(); }
     public static List<? extends String> blackListDamageSources() { return BLACKLIST_DAMAGE_SOURCES.get(); }
     public static List<? extends String> bloodMistDamageSources() { return BLOOD_MIST_DAMAGE_SOURCES.get(); }
 
@@ -22,6 +26,16 @@ public class CommonConfig {
                         " Useful for determining the exact damage type to add to the BLACKLIST_DAMAGE_SOURCES " +
                         "and BLOOD_MIST_DAMAGE_SOURCES config lists.")
                 .define("damageTypeDebug", false);
+
+        BLOOD_SPRAY_DAMAGE_CAP = BUILDER
+                .comment("The damage cap for the amount of blood sprays produced per hit.")
+                .defineInRange("blood_spray_damage_cap", 50, 10, 1000);
+
+        BLOOD_SPRAY_MAX_PER_HIT = BUILDER
+                .comment("The maximum amount of blood sprays per hit based on the 'Blood Spray Damage Cap'. " +
+                        " The formula is (blood_spray_damage_cap / blood_spray_max_per_hit), which would mean " +
+                        " at default there is an additional blood spray per 5 points of damage upwards to 50.")
+                .defineInRange("blood_spray_max_per_hit", 10, 1, 100);
 
         BLACKLIST_DAMAGE_SOURCES = BUILDER.comment("List of the damage sources that will not cause an entity to bleed.")
                 .defineListAllowEmpty("blacklist_bleed_sources",

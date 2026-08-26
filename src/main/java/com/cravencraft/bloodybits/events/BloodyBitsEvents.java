@@ -29,11 +29,6 @@ import net.minecraftforge.fml.common.Mod;
 @Mod.EventBusSubscriber(modid = BloodyBitsMod.MODID)
 public class BloodyBitsEvents {
 
-    private static final String doesNotBleed = "does_not_bleed";
-    private static int maxDamage = 50;
-
-
-
     // TODO: Comment out or remove before final build.
     @SubscribeEvent
     public static void rightClickBlockMakeBloodSpray(PlayerInteractEvent.RightClickBlock event) {
@@ -144,11 +139,17 @@ public class BloodyBitsEvents {
 
         if (bloodColor == null) return;
 
+        var damageCap = CommonConfig.getBloodSprayDamageCap();
+
         if (damageAmount <= 0 || damageAmount == Float.MAX_VALUE) return;
 
-        damageAmount = Math.max(1, Math.min(maxDamage, damageAmount));
+        damageAmount = Math.max(1, Math.min(damageCap, damageAmount));
 
-        var spatterSize = Mth.clamp(damageAmount / maxDamage, 0.0f, 1.0f);
+        BloodyBitsMod.LOGGER.info("damage amount: {}", damageAmount);
+
+        int bloodSprayCount = (int) Math.max(1, damageAmount / ((float) damageCap / CommonConfig.getBloodSprayMaxPerHit()));
+
+        var spatterSize = Mth.clamp(damageAmount / damageCap, 0.0f, 1.0f);
 
         AABB aabb = entity.isMultipartEntity() ?
                 entity.getParts()[entity.getRandom().nextInt(entity.getParts().length)].getBoundingBox() :
@@ -167,9 +168,7 @@ public class BloodyBitsEvents {
         var min = 0.1;
         var max = 1.9;
 
-        Vec3 sprayDirection = damageSourcePosition
-                .subtract(entityPosition)
-                .normalize();
+        Vec3 sprayDirection = damageSourcePosition.subtract(entityPosition).normalize();
 
         // If the damage source creates a blood mist, then the blood spray should come out the opposite side.
         if (CommonConfig.bloodMistDamageSources().contains(damageSource.type().msgId())) {
@@ -185,10 +184,10 @@ public class BloodyBitsEvents {
             createBloodMist(serverLevel, aabb, mistDirection, bloodColor);
         }
 
-//        for (int i = 0; i < count; i++) {
+        for (int i = 0; i < bloodSprayCount; i++) {
             sprayDirection = sprayDirection.multiply(BloodyBitsUtils.getRandomVectorVariance(min, max));
             createBloodSpray(serverLevel, aabb, sprayDirection, bloodColor, spatterSize);
-//        }
+        }
     }
 
     private static void createBloodSpray(ServerLevel serverLevel, AABB entitySize, Vec3 sprayVector,
