@@ -111,6 +111,10 @@ public class BloodSprayParticle extends TextureSheetParticle {
             this.move(this.xd, this.yd, this.zd);
 
             this.xd *= this.friction;
+
+            if (this.yd > 0) {
+                this.yd *= this.friction;
+            }
             this.zd *= this.friction;
         }
 

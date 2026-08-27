@@ -7,6 +7,7 @@
 - Added Client Config options for blood spray friction and blood mist scale.
 - Added a Common Config option for blood spray amount and damage caps.
 - Blood sprays are now 3D similar to V1.3.4.
+- Blood mist particles will be double the size on a killing blow.
 
 ## V2.0.2 Datapack Structure Hotfix
 - Fixed an issue with the built-in datapack structure. Changes `entity_type` to `entity_types` to be compliant with 

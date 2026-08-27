@@ -67,9 +67,17 @@ public class BloodyBitsEvents {
     public static void bloodOnEntityDamage(LivingDamageEvent event) {
         if (event.getEntity().level() instanceof ServerLevel serverLevel) {
 
+            // TODO Remove
             if (!event.getSource().isCreativePlayer()) return;
 
-            createBloodParticles(serverLevel, event.getEntity(), event.getSource(), event.getAmount());
+
+
+            if (entityDamageSafetyChecks(event.getSource(), event.getAmount())) {
+
+
+
+                createBloodParticles(serverLevel, event.getEntity(), event.getSource(), event.getAmount(), false);
+            }
 
             if (event.getSource().getEntity() instanceof ServerPlayer player) {
                 sendPlayerDamageType(player, event.getSource().type());
@@ -80,9 +88,15 @@ public class BloodyBitsEvents {
     // TODO: Need to find the best way to pass in that the entity dies due to a projectile so the mist spray can be larger.
     @SubscribeEvent
     public static void bloodMistOnEntityDeath(LivingDeathEvent event) {
-//        if (event.getEntity().level() instanceof ServerLevel serverLevel) {
-//            createBloodParticles(serverLevel, event.getEntity(), event.getSource(), 0);
-//        }
+        if (event.getEntity().level() instanceof ServerLevel serverLevel) {
+            BloodyBitsMod.LOGGER.info("death source: {}", event.getSource().getMsgId());
+            var damageSource = event.getSource();
+            var isBloodMistDamageSource = CommonConfig.bloodMistDamageSources().contains(damageSource.type().msgId());
+
+            if (entityDeathSafetyChecks(damageSource) && isBloodMistDamageSource) {
+                createBloodParticles(serverLevel, event.getEntity(), event.getSource(), 0, true);
+            }
+        }
     }
 
     // TODO: Rework this. This is a cool feature to have. Just want it to be slightly less random. Set up a minimum and
@@ -124,103 +138,110 @@ public class BloodyBitsEvents {
                 event.getExplosion().getDirectSourceEntity() instanceof Creeper creeper) {
             var explosionDamageSource = event.getExplosion().getDamageSource();
             var explosionDamageAmount = 25.0f;
-            createBloodParticles(serverLevel, creeper, explosionDamageSource, explosionDamageAmount);
+            createBloodParticles(serverLevel, creeper, explosionDamageSource, explosionDamageAmount, true);
         }
     }
 
+    private static boolean entityDamageSafetyChecks(DamageSource damageSource, float damageAmount) {
+        if (!BloodyBitsMod.isCommonConfigLoaded) return false;
+        if (CommonConfig.blackListDamageSources().contains(damageSource.type().msgId())) return false;
+        return !(damageAmount <= 0) && damageAmount != Float.MAX_VALUE;
+    }
+
+    private static boolean entityDeathSafetyChecks(DamageSource damageSource) {
+        if (!BloodyBitsMod.isCommonConfigLoaded) return false;
+        return !CommonConfig.blackListDamageSources().contains(damageSource.type().msgId());
+    }
+
     private static void createBloodParticles(ServerLevel serverLevel, LivingEntity entity,
-                                             DamageSource damageSource, float damageAmount) {
-
-        if (!BloodyBitsMod.isCommonConfigLoaded) return;
-
-        if (CommonConfig.blackListDamageSources().contains(damageSource.type().msgId())) return;
+                                             DamageSource damageSource, float damageAmount, boolean isKillingBlow) {
 
         var bloodColor = BloodyBitsUtils.getEntityBloodColor(entity);
-
         if (bloodColor == null) return;
 
-        var damageCap = CommonConfig.getBloodSprayDamageCap();
-
-        if (damageAmount <= 0 || damageAmount == Float.MAX_VALUE) return;
-
-        damageAmount = Math.max(1, Math.min(damageCap, damageAmount));
-
-        BloodyBitsMod.LOGGER.info("damage amount: {}", damageAmount);
-
-        int bloodSprayCount = (int) Math.max(1, damageAmount / ((float) damageCap / CommonConfig.getBloodSprayMaxPerHit()));
-
-        var spatterSize = Mth.clamp(damageAmount / damageCap, 0.0f, 1.0f);
-
-        AABB aabb = entity.isMultipartEntity() ?
+        AABB entityAABB = entity.isMultipartEntity() ?
                 entity.getParts()[entity.getRandom().nextInt(entity.getParts().length)].getBoundingBox() :
                 entity.getBoundingBox();
-        Vec3 vec = aabb.getCenter();
 
-        int count = serverLevel.random.nextIntBetweenInclusive(1, (int) damageAmount);
-        double bbShove = Math.max(aabb.getXsize() * 0.5 - 0.5, 0);
-        double scale = (aabb.getXsize() + 2) / 3f;
-        var server = serverLevel.getServer();
+//        Vec3 entityCenter = entityAABB.getCenter();
+//        double bbShove = Math.max(entityAABB.getXsize() * 0.5 - 0.5, 0);
+//        double scale = (entityAABB.getXsize() + 2) / 3f;
 
         var damageSourceEntity = damageSource.getEntity();
-        var damageSourcePosition = (damageSourceEntity != null) ? damageSourceEntity.position() : entity.position();
         var entityPosition = entity.position();
+        var damageSourcePosition = (damageSourceEntity != null) ? damageSourceEntity.position() : entityPosition;
 
-        var min = 0.1;
-        var max = 1.9;
-
-        Vec3 sprayDirection = damageSourcePosition.subtract(entityPosition).normalize();
+        Vec3 sprayDirection = entityPosition
+                .subtract(damageSourcePosition)
+                .normalize();
 
         // If the damage source creates a blood mist, then the blood spray should come out the opposite side.
         if (CommonConfig.bloodMistDamageSources().contains(damageSource.type().msgId())) {
+            var minMistVariance = 0.1;
+            var maxMistVariance = 1.9;
             var mistDirection = damageSourcePosition
                     .subtract(entityPosition)
                     .normalize()
-                    .multiply(BloodyBitsUtils.getRandomVectorVariance(min, max));
+                    .multiply(BloodyBitsUtils.getRandomVectorVariance(minMistVariance, maxMistVariance));
 
             sprayDirection = entityPosition
                     .subtract(damageSourcePosition)
                     .normalize();
 
-            createBloodMist(serverLevel, aabb, mistDirection, bloodColor);
+            createBloodMist(serverLevel, entityAABB, mistDirection, bloodColor, isKillingBlow);
         }
 
+        createBloodSpray(serverLevel, entityAABB, damageAmount, sprayDirection, bloodColor);
+    }
+
+    private static void createBloodSpray(ServerLevel serverLevel, AABB entitySize, float damageAmount,
+                                         Vec3 sprayVector, String bloodColor) {
+        var server = serverLevel.getServer();
+        var entityCenter = entitySize.getCenter();
+
+        var min = 0.1;
+        var max = 1.0;
+
+        var damageCap = CommonConfig.getBloodSprayDamageCap();
+        if (damageAmount <= 0 || damageAmount == Float.MAX_VALUE) return;
+        damageAmount = Math.max(1, Math.min(damageCap, damageAmount));
+
+        var force = Mth.clamp(damageAmount / damageCap, 0.0f, 1.0f);
+        var forceVector = new Vec3( 1 + force, 1 + force, 1 + force);
+
+        int bloodSprayCount = (int) Math.max(1, damageAmount / ((float) damageCap / CommonConfig.getBloodSprayMaxPerHit()));
         for (int i = 0; i < bloodSprayCount; i++) {
-            sprayDirection = sprayDirection.multiply(BloodyBitsUtils.getRandomVectorVariance(min, max));
-            createBloodSpray(serverLevel, aabb, sprayDirection, bloodColor, spatterSize);
+            var randomVector = BloodyBitsUtils.getRandomSignVectorVariance(min, max);
+            var modifiedSprayVector = sprayVector.add(randomVector).multiply(forceVector);
+
+            server.getPlayerList().getPlayers().forEach(player -> (serverLevel)
+                    .sendParticles(
+                            player,
+                            new BloodSprayParticleOptions(bloodColor, modifiedSprayVector, force),
+                            true,
+                            entityCenter.x,
+                            entityCenter.y + entitySize.getYsize() * 0.5,
+                            entityCenter.z,
+                            1,
+                            0,
+                            0,
+                            0,
+                            0.2
+                    )
+            );
         }
     }
 
-    private static void createBloodSpray(ServerLevel serverLevel, AABB entitySize, Vec3 sprayVector,
-                                         String bloodColor, float spatterSize) {
+    private static void createBloodMist(ServerLevel serverLevel, AABB entitySize, Vec3 mistVector,
+                                        String bloodColor, boolean isKillingBlow) {
         var server = serverLevel.getServer();
         var entityCenter = entitySize.getCenter();
+        var scale = (isKillingBlow) ? 2.0F : 1.0F;
 
         server.getPlayerList().getPlayers().forEach(player -> (serverLevel)
                 .sendParticles(
                         player,
-                        new BloodSprayParticleOptions(bloodColor, sprayVector, spatterSize),
-                        true,
-                        entityCenter.x,
-                        entityCenter.y + entitySize.getYsize() * 0.5,
-                        entityCenter.z,
-                        1,
-                        0,
-                        0,
-                        0,
-                        0.2
-                )
-        );
-
-    }
-
-    private static void createBloodMist(ServerLevel serverLevel, AABB entitySize, Vec3 mistVector, String bloodColor) {
-        var server = serverLevel.getServer();
-        var entityCenter = entitySize.getCenter();
-
-        server.getPlayerList().getPlayers().forEach(player -> (serverLevel)
-                .sendParticles(
-                        player,
-                        new BloodMistParticleOptions(bloodColor, mistVector, 1.0f),
+                        new BloodMistParticleOptions(bloodColor, mistVector, scale),
                         true,
                         entityCenter.x,
                         entityCenter.y + entitySize.getYsize() * 0.5,

@@ -42,6 +42,14 @@ public class BloodyBitsUtils {
         };
     }
 
+    public static Vec3 getRandomSignVectorVariance(double min, double max) {
+        return new Vec3(
+                applyRandomSign((float) getRandomVariance(min, max)),
+                applyRandomSign((float) getRandomVariance(min, max)),
+                applyRandomSign((float) getRandomVariance(min, max))
+        );
+    }
+
     public static Vec3 getRandomVectorVariance(double min, double max) {
         return new Vec3(
                 BloodyBitsUtils.getRandomVariance(min, max),

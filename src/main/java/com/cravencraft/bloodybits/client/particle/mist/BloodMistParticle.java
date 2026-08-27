@@ -38,9 +38,9 @@ public class BloodMistParticle extends TextureSheetParticle {
         this.friction = 0.001f;
         this.gravity = -0.01f;
         this.alpha = INITIAL_ALPHA;
-        float scale1 = scale;
-        scale1 += (BloodyBitsMod.isClientConfigLoaded) ? ClientConfig.getBloodMistScale() : FALLBACK_INITIAL_SCALE;
-        this.scale(scale1);
+        float modifiedScale = scale;
+        modifiedScale *= (BloodyBitsMod.isClientConfigLoaded) ? ClientConfig.getBloodMistScale() : FALLBACK_INITIAL_SCALE;
+        this.scale(modifiedScale);
         this.rCol = BloodyBitsUtils.normalizeColorValue(HexFormat.fromHexDigits(color, 1, 3));
         this.gCol = BloodyBitsUtils.normalizeColorValue(HexFormat.fromHexDigits(color, 3, 5));
         this.bCol = BloodyBitsUtils.normalizeColorValue(HexFormat.fromHexDigits(color.substring(5)));
@@ -74,7 +74,7 @@ public class BloodMistParticle extends TextureSheetParticle {
                     x, y, z,
                     this.spriteSet,
                     options.color(),
-                    1.0f,
+                    options.scale(),
                     options.direction().x, options.direction().y, options.direction().z);
         }
     }
