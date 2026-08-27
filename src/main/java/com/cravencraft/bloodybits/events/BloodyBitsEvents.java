@@ -67,15 +67,7 @@ public class BloodyBitsEvents {
     public static void bloodOnEntityDamage(LivingDamageEvent event) {
         if (event.getEntity().level() instanceof ServerLevel serverLevel) {
 
-            // TODO Remove
-            if (!event.getSource().isCreativePlayer()) return;
-
-
-
             if (entityDamageSafetyChecks(event.getSource(), event.getAmount())) {
-
-
-
                 createBloodParticles(serverLevel, event.getEntity(), event.getSource(), event.getAmount(), false);
             }
 
@@ -89,7 +81,6 @@ public class BloodyBitsEvents {
     @SubscribeEvent
     public static void bloodMistOnEntityDeath(LivingDeathEvent event) {
         if (event.getEntity().level() instanceof ServerLevel serverLevel) {
-            BloodyBitsMod.LOGGER.info("death source: {}", event.getSource().getMsgId());
             var damageSource = event.getSource();
             var isBloodMistDamageSource = CommonConfig.bloodMistDamageSources().contains(damageSource.type().msgId());
 

@@ -58,6 +58,7 @@ public class BloodSpatterParticle extends TextureSheetParticle {
     private int startDepth;
     private int endDepth;
     private boolean shouldDrip;
+    private boolean hasDripped;
     private int dripAge;
 
     // First four parameters are self-explanatory. The SpriteSet parameter is provided by the
@@ -637,10 +638,22 @@ public class BloodSpatterParticle extends TextureSheetParticle {
         if (this.shouldDrip) {
             if (this.direction == Direction.UP) {
                 var dripDirection = new Vec3(0.0F, -0.5F, 0.0F);
-                this.level.addAlwaysVisibleParticle(
-                        new BloodSprayParticleOptions(this.color, dripDirection, 0.5F),
-                        true, this.x, this.y, this.z,
-                        0.0D, 0.0D, 0.0D);
+
+                if (this.hasDripped) {
+                    this.level.addAlwaysVisibleParticle(
+                            new BloodDripParticleOptions(this.color, Direction.UP.get3DDataValue(), this.alpha),
+                            true, this.x, this.y, this.z,
+                            0.0D, 0.0D, 0.0D);
+                }
+                else {
+                    this.level.addAlwaysVisibleParticle(
+                            new BloodSprayParticleOptions(this.color, dripDirection, 0.5F),
+                            true, this.x, this.y, this.z,
+                            0.0D, 0.0D, 0.0D);
+
+                    this.hasDripped = true;
+                }
+
                 this.shouldDrip = false;
                 this.dripAge = 0;
             }

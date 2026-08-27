@@ -1,5 +1,7 @@
 {
   "textures": [
-    "bloodybits:mist/mist_1"
+    "bloodybits:mist/mist_0",
+    "bloodybits:mist/mist_1",
+    "bloodybits:mist/mist_2"
   ]
 }
