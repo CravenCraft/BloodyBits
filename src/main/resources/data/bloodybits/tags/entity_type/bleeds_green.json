@@ -6,6 +6,7 @@
     "minecraft:creeper",
     "minecraft:bee",
     "minecraft:slime",
+    "minecraft:silverfish",
     {
       "required": false,
       "id": "#bloodybits:compat/irons_spellbooks/bleeds_green"
