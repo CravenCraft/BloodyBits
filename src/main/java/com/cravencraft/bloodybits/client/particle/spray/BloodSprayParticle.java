@@ -1,11 +1,9 @@
 package com.cravencraft.bloodybits.client.particle.spray;
 
 import com.cravencraft.bloodybits.BloodyBitsMod;
-import com.cravencraft.bloodybits.client.particle.emitter.BloodEmitterParticle;
 import com.cravencraft.bloodybits.client.particle.spatter.BloodSpatterParticle;
 import com.cravencraft.bloodybits.client.particle.spatter.BloodSpatterParticleOptions;
 import com.cravencraft.bloodybits.config.ClientConfig;
-import com.cravencraft.bloodybits.registries.ParticleRegistry;
 import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Camera;
@@ -13,7 +11,6 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
@@ -25,19 +22,28 @@ import org.jetbrains.annotations.NotNull;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
+import java.util.ArrayList;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Random;
 
 public class BloodSprayParticle extends TextureSheetParticle {
+    private static final float  FALLBACK_BLOOD_SPRAY_FRICTION = 0.5F;
     private static final double FALLBACK_SOUND_VOLUME = 0.75;
-    private final String color;
-    float scaleTransition;
-    private boolean mirrored;
-    private boolean underwater;
-    private Vec3 collisionVector;
-    private final float angularVelocity;
+    private static final float FALLBACK_MAX_VELOCITY = 2.0F;
+
     private final double soundVolume;
+    private final float maxVelocity;
+    private final float maxLength;
+    private final float maxThickness;
+    private final String color;
+
+    private boolean underwater;
+    private float spatterSize;
+    private float scaleTransition;
+    private float currentThickness;
+    private float currentLength;
+    private Vec3 collisionVector;
     private SoundEvent soundEvent;
 
     public BloodSprayParticle(
@@ -60,11 +66,17 @@ public class BloodSprayParticle extends TextureSheetParticle {
         this.zd = zd;
 
         this.collisionVector = new Vec3(xd, yd, zd);
-        this.quadSize *= 0.25f + (float) Math.random();
-        this.scale(scale * 2.5f);
-        this.lifetime = 40;
-        this.gravity = 1f;
-        this.angularVelocity = 0.075f;
+        this.quadSize = 0.1f;
+        this.spatterSize = scale;
+//        this.quadSize *= 0.25f + (float) Math.random();
+//        this.scale(scale * 2.5f);
+        this.lifetime = 200;
+        this.friction = (BloodyBitsMod.isClientConfigLoaded) ? (float) ClientConfig.getBloodSprayFriction() : FALLBACK_BLOOD_SPRAY_FRICTION;
+        this.maxVelocity = FALLBACK_MAX_VELOCITY;
+        this.gravity = 1.0F;
+        this.maxLength = 5.0F;
+        this.maxThickness = 1.0F;
+
         this.pickSprite(spriteSet);
         this.rCol = BloodyBitsUtils.normalizeColorValue(HexFormat.fromHexDigits(color, 1, 3));
         this.gCol = BloodyBitsUtils.normalizeColorValue(HexFormat.fromHexDigits(color, 3, 5));
@@ -72,7 +84,6 @@ public class BloodSprayParticle extends TextureSheetParticle {
         this.soundVolume = (BloodyBitsMod.isClientConfigLoaded) ? ClientConfig.bloodSpatterSoundVolume() : FALLBACK_SOUND_VOLUME;
 
         this.scaleTransition = 1f + (float) Math.random();
-        this.mirrored = level.random.nextBoolean();
         if (!level.getFluidState(BlockPos.containing(x, y, z)).isEmpty()) {
             this.underwater = true;
             this.xd *= 0.5f;
@@ -84,10 +95,29 @@ public class BloodSprayParticle extends TextureSheetParticle {
 
     @Override
     public void tick() {
-        super.tick();
-        this.oRoll = this.roll;
-        this.roll += this.angularVelocity;
-        this.quadSize += 0.01f;
+        this.xo = this.x;
+        this.yo = this.y;
+        this.zo = this.z;
+
+        var targetVelocity = new Vec3(this.xd, this.yd, this.zd).length();
+        this.currentLength = (float) (Math.min(targetVelocity, this.maxVelocity) / this.maxVelocity) * this.maxLength;
+        this.currentThickness = (float) (this.maxThickness - ((Math.min(targetVelocity, this.maxVelocity) / this.maxVelocity) * this.maxThickness));
+
+        if (this.age++ >= this.lifetime) {
+            this.remove();
+        }
+        else {
+            this.yd -= 0.04D * (double)this.gravity;
+            this.move(this.xd, this.yd, this.zd);
+
+            this.xd *= this.friction;
+
+            if (this.yd > 0) {
+                this.yd *= this.friction;
+            }
+            this.zd *= this.friction;
+        }
+
 
         if (this.underwater) {
             this.gravity *= .99f;
@@ -143,8 +173,8 @@ public class BloodSprayParticle extends TextureSheetParticle {
      */
     private void createSpatterAtCollisionPoint(int collisionDirection) {
         this.level.addParticle(
-                new BloodSpatterParticleOptions(this.color, collisionDirection, this.getQuadSize(0.0F)),
-                true, this.x, this.y, this.z,
+                new BloodSpatterParticleOptions(this.color, collisionDirection, this.spatterSize),
+                true, this.xo, this.yo, this.zo,
                 0.0D, 0.0D, 0.0D);
 
         var soundEvent = BloodyBitsUtils.getRandomSound(new Random().nextInt(3));
@@ -175,90 +205,121 @@ public class BloodSprayParticle extends TextureSheetParticle {
     }
 
     protected void renderRotatedQuad(@NotNull VertexConsumer buffer, Camera camera, float partialTicks) {
-        Vec3 vec3 = camera.getPosition();
-        float f = (float) (Mth.lerp(partialTicks, this.xo, this.x) - vec3.x());
-        float f1 = (float) (Mth.lerp(partialTicks, this.yo, this.y) - vec3.y());
-        float f2 = (float) (Mth.lerp(partialTicks, this.zo, this.z) - vec3.z());
-        Quaternionf quaternionf;
-        if (this.roll == 0.0F) {
-            quaternionf = camera.rotation();
-        } else {
-            quaternionf = new Quaternionf(camera.rotation());
-            quaternionf.rotateZ(Mth.lerp(partialTicks, this.oRoll, this.roll));
-        }
-        Vector3f[] avector3f = new Vector3f[]{new Vector3f(-1.0F, -1.0F, 0.0F), new Vector3f(-1.0F, 1.0F, 0.0F), new Vector3f(1.0F, 1.0F, 0.0F), new Vector3f(1.0F, -1.0F, 0.0F)};
-        float f3 = this.getQuadSize(partialTicks);
+        var cameraPosition = camera.getPosition();
+        float xLerp = (float) (Mth.lerp(partialTicks, this.xo, this.x) - cameraPosition.x());
+        float yLerp = (float) (Mth.lerp(partialTicks, this.yo, this.y) - cameraPosition.y());
+        float zLerp = (float) (Mth.lerp(partialTicks, this.zo, this.z) - cameraPosition.z());
 
-        for (int i = 0; i < 4; ++i) {
-            Vector3f vector3f = avector3f[i];
-            vector3f.rotate(quaternionf);
-            vector3f.mul(f3);
-            vector3f.add(f, f1, f2);
-        }
+        var targetDirection = new Vec3(this.xd, this.yd, this.zd);
+        var quaternionf = getRotationTowards(new Quaternionf(), targetDirection);
+        var bloodSprayVectors = new ArrayList<Vector3f[]>();
 
-        float f6 = this.getU0();
-        float f7 = this.getU1();
-        if (this.mirrored) {
-            float tmp = f6;
-            f6 = f7;
-            f7 = tmp;
+        // East Face
+        bloodSprayVectors.add(new Vector3f[] {
+                new Vector3f(-this.currentThickness, this.currentThickness, -this.currentLength),
+                new Vector3f(-this.currentThickness, -this.currentThickness, -this.currentLength),
+                new Vector3f(-this.currentThickness, -this.currentThickness, this.currentLength),
+                new Vector3f(-this.currentThickness, this.currentThickness, this.currentLength)
+        });
+
+        // West Face
+        bloodSprayVectors.add(new Vector3f[] {
+                new Vector3f(this.currentThickness, this.currentThickness, this.currentLength),
+                new Vector3f(this.currentThickness, -this.currentThickness, this.currentLength),
+                new Vector3f(this.currentThickness, -this.currentThickness, -this.currentLength),
+                new Vector3f(this.currentThickness, this.currentThickness, -this.currentLength)
+        });
+
+
+        // Up Face
+        bloodSprayVectors.add(new Vector3f[] {
+                new Vector3f(this.currentThickness, this.currentThickness, -this.currentLength),
+                new Vector3f(-this.currentThickness, this.currentThickness, -this.currentLength),
+                new Vector3f(-this.currentThickness, this.currentThickness, this.currentLength),
+                new Vector3f(this.currentThickness, this.currentThickness, this.currentLength)
+        });
+
+        // Down Face
+        bloodSprayVectors.add(new Vector3f[] {
+                new Vector3f(this.currentThickness, -this.currentThickness, this.currentLength),
+                new Vector3f(-this.currentThickness, -this.currentThickness, this.currentLength),
+                new Vector3f(-this.currentThickness, -this.currentThickness, -this.currentLength),
+                new Vector3f(this.currentThickness, -this.currentThickness, -this.currentLength)
+        });
+
+        // South Face
+        bloodSprayVectors.add(new Vector3f[] {
+                new Vector3f(-this.currentThickness, this.currentThickness, this.currentLength),
+                new Vector3f(-this.currentThickness, -this.currentThickness, this.currentLength),
+                new Vector3f(this.currentThickness, -this.currentThickness, this.currentLength),
+                new Vector3f(this.currentThickness, this.currentThickness, this.currentLength)
+        });
+
+        // North Face
+        bloodSprayVectors.add(new Vector3f[] {
+                new Vector3f(this.currentThickness, this.currentThickness, -this.currentLength),
+                new Vector3f(this.currentThickness, -this.currentThickness, -this.currentLength),
+                new Vector3f(-this.currentThickness, -this.currentThickness, -this.currentLength),
+                new Vector3f(-this.currentThickness, this.currentThickness, -this.currentLength)
+        });
+
+        int packedLight = this.getLightColor(partialTicks);
+        float u0 = this.getU0();
+        float u1 = this.getU1();
+        float v0 = this.getV0();
+        float v1 = this.getV1();
+
+        float quadSizePartialTicks = this.getQuadSize(partialTicks);
+        for (var bloodSprayVector : bloodSprayVectors) {
+            for (Vector3f vector3f : bloodSprayVector) {
+                vector3f.rotate(quaternionf);
+                vector3f.mul(quadSizePartialTicks);
+                vector3f.add(xLerp, yLerp, zLerp);
+            }
+
+            renderVertex(buffer, bloodSprayVector, u0, u1, v0, v1, packedLight);
         }
-        float f4 = this.getV0();
-        float f5 = this.getV1();
-        int j = this.getLightColor(partialTicks);
-        buffer.vertex(avector3f[0].x(), avector3f[0].y(), avector3f[0].z()).uv(f7, f5).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
-        buffer.vertex(avector3f[1].x(), avector3f[1].y(), avector3f[1].z()).uv(f7, f4).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
-        buffer.vertex(avector3f[2].x(), avector3f[2].y(), avector3f[2].z()).uv(f6, f4).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
-        buffer.vertex(avector3f[3].x(), avector3f[3].y(), avector3f[3].z()).uv(f6, f5).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
+    }
+
+    private Quaternionf getRotationTowards(Quaternionf source, Vec3 dir) {
+        float yaw = (float) Math.atan2(dir.x, dir.z);
+        float pitch = (float) Math.atan2(-dir.y, Math.sqrt(dir.x * dir.x + dir.z * dir.z));
+        return new Quaternionf(source)
+                .rotationY(yaw)
+                .rotateX(pitch);
     }
 
     private void renderVertex(
             VertexConsumer buffer,
-            Quaternionf quaternion,
-            float x,
-            float y,
-            float z,
-            float xOffset,
-            float yOffset,
-            float quadSize,
-            float u,
-            float v,
+            Vector3f[] face,
+            float u0,
+            float u1,
+            float v0,
+            float v1,
             int packedLight
     ) {
-
-
-        Vector3f vector3f = new Vector3f(xOffset, yOffset, 0.0F).rotate(quaternion).mul(quadSize).add(x, y, z);
-//        BloodyBitsMod.LOGGER.info("renderVertex: {}", vector3f);
-        buffer.vertex(vector3f.x(), vector3f.y(), vector3f.z())
-                .uv(u, v)
-                .color(this.rCol, this.gCol, this.bCol, this.alpha)
-                .uv2(packedLight);
+        buffer.vertex(face[0].x(), face[0].y(), face[0].z()).uv(u1, v1).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(packedLight).endVertex();
+        buffer.vertex(face[1].x(), face[1].y(), face[1].z()).uv(u1, v0).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(packedLight).endVertex();
+        buffer.vertex(face[2].x(), face[2].y(), face[2].z()).uv(u0, v0).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(packedLight).endVertex();
+        buffer.vertex(face[3].x(), face[3].y(), face[3].z()).uv(u0, v1).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(packedLight).endVertex();
     }
 
     @Override
     public @NotNull ParticleRenderType getRenderType() {
-        return this.underwater ? ParticleRenderType.PARTICLE_SHEET_TRANSLUCENT : ParticleRenderType.PARTICLE_SHEET_OPAQUE;
+        return ParticleRenderType.PARTICLE_SHEET_TRANSLUCENT;
     }
 
     @OnlyIn(Dist.CLIENT)
-        public record Provider(SpriteSet sprites)
-            implements ParticleProvider<SimpleParticleType>, BloodEmitterParticle.VariantFactory {
+    public record Provider(SpriteSet sprites) implements ParticleProvider<BloodSprayParticleOptions> {
 
-            @Override
-            public Particle createParticle(SimpleParticleType particleType, ClientLevel level,
-                                           double x, double y, double z,
-                                           double dx, double dy, double dz) {
-                return new BloodSprayParticle(level, x, y, z,
-                        this.sprites, ParticleRegistry.DEFAULT_BLOOD_COLOR,
-                        1f, dx, dy, dz);
-            }
-
-            @Override
-            public Particle create(BloodSprayParticleOptions options, ClientLevel level,
-                                   double x, double y, double z,
-                                   double dx, double dy, double dz) {
-                return new BloodSprayParticle(level, x, y, z, this.sprites, options.color(), options.scale(),
-                        options.direction().x, options.direction().y, options.direction().z);
-            }
+        @Override
+        public Particle createParticle(@NotNull BloodSprayParticleOptions options, @NotNull ClientLevel level,
+                                       double x, double y, double z,
+                                       double dx, double dy, double dz) {
+            return new BloodSprayParticle(
+                    level, x, y, z,
+                    this.sprites, options.color(),
+                    options.scale(), options.direction().x, options.direction().y, options.direction().z);
         }
+    }
 }

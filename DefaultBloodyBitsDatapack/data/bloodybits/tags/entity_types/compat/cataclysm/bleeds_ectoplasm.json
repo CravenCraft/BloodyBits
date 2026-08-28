@@ -1,0 +1,25 @@
+{
+  "replace": false,
+  "values": [
+    {
+      "id": "cataclysm:draugr",
+      "required": false
+    },
+    {
+      "id": "cataclysm:elite_draugr",
+      "required": false
+    },
+    {
+      "id": "cataclysm:royal_draugr",
+      "required": false
+    },
+    {
+      "id": "cataclysm:maledictus",
+      "required": false
+    },
+    {
+      "id": "cataclysm:aptrgangr",
+      "required": false
+    }
+  ]
+}

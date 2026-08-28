@@ -3,11 +3,8 @@ package com.cravencraft.bloodybits;
 import com.cravencraft.bloodybits.config.ClientConfig;
 import com.cravencraft.bloodybits.config.CommonConfig;
 import com.cravencraft.bloodybits.registries.ParticleRegistry;
-import com.cravencraft.bloodybits.sounds.BloodyBitsSounds;
 import com.mojang.logging.LogUtils;
-import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.ModContainer;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
@@ -29,10 +26,6 @@ public class BloodyBitsMod {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
         ParticleRegistry.register(modEventBus);
-        BloodyBitsSounds.register(modEventBus);
-
-//        NeoForge.EVENT_BUS.register(this);
-//        MinecraftForge.EVENT_BUS.register(this);
 
         // Register our mod's ModConfigSpec so that FML can create and load the config file for us
         ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, ClientConfig.SPEC);

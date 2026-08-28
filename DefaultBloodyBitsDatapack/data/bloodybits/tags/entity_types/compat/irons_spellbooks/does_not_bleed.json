@@ -1,0 +1,25 @@
+{
+  "replace": false,
+  "values": [
+    {
+      "id": "irons_spellbooks:dead_king",
+      "required": false
+    },
+    {
+      "id": "irons_spellbooks:summoned_skeleton",
+      "required": false
+    },
+    {
+      "id": "irons_spellbooks:cursed_armor_stand",
+      "required": false
+    },
+    {
+      "id": "irons_spellbooks:citadel_keeper",
+      "required": false
+    },
+    {
+      "id": "irons_spellbooks:ice_spider",
+      "required": false
+    }
+  ]
+}
