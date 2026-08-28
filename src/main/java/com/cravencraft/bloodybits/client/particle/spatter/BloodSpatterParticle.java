@@ -1,5 +1,6 @@
 package com.cravencraft.bloodybits.client.particle.spatter;
 
+import com.cravencraft.bloodybits.client.particle.spray.BloodSprayParticleOptions;
 import com.cravencraft.bloodybits.config.ClientConfig;
 import com.cravencraft.bloodybits.client.particle.drip.BloodDripParticleOptions;
 import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
@@ -57,6 +58,7 @@ public class BloodSpatterParticle extends TextureSheetParticle {
     private int startDepth;
     private int endDepth;
     private boolean shouldDrip;
+    private boolean hasDripped;
     private int dripAge;
 
     // First four parameters are self-explanatory. The SpriteSet parameter is provided by the
@@ -68,7 +70,7 @@ public class BloodSpatterParticle extends TextureSheetParticle {
         this.xd = xSpeed;
         this.yd = ySpeed;
         this.zd = zSpeed;
-        this.quadSize = 1.5f * scale;
+        this.quadSize = scale + 0.25f;
         this.gravity = 0.0f;
         this.lifetime = ClientConfig.getBloodSpatterLifeTime();
         this.setSize(1.0f, 1.0f);
@@ -118,7 +120,8 @@ public class BloodSpatterParticle extends TextureSheetParticle {
         // If the current age reaches the fadeThreshold, then decrease the quad size while fading the alpha.
         if (f > fadeThreshold) {
             quadSize *= (float) Mth.smoothstep(1.0 - Math.max(f - fadeThreshold - 60, 0) / fadeoutTime);
-            this.alpha = 1.0F - Mth.clamp((f - fadeThreshold) / fadeoutTime, 1f - INITIAL_ALPHA, 1F);
+//            var alphaSubtractAmount = Mth.clamp((f - fadeThreshold) / fadeoutTime, 1f - INITIAL_ALPHA, 1F);
+            this.alpha = 1.0F - Math.clamp((f - fadeThreshold) / fadeoutTime, 1f - INITIAL_ALPHA, 1F);
         }
 
         this.spatterQuadSize = quadSize;
@@ -632,10 +635,23 @@ public class BloodSpatterParticle extends TextureSheetParticle {
 
         if (this.shouldDrip) {
             if (this.direction == Direction.UP) {
-                this.level.addAlwaysVisibleParticle(
-                        new BloodDripParticleOptions(this.color, Direction.UP.get3DDataValue(), this.alpha),
-                        true, this.x, this.y, this.z,
-                        0.0D, 0.0D, 0.0D);
+                var dripDirection = new Vec3(0.0F, -0.5F, 0.0F);
+
+                if (this.hasDripped) {
+                    this.level.addAlwaysVisibleParticle(
+                            new BloodDripParticleOptions(this.color, Direction.UP.get3DDataValue(), this.alpha),
+                            true, this.x, this.y, this.z,
+                            0.0D, 0.0D, 0.0D);
+                }
+                else {
+                    this.level.addAlwaysVisibleParticle(
+                            new BloodSprayParticleOptions(this.color, dripDirection, 0.5F),
+                            true, this.x, this.y, this.z,
+                            0.0D, 0.0D, 0.0D);
+
+                    this.hasDripped = true;
+                }
+
                 this.shouldDrip = false;
                 this.dripAge = 0;
             }
@@ -669,7 +685,8 @@ public class BloodSpatterParticle extends TextureSheetParticle {
                                                 double x, double y, double z,
                                                 double xSpeed, double ySpeed, double zSpeed) {
             // We don't use the type and speed, and pass in everything else. You may of course use them if needed.
-            return new BloodSpatterParticle(level, x, y, z,
+            return new BloodSpatterParticle(
+                    level, x, y, z,
                     this.spriteSet, options.color(), options.direction(),
                     options.scale(), xSpeed, ySpeed, zSpeed);
         }
