@@ -7,6 +7,21 @@
 When an entity is attacked, it will produce a certain amount blood spray particles at a certain velocity depending on 
 attack damage. These particles will spatter onto almost all surfaces regardless of shape.
 
+### Blood Mist
+When an entity is hit by a certain damage type (By default, this is arrows with mod support for TACZ and Scorched Guns),
+they will produce a blood mist. The size of the mist is configurable, and if the killing blow is dealt with a blood mist
+damage type then the mist produced will be double the size. I was looking into some more realistic war movies, and how
+[BlockFront](https://www.curseforge.com/minecraft/mc-mods/blockfront-world-war-ii) implements their blood, and wanted
+to emulate something similar.
+![blood_mist.gif](screenshots/blood_mist.gif)
+![blood_mist_combat.gif](screenshots/blood_mist_combat.gif)
+Most of the (1.20.1 - Forge) mods used in the above gifs:
+- [TaCZ](https://www.curseforge.com/minecraft/mc-mods/timeless-and-classics-zero)
+- [TaCZ: Simple Enemy](https://www.curseforge.com/minecraft/mc-mods/tacz-simple-enemy)
+- [Ragdollified](https://www.curseforge.com/minecraft/mc-mods/ragdollified)
+- [No Hurt Flash](https://www.curseforge.com/minecraft/mc-mods/no-hurt-flash-reforged)
+- [No Poof](https://www.curseforge.com/minecraft/mc-mods/no-poof)
+
 ### Blood Drip
 ![v2_blood_drip.gif](screenshots/v2_blood_drip.gif)
 The blood spatters will also

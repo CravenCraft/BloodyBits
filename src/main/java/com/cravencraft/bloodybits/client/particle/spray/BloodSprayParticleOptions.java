@@ -10,6 +10,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.NotNull;
 
 public record BloodSprayParticleOptions(String color, Vec3 direction, float scale) implements ParticleOptions {
 
@@ -40,7 +41,7 @@ public record BloodSprayParticleOptions(String color, Vec3 direction, float scal
     }
 
     @Override
-    public ParticleType<?> getType() {
-        return ParticleRegistry.BLOOD_EMITTER.get();
+    public @NotNull ParticleType<?> getType() {
+        return ParticleRegistry.BLOOD_SPRAY_PARTICLE.get();
     }
 }
