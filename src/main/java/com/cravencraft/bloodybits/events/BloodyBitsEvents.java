@@ -4,7 +4,6 @@ import com.cravencraft.bloodybits.BloodyBitsMod;
 import com.cravencraft.bloodybits.client.particle.mist.BloodMistParticleOptions;
 import com.cravencraft.bloodybits.config.CommonConfig;
 import com.cravencraft.bloodybits.client.particle.spray.BloodSprayParticleOptions;
-import com.cravencraft.bloodybits.registries.ParticleRegistry;
 import com.cravencraft.bloodybits.utils.BloodyBitsUtils;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -15,12 +14,10 @@ import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.SwordItem;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.entity.living.LivingDamageEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.level.ExplosionEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -28,36 +25,6 @@ import net.minecraftforge.fml.common.Mod;
 
 @Mod.EventBusSubscriber(modid = BloodyBitsMod.MODID)
 public class BloodyBitsEvents {
-
-    // TODO: Comment out or remove before final build.
-    @SubscribeEvent
-    public static void rightClickBlockMakeBloodSpray(PlayerInteractEvent.RightClickBlock event) {
-
-        if (event.getEntity().level() instanceof ServerLevel serverLevel) {
-            if (event.getItemStack().getItem() instanceof SwordItem swordItem) {
-                var server = serverLevel.getServer();
-                var center = event.getPos().getCenter();
-                var bloodColor = ParticleRegistry.DEFAULT_BLOOD_COLOR;
-                var sprayVector = new Vec3(0,1,0);
-
-                server.getPlayerList().getPlayers().forEach(player -> (serverLevel)
-                        .sendParticles(
-                                player,
-                                new BloodSprayParticleOptions(bloodColor, sprayVector, 0.5F),
-                                true,
-                                center.x,
-                                center.y + 1.0F,
-                                center.z,
-                                1,
-                                0,
-                                0,
-                                0,
-                                0.2
-                        )
-                );
-            }
-        }
-    }
 
     /**
      * Looks for all the players on a given server and creates blood sprays if the damage event is
