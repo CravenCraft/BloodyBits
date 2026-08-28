@@ -25,7 +25,7 @@ public class CommonConfig {
                 .comment("Enable this debug to view damage types inflicted on entities in the player chat." +
                         " Useful for determining the exact damage type to add to the BLACKLIST_DAMAGE_SOURCES " +
                         "and BLOOD_MIST_DAMAGE_SOURCES config lists.")
-                .define("damageTypeDebug", false);
+                .define("damage_type_debug", false);
 
         BLOOD_SPRAY_DAMAGE_CAP = BUILDER
                 .comment("The damage cap for the amount of blood sprays produced per hit.")
