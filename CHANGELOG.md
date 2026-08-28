@@ -9,6 +9,7 @@
 - Blood sprays are now 3D similar to V1.3.4.
 - Blood mist particles will be double the size on a killing blow.
 - Silver Fish is now registered to bleed green by default.
+- Bugfix for issue: [#53](https://github.com/CravenCraft/BloodyBits/issues/53)
 
 ## V2.0.2 Datapack Structure Hotfix
 - Fixed an issue with the built-in datapack structure. Changes `entity_type` to `entity_types` to be compliant with 
