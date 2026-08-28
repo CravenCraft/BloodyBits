@@ -183,7 +183,7 @@ public class BloodyBitsEvents {
         var forceVector = new Vec3( 1 + force, 1 + force, 1 + force);
 
         int bloodSprayCount = (int) Math.max(1, damageAmount / ((float) damageCap / CommonConfig.getBloodSprayMaxPerHit()));
-        for (int i = 0; i < 30; i++) {
+        for (int i = 0; i < bloodSprayCount; i++) {
             var randomVector = BloodyBitsUtils.getRandomSignVectorVariance(min, max);
             var modifiedSprayVector = sprayVector.add(randomVector).multiply(forceVector);
 

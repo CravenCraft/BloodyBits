@@ -69,18 +69,12 @@ public class BloodSprayParticle extends TextureSheetParticle {
         this.collisionVector = new Vec3(xd, yd, zd);
         this.quadSize = 0.1f;
         this.spatterSize = scale;
-//        this.quadSize *= 0.25f + (float) Math.random();
-//        this.scale(scale * 2.5f);
-        this.lifetime = 200;
+        this.lifetime = 100;
         this.friction = (BloodyBitsEvents.isConfigLoaded) ? (float) ClientConfig.getBloodSprayFriction() : FALLBACK_BLOOD_SPRAY_FRICTION;
         this.maxVelocity = FALLBACK_MAX_VELOCITY;
         this.gravity = 1.0F;
         this.maxLength = 5.0F;
         this.maxThickness = 1.0F;
-        this.quadSize *= 0.25f + (float) Math.random();
-        this.scale(scale * 2.5f);
-        this.lifetime = 40;
-        this.gravity = 1f;
         this.pickSprite(spriteSet);
         this.rCol = BloodyBitsUtils.normalizeColorValue(HexFormat.fromHexDigits(color, 1, 3));
         this.gCol = BloodyBitsUtils.normalizeColorValue(HexFormat.fromHexDigits(color, 3, 5));
@@ -198,11 +192,12 @@ public class BloodSprayParticle extends TextureSheetParticle {
         if (this.underwater) {
             this.alpha -= 0.005f;
             scale(1.005f);
-            if (this.alpha < .1) {
+            if (this.alpha < 0.1F) {
                 remove();
                 return;
             }
         }
+
         this.renderRotatedQuad(buffer, renderInfo, partialTicks);
     }
 
